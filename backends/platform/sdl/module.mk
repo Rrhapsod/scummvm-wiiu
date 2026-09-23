@@ -92,6 +92,12 @@ MODULE_OBJS += \
 	switch/switch.o
 endif
 
+ifdef WIIU
+MODULE_OBJS += \
+	wiiu/wiiu-main.o \
+	wiiu/wiiu.o
+endif
+
 ifdef EMSCRIPTEN
 MODULE_OBJS += \
 	emscripten/emscripten-main.o \

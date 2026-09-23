@@ -697,7 +697,7 @@ get_system_exe_extension() {
 	riscos)
 		_exeext=",e1f"
 		;;
-	3ds | dreamcast | ds | gamecube | n64 | psp | switch | wii)
+	3ds | dreamcast | ds | gamecube | n64 | psp | switch | wii | wiiu)
 		_exeext=".elf"
 		;;
 	kolibrios | kos32)
@@ -943,7 +943,7 @@ Configuration:
   -h, --help               display this help and exit
   --backend=BACKEND        backend to build (3ds, atari, android, dc, ds, ios7,
                            maemo, n64, null, opendingux, openpandora, psp, psp2,
-                           samsungtv, sdl, switch, wii) [sdl]
+                           samsungtv, sdl, switch, wii, wiiu) [sdl]
 
 Installation directories:
   --prefix=PREFIX          install architecture-independent files in PREFIX
@@ -999,6 +999,7 @@ Special configuration feature:
                                             tvos for Apple TV (tvOS 9.0+)
                                             wasm32-unknown-emscripten for WebAssembly
                                             wii for Nintendo Wii
+                                            wiiu for Nintendo Wii U / Aroma
 
 Game engines:
   --enable-all-engines     enable all engines, including those which are broken
@@ -2022,6 +2023,13 @@ wasm32-*)
 	datadir='/data'
 	CXX="em++"
 	;;
+wiiu)
+	_host_os=wiiu
+	_host_cpu=powerpc
+	_host_alias=powerpc-eabi
+	test "x$prefix" = xNONE && prefix=/vol/external01/scummvm
+	datadir='/vol/external01/scummvm/data'
+	;;
 wii)
 	_host_os=wii
 	_host_cpu=powerpc
@@ -2118,6 +2126,33 @@ android)
 	fi
 	;;
 
+wiiu)
+	if test -z "$DEVKITPRO"; then
+		echo "Please set DEVKITPRO to your Wii U SDK directory."
+		exit 1
+	fi
+	DEVKITPPC=${DEVKITPPC:-$DEVKITPRO/devkitPPC}
+	WUT_ROOT=${WUT_ROOT:-$DEVKITPRO/wut}
+	export DEVKITPPC WUT_ROOT
+	if test ! -x "$DEVKITPPC/bin/powerpc-eabi-g++" || test ! -f "$WUT_ROOT/lib/libwut.a"; then
+		echo "Wii U requires devkitPPC and WUT (check DEVKITPPC and WUT_ROOT)."
+		exit 1
+	fi
+	PATH="$DEVKITPPC/bin:$DEVKITPRO/tools/bin:$PATH"
+	export PATH
+	CXX=${CXX:-$DEVKITPPC/bin/powerpc-eabi-g++}
+	_pkgconfig="$DEVKITPRO/portlibs/wiiu/bin/powerpc-eabi-pkg-config"
+	_sdlpath="$DEVKITPRO/portlibs/wiiu/bin"
+	_sdlconfig=sdl2-config
+	_prefer_sdl3=no
+	if test ! -x "$_sdlpath/$_sdlconfig" || test ! -x "$_pkgconfig"; then
+		echo "Wii U requires target SDL2 and powerpc-eabi-pkg-config."
+		exit 1
+	fi
+	PKG_CONFIG_LIBDIR="$DEVKITPRO/portlibs/wiiu/lib/pkgconfig:$DEVKITPRO/portlibs/ppc/lib/pkgconfig"
+	PKG_CONFIG_PATH=
+	export PKG_CONFIG_LIBDIR PKG_CONFIG_PATH
+	;;
 ds | gamecube | switch | wii)
 	if test -z "$DEVKITPRO"; then
 		echo "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to devkitPRO>"
@@ -2556,7 +2591,7 @@ if test "$have_gcc" = yes ; then
 	case $_host_os in
 	# newlib-based system include files suppress non-C89 function
 	# declarations under __STRICT_ANSI__, undefine it
-	3ds | android | gamecube | kolibrios | psp | switch | wii)
+	3ds | android | gamecube | kolibrios | psp | switch | wii | wiiu)
 		std_variant=gnu++
 		pedantic=no
 		;;
@@ -2905,6 +2940,9 @@ case $_host_cpu in
 		_need_memalign=yes
 		;;
 esac
+if test "$_host_os" = wiiu; then
+	_need_memalign=yes
+fi
 if test "$_enable_ubsan" = yes ; then
 	# UBSan implies -fsanitize=alignment, so avoid false positives.
 	_need_memalign=yes
@@ -3663,6 +3701,15 @@ EOF
 			_optimization_level=-O3
 		fi
 		;;
+	wiiu)
+		append_var DEFINES "-DWIIU -D__WIIU__ -D__WUT__ -DESPRESSO"
+		append_var CXXFLAGS "-mcpu=750 -meabi -mhard-float -ffunction-sections -fdata-sections"
+		append_var CXXFLAGS "-I$WUT_ROOT/include -I$DEVKITPRO/portlibs/ppc/include"
+		append_var LDFLAGS "-mcpu=750 -meabi -mhard-float -specs=$WUT_ROOT/share/wut.specs"
+		append_var LDFLAGS "-L$WUT_ROOT/lib -L$DEVKITPRO/portlibs/wiiu/lib -L$DEVKITPRO/portlibs/ppc/lib"
+		append_var LIBS "-lwut -lm"
+		add_line_to_config_mk 'WIIU = 1'
+		;;
 	wii)
 		_optimization_level=-Os
 		append_var CXXFLAGS "-mrvl"
@@ -4233,6 +4280,36 @@ if test -n "$_host"; then
 			_timidity=no
 			_port_mk="backends/platform/sdl/switch/switch.mk"
 			;;
+		wiiu)
+			_backend=wiiu
+			_port_mk="backends/platform/sdl/wiiu/wiiu.mk"
+			_dynamic_modules=no
+			_plugins_default=static
+			_opengl_mode=none
+			_opengl_game_classic=no
+			_opengl_game_shaders=no
+			_tinygl=no
+			_sdlnet=no
+			_libcurl=no
+			_enet=no
+			_cloud=no
+			_curl=no
+			_discord=no
+			_tts=no
+			_imgui=no
+			_taskbar=no
+			_dialogs=no
+			_printing=no
+			_gtk=no
+			_libunity=no
+			_alsa=no
+			_seq_midi=no
+			_sndio=no
+			_timidity=no
+			_readline=no
+			_retrowave=no
+			_nfm=no
+			;;
 		wii)
 			_backend="wii"
 			_build_scalers=no
@@ -4414,7 +4491,7 @@ case $_backend in
 	sdl)
 		_sdl=auto
 		;;
-	switch)
+	switch | wiiu)
 		_sdl=auto
 		append_var MODULES "backends/platform/sdl"
 		;;

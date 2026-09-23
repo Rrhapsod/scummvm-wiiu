@@ -549,6 +549,14 @@ MODULE_OBJS += \
 	events/switchsdl/switchsdl-events.o
 endif
 
+ifeq ($(BACKEND),wiiu)
+MODULE_OBJS += \
+	fs/posix/posix-fs.o \
+	fs/posix/posix-iostream.o \
+	fs/posix-drives/posix-drives-fs.o \
+	fs/posix-drives/posix-drives-fs-factory.o
+endif
+
 ifdef ENABLE_EVENTRECORDER
 MODULE_OBJS += \
 	saves/recorder/recorder-saves.o

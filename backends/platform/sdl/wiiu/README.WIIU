@@ -1,0 +1,46 @@
+ScummVM Wii U / Aroma — experimental SDL2 port
+=============================================
+
+Requires devkitPPC, WUT, the devkitPro Wii U SDL2 port, target zlib and
+wut-tools (elf2rpl and wuhbtool). DEVKITPRO must identify the same SDK used
+to build SDL2; DEVKITPPC and WUT_ROOT may be set explicitly.
+
+Build outside the source tree, after activating the SDK:
+  /path/to/scummvm/configure --host=wiiu --disable-all-engines \
+    --enable-engine=scumm --disable-detection-full --disable-mt32emu
+  make -j2 wiiu_release
+
+The existing ScummVM SDL backend supplies software rendering, mixer,
+events, timers and mutexes. SDL handles GX2, audio and ProcUI. Static
+engines only. No RetroArch, networking or OpenGL is used.
+
+Copy the CONTENTS of wiiu_release/ onto the SD card. Merge directories:
+do not replace an existing scummvm directory or delete existing saves.
+  wiiu/apps/ScummVM.wuhb
+  scummvm/data/          themes, translations and enabled engine data
+  scummvm/doc/           licenses and this document
+
+Start ScummVM from the Wii U Menu under Aroma. The backend creates:
+  scummvm/scummvm.ini
+  scummvm/scummvm.log    overwritten at the next launch; copy before retrying
+  scummvm/saves/
+
+Games are not included; browse the SD using Add Game.
+WUT paths are /vol/external01/... (not sd:/... in configuration files).
+The GamePad is joystick 0. Touch uses ScummVM's existing SDL finger
+handling, with direct positioning by default. GameController mappings
+and ScummVM keymaps supply buttons and the virtual mouse. Use launcher
+Quit or HOME to exit; verify HOME/return before testing long sessions.
+Negative joystick indices are overridden because opening the GamePad is
+also required for touchscreen events.
+
+Validation:
+- SDK smoke test: user-tested on a real Wii U (video, input, touch, audio,
+  SD, zlib, timer/thread, HOME/return and clean shutdown).
+- ScummVM integration: cross-build validation only until the user tests
+  this artifact. Launcher, configuration, saves and games remain unverified
+  on hardware. Copy scummvm/scummvm.log before a second launch.
+
+Initial test: launch, navigate with touch and GamePad, change an option,
+quit, relaunch and verify that the option persisted. Report image/input
+issues and send the log. Test games and save/load only after the launcher.
