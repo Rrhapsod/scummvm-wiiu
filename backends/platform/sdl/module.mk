@@ -95,6 +95,7 @@ endif
 ifdef WIIU
 MODULE_OBJS += \
 	wiiu/wiiu-main.o \
+	wiiu/wiiu-events.o \
 	wiiu/wiiu.o
 endif
 

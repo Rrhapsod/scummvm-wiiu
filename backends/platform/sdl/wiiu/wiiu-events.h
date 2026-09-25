@@ -19,23 +19,36 @@
  *
  */
 
+#ifndef PLATFORM_SDL_WIIU_EVENTS_H
+#define PLATFORM_SDL_WIIU_EVENTS_H
 
-#ifndef PLATFORM_SDL_WIIU_H
-#define PLATFORM_SDL_WIIU_H
+#include "backends/events/sdl/sdl-events.h"
+#include "common/ustr.h"
 
-#include "backends/platform/sdl/sdl.h"
-
-class OSystem_WiiU : public OSystem_SDL {
+class WiiUEventSource : public SdlEventSource {
 public:
-	void init() override;
-	void initBackend() override;
-	bool hasFeature(Feature f) override;
-	void setFeatureState(Feature f, bool enable) override;
-	bool getFeatureState(Feature f) override;
+	WiiUEventSource();
+	bool pollEvent(Common::Event &event) override;
+	bool allowMapping() const override { return !_nativeKeyEvent; }
+	void setKeyboardVisible(bool visible);
+	bool isKeyboardActive() const { return _keyboardActive; }
 
 protected:
-	Common::Path getDefaultConfigFileName() override;
-	Common::Path getDefaultLogFileName() override;
+	bool dispatchSDLEvent(SDL_Event &ev, Common::Event &event) override;
+
+private:
+	bool pollKeyboardEvent(Common::Event &event);
+	void closeKeyboard();
+	bool _keyboardActive = false;
+	bool _keyboardWasShown = false;
+	bool _inSubmission = false;
+	bool _acceptText = false;
+	bool _keyUpPending = false;
+	bool _nativeKeyEvent = false;
+	Common::KeyState _lastKey;
+	Common::U32String _text;
+	uint32 _textPos = 0;
+	uint32 _nextKeyTime = 0;
 };
 
 #endif

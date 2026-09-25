@@ -17,5 +17,6 @@ wiiu_release: ScummVM.wuhb
 	if test -n "$(DIST_FILES_VKEYBD)"; then cp $(DIST_FILES_VKEYBD) wiiu_release/scummvm/data/; fi
 	cp $(srcdir)/COPYING $(srcdir)/COPYRIGHT $(srcdir)/AUTHORS wiiu_release/scummvm/doc/
 	cp $(srcdir)/backends/platform/sdl/wiiu/README.WIIU wiiu_release/scummvm/doc/
+	cp $(srcdir)/backends/platform/sdl/wiiu/sdl2-swkbd-input.patch wiiu_release/scummvm/doc/
 
 .PHONY: wiiu_release

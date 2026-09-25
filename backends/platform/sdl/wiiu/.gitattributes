@@ -1,0 +1,2 @@
+# Unified diff context keeps the original source indentation and blank lines.
+*.patch -whitespace

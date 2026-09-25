@@ -34,13 +34,40 @@ Quit or HOME to exit; verify HOME/return before testing long sessions.
 Negative joystick indices are overridden because opening the GamePad is
 also required for touchscreen events.
 
+Native keyboard:
+- Fields requesting ScummVM's virtual keyboard feature open the Wii U
+  keyboard on the GamePad. Minus opens it manually via the standard global
+  "Display keyboard" / JOY_BACK binding (unless the user remapped it).
+- OK inserts the submitted text; it does not press Save/Enter for you.
+  Wait for the name to finish appearing before saving. Characters are sent
+  at 100 ms intervals for original SCUMM dialogs that keep one key per tick.
+- Cancel dismisses only the keyboard, without inserting text or sending Esc.
+- The keyboard starts blank and inserts at the receiving field's cursor;
+  the feature API does not provide the existing field contents for editing.
+  Use a new empty save slot for the first test. Original game dialogs have
+  their own length/character restrictions; use plain letters/numbers there.
+- Keep ENABLE_VKEYBD disabled: this uses SDL's native keyboard, not the
+  separate ScummVM keyboard pack. SDL's Wii U SYSWM submission events and
+  multi-chunk UTF-8 text are handled by the small Wii U event adapter.
+- This build also requires the accompanying local SDL GamePad fix for
+  releases consumed by swkbd and for held OK/Cancel input leaking on close.
+  See sdl2-swkbd-input.patch (apply in devkitPro/SDL wiiu-sdl2-2.32).
+
+Default in-game mouse controls: left stick moves, A left-clicks, B
+right-clicks, and holding R slows the pointer. GUI actions can differ.
+
 Validation:
 - SDK smoke test: user-tested on a real Wii U (video, input, touch, audio,
   SD, zlib, timer/thread, HOME/return and clean shutdown).
-- ScummVM integration: cross-build validation only until the user tests
-  this artifact. Launcher, configuration, saves and games remain unverified
-  on hardware. Copy scummvm/scummvm.log before a second launch.
+- Launcher: user-tested on hardware; screenshots and a clean shutdown log
+  received. User also reports Sam & Max Hit the Road and Indiana Jones and
+  the Last Crusade running, saving, with working sound and controls.
+- Native keyboard: new experimental addition; cross-build and mocked host
+  event tests only. Needs real Wii U testing; previous tests do not validate it.
 
-Initial test: launch, navigate with touch and GamePad, change an option,
-quit, relaunch and verify that the option persisted. Report image/input
-issues and send the log. Test games and save/load only after the launcher.
+Keyboard test: create a NEW save with a multi-letter name in both games;
+verify the whole name arrives once, save and reload. Test Cancel without
+changing a name, reopen using Minus repeatedly, and check A/B, stick and
+touch immediately after closing. Also test a launcher text field, HOME
+return, and clean exit. Keep the previous working WUHB/ZIP as a fallback.
+Copy scummvm/scummvm.log before a second launch (it is overwritten).

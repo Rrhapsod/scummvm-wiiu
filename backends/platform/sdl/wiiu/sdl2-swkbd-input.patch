@@ -1,0 +1,61 @@
+diff --git a/src/joystick/wiiu/SDL_wiiujoystick.c b/src/joystick/wiiu/SDL_wiiujoystick.c
+index 4f27b79..80bccd1 100644
+--- a/src/joystick/wiiu/SDL_wiiujoystick.c
++++ b/src/joystick/wiiu/SDL_wiiujoystick.c
+@@ -465,6 +465,8 @@ static void WIIU_JoystickUpdate(SDL_Joystick *joystick)
+ 		static uint16_t last_touch_x = 0;
+ 		static uint16_t last_touch_y = 0;
+ 		static uint16_t last_touched = 0;
++		static uint32_t swkbd_buttons = 0;
++		static SDL_bool swkbd_touch = SDL_FALSE;
+ 
+ 		static int16_t x1_old = 0;
+ 		static int16_t y1_old = 0;
+@@ -490,10 +492,30 @@ static void WIIU_JoystickUpdate(SDL_Joystick *joystick)
+ 		VPADGetTPCalibratedPoint(VPAD_CHAN_0, &vpad.tpNormal, &vpad.tpNormal);
+ 
+ 		if (SDL_WiiUSetSWKBDVPAD(&vpad)) {
+-			/* Do not generate SDL events when the swkbd is consuming the input. */
++			/* Release application input before swkbd consumes its release edges. */
++			for (int i = 0; i < joystick->nbuttons; i++)
++				SDL_PrivateJoystickButton(joystick, (Uint8)i, SDL_RELEASED);
++			for (int i = 0; i < 4; i++)
++				SDL_PrivateJoystickAxis(joystick, (Uint8)i, 0);
++			x1_old = y1_old = x2_old = y2_old = 0;
++			if (last_touched) {
++				SDL_SendTouch(0, 0, WIIU_GetGamepadWindow(), SDL_FALSE,
++						(float) last_touch_x / 1280.0f,
++						(float) last_touch_y / 720.0f, 1);
++				last_touched = 0;
++			}
++			swkbd_buttons = vpad.hold;
++			swkbd_touch = vpad.tpNormal.touched != 0;
+ 			return;
+ 		}
+ 
++		/* Do not leak the keyboard's OK/Cancel press into the application. */
++		swkbd_buttons &= vpad.hold;
++		swkbd_touch = swkbd_touch && vpad.tpNormal.touched;
++		vpad.hold &= ~swkbd_buttons;
++		if (swkbd_touch)
++			vpad.tpNormal.touched = 0;
++
+ 		if (vpad.tpNormal.touched) {
+ 			SDL_Window *window = WIIU_GetGamepadWindow();
+ 			if (!last_touched) {
+@@ -545,12 +567,10 @@ static void WIIU_JoystickUpdate(SDL_Joystick *joystick)
+ 		}
+ 
+ 		/* buttons */
++		/* Reconcile held state: release edges may have occurred inside swkbd. */
+ 		for(int i = 0; i < joystick->nbuttons; i++)
+-			if (vpad.trigger & vpad_button_map[i])
+-				SDL_PrivateJoystickButton(joystick, (Uint8)i, SDL_PRESSED);
+-		for(int i = 0; i < joystick->nbuttons; i++)
+-			if (vpad.release & vpad_button_map[i])
+-				SDL_PrivateJoystickButton(joystick, (Uint8)i, SDL_RELEASED);
++			SDL_PrivateJoystickButton(joystick, (Uint8)i,
++					(vpad.hold & vpad_button_map[i]) ? SDL_PRESSED : SDL_RELEASED);
+ 	} else if (
+ 		joystick->instance_id == WIIU_GetInstForDevice(WIIU_DEVICE_WPAD(0)) ||
+ 		joystick->instance_id == WIIU_GetInstForDevice(WIIU_DEVICE_WPAD(1)) ||

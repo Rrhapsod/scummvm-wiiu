@@ -21,6 +21,7 @@
 
 
 #include "backends/platform/sdl/wiiu/wiiu.h"
+#include "backends/platform/sdl/wiiu/wiiu-events.h"
 #include "backends/fs/posix-drives/posix-drives-fs-factory.h"
 #include "backends/saves/default/default-saves.h"
 #include "common/config-manager.h"
@@ -60,15 +61,33 @@ void OSystem_WiiU::initBackend() {
 
 	if (!_savefileManager)
 		_savefileManager = new DefaultSaveFileManager(Common::Path(kDataRoot).join("saves"));
+	_eventSource = new WiiUEventSource();
 	OSystem_SDL::initBackend();
 	debug(0, "Wii U SDL backend initialized; config and saves under %s", kDataRoot);
 }
 
 bool OSystem_WiiU::hasFeature(Feature f) {
+	if (f == kFeatureVirtualKeyboard)
+		return SDL_HasScreenKeyboardSupport() == SDL_TRUE;
 	if (f == kFeatureFullscreenMode || f == kFeatureIconifyWindow ||
 	    f == kFeatureClipboardSupport || f == kFeatureOpenUrl)
 		return false;
 	return OSystem_SDL::hasFeature(f);
+}
+
+void OSystem_WiiU::setFeatureState(Feature f, bool enable) {
+	if (f == kFeatureVirtualKeyboard) {
+		if (_eventSource)
+			static_cast<WiiUEventSource *>(_eventSource)->setKeyboardVisible(enable);
+		return;
+	}
+	OSystem_SDL::setFeatureState(f, enable);
+}
+
+bool OSystem_WiiU::getFeatureState(Feature f) {
+	if (f == kFeatureVirtualKeyboard)
+		return _eventSource && static_cast<WiiUEventSource *>(_eventSource)->isKeyboardActive();
+	return OSystem_SDL::getFeatureState(f);
 }
 
 Common::Path OSystem_WiiU::getDefaultConfigFileName() {
