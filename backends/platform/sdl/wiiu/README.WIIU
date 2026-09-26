@@ -14,6 +14,11 @@ The existing ScummVM SDL backend supplies software rendering, mixer,
 events, timers and mutexes. SDL handles GX2, audio and ProcUI. Static
 engines only. No RetroArch, networking or OpenGL is used.
 
+The output filename is ScummVM.wuhb. Both the long and short Wii U Menu
+names are ScummVM, without a version suffix. The menu icon reuses the
+upstream 128x128 ScummVM asset at dists/psp2/icon0.png; no new artwork or
+external image conversion tool is required. wuhbtool embeds the icon.
+
 Copy the CONTENTS of wiiu_release/ onto the SD card. Merge directories:
 do not replace an existing scummvm directory or delete existing saves.
   wiiu/apps/ScummVM.wuhb
@@ -62,8 +67,17 @@ Validation:
 - Launcher: user-tested on hardware; screenshots and a clean shutdown log
   received. User also reports Sam & Max Hit the Road and Indiana Jones and
   the Last Crusade running, saving, with working sound and controls.
-- Native keyboard: new experimental addition; cross-build and mocked host
-  event tests only. Needs real Wii U testing; previous tests do not validate it.
+- Native keyboard: user reported successful real Wii U testing on
+  September 26, 2026, after the keyboard-enabled build was delivered.
+- Menu name/icon: packaging-only update after those tests; inspect the
+  ScummVM label and green ScummVM icon on the Wii U Menu on next launch.
+
+The local SDK used devkitPPC r50 (GCC 16.1.0/newlib 4.6), WUT v1.9.1,
+devkitPro SDL2 2.32.7 (wiiu-sdl2-2.32, a8f1e43a), zlib 1.3.2 and
+wut-tools 1.3.4. Besides sdl2-swkbd-input.patch, the local SDK has compatibility
+changes: WUT lock_try_acquire_recursive returns int to match newlib; WUT's
+Makefile uses -Wno-error=format; SDL's KPADReadEx error variable uses
+KPADError instead of int32_t. Account for these when reproducing this SDK.
 
 Keyboard test: create a NEW save with a multi-letter name in both games;
 verify the whole name arrives once, save and reload. Test Cancel without
