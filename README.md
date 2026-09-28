@@ -28,14 +28,29 @@ supported by desktop ScummVM. Games are not included.
 
 ## Requirements
 
-- A Wii U with Aroma already configured.
-- A Wii U GamePad and an SD card accessible to Aroma.
+- For the WUHB package: a Wii U with Aroma already configured.
+- For RPX testing: an existing Wii U Homebrew Launcher/loader with RPX support
+  (see the experimental package instructions below).
+- A Wii U GamePad and an SD card accessible to the selected environment.
 - Your own game data files for a game supported by the included SCUMM engine.
 
 Other controller types have not been validated for this port. Keep backups of
 your saves when testing an experimental build.
 
-## Installation
+## Choose a download
+
+| Package | Intended use | Validation |
+| --- | --- | --- |
+| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | User-tested on real hardware |
+| `ScummVM-wiiu-rpx-experimental.zip` | Community testing with a non-Aroma Wii U Homebrew Launcher/loader that supports RPX | **Not yet tested outside Aroma** |
+
+Both packages include the same executable and required data in different
+launcher layouts. Choose one; you do not need both on the SD card. The RPX is
+not a WUP installer, a Wii/vWii app, or a guarantee of compatibility with every
+homebrew environment. For RPX installation and reporting instructions, read the
+[RPX testing guide](backends/platform/sdl/wiiu/README.RPX.md).
+
+## Installation (Aroma)
 
 1. Open the [Releases page](https://github.com/Rrhapsod/scummvm-wiiu/releases)
    and download the Wii U installation ZIP attached to a release. GitHub's
@@ -124,8 +139,9 @@ buttons, audio, SD access and HOME background/return behavior.
 
 These are tests of specific scenarios, **not full-game completion reports or
 a guarantee that every game/version works**. Additional community testing is
-welcome. The latest name/icon packaging update still needs visual confirmation
-on a console; it does not change the tested input or game implementation.
+welcome. The ScummVM menu icon was also confirmed working by the maintainer
+on September 28, 2026. **The separate RPX package has not been tested outside
+Aroma.** Please do not describe it as confirmed Tiramisu or legacy support yet.
 
 ## Current limitations
 
@@ -145,6 +161,7 @@ Please report port-specific problems to
 first. Include:
 
 - Release name and the ScummVM version shown in the launcher.
+- Package type (WUHB or RPX), homebrew environment and launcher version.
 - Game title, language, platform and edition, such as floppy or CD/talkie.
 - Steps to reproduce the problem and whether you used touch or buttons.
 - Relevant screenshots and `SD:/scummvm/scummvm.log`.
@@ -169,6 +186,12 @@ cd build-wiiu
   --enable-engine=scumm --disable-detection-full --disable-mt32emu
 make -j2 wiiu_release
 ```
+
+To generate both SD staging trees, use `make -j2 wiiu_release_all` instead.
+The Aroma layout is in `wiiu_release/`; the experimental HBL layout is in
+`wiiu_rpx_release/`, with `wiiu/apps/scummvm/ScummVM.rpx` and `meta.xml`.
+These targets stage files; ZIP archives must be created separately. Neither
+layout contains user configuration, saves or games.
 
 The SD installation tree is generated in `wiiu_release/`. The filename is
 `ScummVM.wuhb`, and both Wii U display names are `ScummVM`. The icon reuses the

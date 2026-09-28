@@ -25,6 +25,13 @@ do not replace an existing scummvm directory or delete existing saves.
   scummvm/data/          themes, translations and enabled engine data
   scummvm/doc/           licenses and this document
 
+For community testing without Aroma, make wiiu_release_all also stages
+wiiu_rpx_release/ with wiiu/apps/scummvm/ScummVM.rpx, meta.xml, the same data
+and documentation, and README-RPX.md. Package the two staging directories
+separately. The RPX is the same executable embedded in the WUHB; it has not
+been verified through Homebrew Launcher or a non-Aroma environment. Do not
+claim legacy compatibility from successful RPX generation alone.
+
 Start ScummVM from the Wii U Menu under Aroma. The backend creates:
   scummvm/scummvm.ini
   scummvm/scummvm.log    overwritten at the next launch; copy before retrying
@@ -69,8 +76,8 @@ Validation:
   the Last Crusade running, saving, with working sound and controls.
 - Native keyboard: user reported successful real Wii U testing on
   September 26, 2026, after the keyboard-enabled build was delivered.
-- Menu name/icon: packaging-only update after those tests; inspect the
-  ScummVM label and green ScummVM icon on the Wii U Menu on next launch.
+- Menu icon: user confirmed successful console testing on September 28, 2026.
+- Standalone RPX through non-Aroma loaders: awaiting community hardware tests.
 
 The local SDK used devkitPPC r50 (GCC 16.1.0/newlib 4.6), WUT v1.9.1,
 devkitPro SDL2 2.32.7 (wiiu-sdl2-2.32, a8f1e43a), zlib 1.3.2 and
