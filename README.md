@@ -7,8 +7,9 @@ Launch **ScummVM** directly from the Wii U Menu and play using the GamePad
 touchscreen or the analog stick and buttons. **No RetroArch required.**
 
 This is an **unofficial, experimental port**, not an official ScummVM release.
-The current Wii U package includes **only the SCUMM engine**, not every engine
-supported by desktop ScummVM. Games are not included.
+The September 30 experimental build includes **SCUMM v0–v6, Mohawk,
+Blade Runner and Groovie**, not every engine supported by desktop ScummVM.
+Earlier packages included only SCUMM v0–v6. Games and MT-32 ROMs are not included.
 
 [Downloads](https://github.com/Rrhapsod/scummvm-wiiu/releases) ·
 [Report a Wii U issue](https://github.com/Rrhapsod/scummvm-wiiu/issues) ·
@@ -23,6 +24,7 @@ supported by desktop ScummVM. Games are not included.
 - **Analog-stick pointer control** with physical left/right mouse buttons.
 - **Native Wii U on-screen keyboard** for text entry and save descriptions.
 - Audio playback through the existing SDL mixer backend.
+- Experimental MP3 decoding (libmad) and integrated MT-32 emulation.
 - Game data browsing, configuration and save files on the SD card.
 - SDL2-based backend; no Libretro frontend or RetroArch dependency.
 
@@ -32,7 +34,7 @@ supported by desktop ScummVM. Games are not included.
 - For RPX testing: an existing Wii U Homebrew Launcher/loader with RPX support
   (see the experimental package instructions below).
 - A Wii U GamePad and an SD card accessible to the selected environment.
-- Your own game data files for a game supported by the included SCUMM engine.
+- Your own game data files for a game supported by an included engine.
 
 Other controller types have not been validated for this port. Keep backups of
 your saves when testing an experimental build.
@@ -41,8 +43,8 @@ your saves when testing an experimental build.
 
 | Package | Intended use | Validation |
 | --- | --- | --- |
-| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | User-tested on real hardware |
-| `ScummVM-wiiu-rpx-experimental.zip` | Community testing with a non-Aroma Wii U Homebrew Launcher/loader that supports RPX | **Not yet tested outside Aroma** |
+| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | Earlier SCUMM builds user-tested; expanded build awaiting hardware tests |
+| RPX experimental ZIP (`ScummVM.rpx`) | Community testing with a non-Aroma Wii U Homebrew Launcher/loader that supports RPX | **Not yet tested outside Aroma** |
 
 Both packages include the same executable and required data in different
 launcher layouts. Choose one; you do not need both on the SD card. The RPX is
@@ -145,14 +147,29 @@ Aroma.** Please do not describe it as confirmed Tiramisu or legacy support yet.
 
 ## Current limitations
 
-- Only the **SCUMM engine** is enabled in the current installation package.
-  The complete desktop ScummVM compatibility list does not describe this build.
-- Optional MP3, Ogg Vorbis and FLAC decoders are not included. Game data that
-  requires those codecs may have missing audio or fail to work as expected.
-- MT-32 emulation, networking and OpenGL/shaders are not enabled.
+- The expanded build targets **Myst (original / Masterpiece), Riven (original),
+  Blade Runner (original), The 7th Guest and The 11th Hour**. Their engines
+  compile, but these games have **not yet been tested on a Wii U** in this build.
+  Modern remakes and enhanced/remastered editions are not promised.
+- SCUMM v7/v8 and HE subengines remain disabled. The complete desktop ScummVM
+  compatibility list does not describe this build.
+- MP3 decoding and MT-32 are compiled in, but audio quality/performance still
+  need console testing. Ogg Vorbis, FLAC and MPEG-2 are not included; editions
+  requiring those optional codecs are outside this build's test scope.
+- Community reports describe freezes after saving/exiting and keyboard
+  confirmation/cancellation in **Fate of Atlantis and The Secret of Monkey
+  Island on Aroma**. The expanded build contains keyboard/lifecycle hardening
+  and diagnostic logging, **not a hardware-confirmed fix**. Back up saves.
+- Networking and OpenGL/shaders are not enabled.
 - Other controllers and untested games or game editions may behave differently.
 - Native keyboard input follows the receiving game's character and length
   restrictions; it is not a synchronized editor for an existing field.
+
+## Expanded build testing and MT-32
+
+Read the [experimental build guide](backends/platform/sdl/wiiu/EXPERIMENTAL.md)
+before replacing your existing executable. It includes the regression checklist,
+codec/engine scope and MT-32 setup. Keep the earlier ZIP for rollback.
 
 ## Reporting issues
 

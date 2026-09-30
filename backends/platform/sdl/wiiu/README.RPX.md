@@ -2,8 +2,9 @@
 
 **For community testing outside Aroma. Compatibility has NOT been verified.**
 
-This package contains the same RPX executable embedded in the hardware-tested
-Aroma WUHB. It does not include runtime changes specifically for other loaders.
+This package contains the same RPX executable embedded in the matching
+Aroma WUHB. The expanded build has not been hardware-tested in either format.
+It does not include runtime changes specifically for other loaders.
 Packaging an RPX is not proof that it works with Tiramisu or any other setup.
 Startup, filesystem access, native keyboard, audio and application lifecycle
 may differ between environments. Please report failures as well as successes.
@@ -11,7 +12,7 @@ may differ between environments. Please report failures as well as successes.
 ## Choose one package
 
 - **Aroma users:** use the Aroma ZIP containing `wiiu/apps/ScummVM.wuhb`.
-- **Non-Aroma testers:** use `ScummVM-wiiu-rpx-experimental.zip` with an already
+- **Non-Aroma testers:** use the RPX experimental ZIP with an already
   configured Wii U Homebrew Launcher and loader capable of launching RPX files.
 
 This is a native **Wii U** application, not a Wii/vWii Homebrew Channel app.
@@ -39,7 +40,8 @@ SD:/
 
 4. From your existing Wii U Homebrew Launcher, select **ScummVM (RPX test)**.
 5. If the ScummVM launcher opens, choose **Add Game** and browse to your own
-   SCUMM game files. Only the SCUMM engine is enabled; games are not included.
+   game files. See `scummvm/doc/README.md` for the engines in this build;
+   games and MT-32 ROMs are not included.
 
 Keep the supplied `scummvm/data` directory; do not distribute only the RPX.
 The file browser uses `/vol/external01/` for the SD card. The optional HBL

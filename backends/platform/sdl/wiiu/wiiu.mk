@@ -25,6 +25,10 @@ wiiu_release: ScummVM.wuhb
 	cp $(srcdir)/backends/platform/sdl/wiiu/README.WIIU wiiu_release/scummvm/doc/
 	cp $(srcdir)/backends/platform/sdl/wiiu/sdl2-swkbd-input.patch wiiu_release/scummvm/doc/
 	cp $(srcdir)/backends/platform/sdl/wiiu/README.RPX.md wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
+	cp $(srcdir)/backends/platform/sdl/wiiu/EXPERIMENTAL.md $(srcdir)/backends/platform/sdl/wiiu/sdl2-swkbd-lifecycle.patch $(srcdir)/backends/platform/sdl/wiiu/build-expanded.sh wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
+	cp $(srcdir)/backends/platform/sdl/wiiu/EXPERIMENTAL.md wiiu_release/scummvm/doc/
+	mkdir -p wiiu_release/scummvm/doc/LICENSES
+	cp $(srcdir)/LICENSES/* $(srcdir)/backends/platform/sdl/wiiu/licenses/* wiiu_release/scummvm/doc/LICENSES/
 
 # Keep the RPX test distribution separate to avoid duplicate launcher entries
 # when Aroma users extract their package. It uses the same executable/data.

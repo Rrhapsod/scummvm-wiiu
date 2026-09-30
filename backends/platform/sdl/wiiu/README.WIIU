@@ -10,6 +10,19 @@ Build outside the source tree, after activating the SDK:
     --enable-engine=scumm --disable-detection-full --disable-mt32emu
   make -j2 wiiu_release
 
+The above is the historical minimal build, not the expanded test profile.
+For Myst/Riven, Blade Runner, The 7th Guest/The 11th Hour, MP3 and MT-32:
+  bash backends/platform/sdl/wiiu/build-expanded.sh
+See EXPERIMENTAL.md for dependencies, build scope and the regression checklist.
+Apply sdl2-swkbd-lifecycle.patch in addition to sdl2-swkbd-input.patch, rebuild
+and install SDL, then relink ScummVM. The new keyboard/window cleanup changes
+have not been validated on hardware; community freezes remain an open issue.
+
+This software is based in part on the work of the Independent JPEG Group.
+libjpeg-turbo 3.1.4.1 and libmad 0.15.1b notices are in licenses/ (source tree)
+or scummvm/doc/LICENSES/ (installation package). The integrated Munt emulator
+uses LGPL-licensed code; its license is also included. Roland ROMs are not.
+
 The existing ScummVM SDL backend supplies software rendering, mixer,
 events, timers and mutexes. SDL handles GX2, audio and ProcUI. Static
 engines only. No RetroArch, networking or OpenGL is used.
