@@ -1,0 +1,114 @@
+diff --git a/src/render/wiiu/SDL_render_wiiu.c b/src/render/wiiu/SDL_render_wiiu.c
+index ba7272c..ea3b196 100644
+--- a/src/render/wiiu/SDL_render_wiiu.c
++++ b/src/render/wiiu/SDL_render_wiiu.c
+@@ -201,6 +201,8 @@ void WIIU_SDL_DestroyRenderer(SDL_Renderer * renderer)
+ 
+     if (videodata->hasForeground) {
+         GX2DrawDone();
++        /* Local ScummVM fix: do not leave GX2 bound to a freed context. */
++        GX2SetContextState(NULL);
+     }
+ 
+     /* Free both render data queues */
+diff --git a/src/video/wiiu/SDL_wiiuswkbd.cpp b/src/video/wiiu/SDL_wiiuswkbd.cpp
+index 4550255..710c981 100644
+--- a/src/video/wiiu/SDL_wiiuswkbd.cpp
++++ b/src/video/wiiu/SDL_wiiuswkbd.cpp
+@@ -163,6 +163,8 @@ namespace
+             nn::swkbd::AppearArg theArg;
+             // Keep track of wich window has the swkbd.
+             SDL_Window *window = nullptr;
++            // Local ScummVM fix: a decision is latched during fade-out. Emit it once.
++            bool decisionSent = false;
+ 
+             // keyboard config options
+             nn::swkbd::KeyboardMode keyboardMode = nn::swkbd::KeyboardMode::Full;
+@@ -519,7 +521,7 @@ void WIIU_SWKBD_Initialize(void)
+     if (!arg.fsClient) {
+         if (!local_fsClient)
+             local_fsClient = detail::make_unique<detail::FSClientWrapper>();
+-        if (!local_fsClient) {
++        if (!local_fsClient || !local_fsClient->valid) {
+             SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "Could not create FSClientfor nn::swkbd\n");
+             return;
+         }
+@@ -560,8 +562,13 @@ void WIIU_SWKBD_Finalize(void)
+ 
+     nn::swkbd::Destroy();
+     detail::appear::window = nullptr;
++    detail::appear::decisionSent = false;
++    detail::controllerInfo = {};
+     detail::create::region.reset();
+     detail::create::created = false;
++    // Release the FS client while the filesystem and process are still alive,
++    // not from a C++ static destructor after SDL/ProcUI shutdown.
++    detail::create::cleanup();
+ }
+ 
+ void WIIU_SWKBD_Calc(void)
+@@ -584,8 +591,14 @@ void WIIU_SWKBD_Calc(void)
+             detail::appear::window = nullptr;
+     }
+ 
++    // Do not resubmit a latched OK/Cancel on every event pump while closing.
++    if (!detail::appear::window || detail::appear::decisionSent ||
++        nn::swkbd::GetStateInputForm() != nn::swkbd::State::Visible)
++        return;
++
+     // Check if user confirmed input.
+     if (nn::swkbd::IsDecideOkButton(nullptr)) {
++        detail::appear::decisionSent = true;
+         // Send an event before we send out the string.
+         SDL_VERSION(&detail::wmMsgStart.version);
+         detail::wmMsgStart.subsystem = SDL_SYSWM_WIIU;
+@@ -606,9 +619,11 @@ void WIIU_SWKBD_Calc(void)
+         detail::wmMsgFinish.subsystem = SDL_SYSWM_WIIU;
+         detail::wmMsgFinish.msg.wiiu.event = SDL_WIIU_SYSWM_SWKBD_OK_FINISH_EVENT;
+         SDL_SendSysWMEvent(&detail::wmMsgFinish);
++        return;
+     }
+ 
+     if (nn::swkbd::IsDecideCancelButton(nullptr)) {
++        detail::appear::decisionSent = true;
+         WIIU_SWKBD_HideScreenKeyboard(nullptr, nullptr);
+         SDL_VERSION(&detail::wmMsgFinish.version);
+         detail::wmMsgFinish.subsystem = SDL_SYSWM_WIIU;
+@@ -640,6 +655,11 @@ SDL_bool WIIU_SWKBD_HasScreenKeyboardSupport(_THIS)
+ void WIIU_SWKBD_ShowScreenKeyboard(_THIS, SDL_Window *window)
+ {
+     WIIU_SWKBD_Initialize();
++    if (!detail::create::created || !window ||
++        nn::swkbd::GetStateInputForm() != nn::swkbd::State::Hidden)
++        return;
++
++    detail::appear::decisionSent = false;
+ 
+     if (!detail::appear::window)
+         detail::appear::window = window;
+@@ -703,7 +723,9 @@ void WIIU_SWKBD_HideScreenKeyboard(_THIS, SDL_Window *)
+ {
+     if (!detail::create::created)
+         return;
+-    nn::swkbd::DisappearInputForm();
++    const auto state = nn::swkbd::GetStateInputForm();
++    if (state == nn::swkbd::State::Visible || state == nn::swkbd::State::FadeIn)
++        nn::swkbd::DisappearInputForm();
+     // detail::appear::window = nullptr;
+ }
+ 
+diff --git a/src/video/wiiu/SDL_wiiuvideo.c b/src/video/wiiu/SDL_wiiuvideo.c
+index d8c3bfa..db5b77c 100644
+--- a/src/video/wiiu/SDL_wiiuvideo.c
++++ b/src/video/wiiu/SDL_wiiuvideo.c
+@@ -357,6 +357,10 @@ static void WIIU_SetWindowSize(_THIS, SDL_Window * window)
+ 
+ static void WIIU_DestroyWindow(_THIS, SDL_Window * window)
+ {
++	/* Local ScummVM fix: never keep swkbd's window pointer after destruction.
++	 * SDL destroys the window renderer (and drains GPU work) before this hook.
++	 * swkbd is lazily recreated on the next text-input request. */
++	WIIU_SWKBD_Finalize();
+ }
+ 
+ static void WIIU_GetDisplayModes(_THIS, SDL_VideoDisplay * display)

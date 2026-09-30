@@ -30,6 +30,26 @@
 
 static const char *const kDataRoot = "/vol/external01/scummvm";
 
+OSystem_WiiU::~OSystem_WiiU() {
+	// Discard text while the event source/window still exist, before SDL's
+	// base destructor tears down graphics, audio and finally the video device.
+	setFeatureState(kFeatureVirtualKeyboard, false);
+	debug(0, "Wii U backend teardown: entering SDL cleanup");
+}
+
+void OSystem_WiiU::engineDone() {
+	debug(0, "Wii U engineDone: clearing keyboard input");
+	setFeatureState(kFeatureVirtualKeyboard, false);
+	OSystem_SDL::engineDone();
+	debug(0, "Wii U engineDone: returned to launcher path");
+}
+
+void OSystem_WiiU::quit() {
+	debug(0, "Wii U quit requested");
+	setFeatureState(kFeatureVirtualKeyboard, false);
+	OSystem_SDL::quit();
+}
+
 void OSystem_WiiU::init() {
 	DrivesPOSIXFilesystemFactory *factory = new DrivesPOSIXFilesystemFactory();
 	factory->addDrive("/vol/external01");

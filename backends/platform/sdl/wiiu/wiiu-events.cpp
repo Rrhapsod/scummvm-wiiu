@@ -32,6 +32,8 @@ WiiUEventSource::WiiUEventSource() {
 }
 
 void WiiUEventSource::closeKeyboard() {
+	if (!_keyboardActive)
+		return;
 	_keyboardActive = false;
 	SDL_StopTextInput();
 }
@@ -43,6 +45,7 @@ void WiiUEventSource::setKeyboardVisible(bool visible) {
 		_text.clear();
 		_textPos = 0;
 		_acceptText = false;
+		_inSubmission = false;
 		return;
 	}
 
@@ -51,6 +54,7 @@ void WiiUEventSource::setKeyboardVisible(bool visible) {
 		return;
 	_text.clear();
 	_textPos = 0;
+	debug(0, "Wii U keyboard opening");
 	SDL_StartTextInput();
 	_keyboardActive = SDL_IsScreenKeyboardShown(window) == SDL_TRUE;
 	if (!_keyboardActive)
