@@ -24,7 +24,7 @@ Earlier packages included only SCUMM v0–v6. Games and MT-32 ROMs are not inclu
 - **Analog-stick pointer control** with physical left/right mouse buttons.
 - **Native Wii U on-screen keyboard** for text entry and save descriptions.
 - Audio playback through the existing SDL mixer backend.
-- Experimental MP3 decoding (libmad) and integrated MT-32 emulation.
+- MP3 decoding (libmad) and integrated MT-32 emulation, user-tested on Wii U.
 - Game data browsing, configuration and save files on the SD card.
 - SDL2-based backend; no Libretro frontend or RetroArch dependency.
 
@@ -43,7 +43,7 @@ your saves when testing an experimental build.
 
 | Package | Intended use | Validation |
 | --- | --- | --- |
-| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | Earlier SCUMM builds user-tested; expanded build awaiting hardware tests |
+| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | Earlier SCUMM builds and expanded-build MP3/MT-32 user-tested; new engines and freeze fixes still awaiting validation |
 | RPX experimental ZIP (`ScummVM.rpx`) | Community testing with a non-Aroma Wii U Homebrew Launcher/loader that supports RPX | **Not yet tested outside Aroma** |
 
 Both packages include the same executable and required data in different
@@ -126,6 +126,78 @@ field and press **−**.
 - Original game dialogs may restrict name length and supported characters.
   Plain letters and numbers are recommended for the first save test.
 
+## MP3 audio playback
+
+Use the expanded build or a later release that explicitly includes MP3 support.
+Earlier SCUMM-only packages did not include the MP3 decoder.
+
+MP3 decoding is automatic when a supported game engine reads audio in a
+supported MP3-based format. **There is no MP3 switch to enable**, and the
+**Music device** setting does not select the MP3 decoder.
+
+1. Keep the game's audio files in the locations and with the filenames required
+   by that game's ScummVM data-file instructions. Some engines use compressed
+   audio containers rather than ordinary `.mp3` files.
+2. Add the game normally and start it. If it already has compatible MP3 audio,
+   no conversion or additional setup is needed.
+3. If you want to compress original audio, back up the game files and use the
+   appropriate tool from [ScummVM Tools](https://github.com/scummvm/scummvm-tools),
+   selecting MP3 output where supported. Follow that tool's encoder requirements
+   and game-specific instructions. Conversion is optional and is done on a
+   computer, not by the Wii U port.
+
+**Renaming an audio file's extension does not convert it to MP3.** Do not replace
+game files with arbitrary MP3s: supported formats, names and layouts depend on
+the engine. Uncompressed audio does not need to be converted just to play.
+
+To verify decoding, use a separate test copy with the intended MP3 assets and
+keep equivalent uncompressed originals outside that copy, following the game's
+file requirements. Otherwise an engine may prefer the original audio. Check
+the relevant speech, music or effects; hearing a different audio source does
+not confirm MP3 playback. Keep the originals as a backup.
+
+MP3 support does not add Ogg Vorbis or FLAC support to this build.
+
+## MT-32 music emulation
+
+MT-32 emulation reproduces a Roland music module for games with compatible
+music. It is optional, does not improve every game's audio, and does not replace
+recorded speech or CD/MP3 soundtracks. Use a build with MT-32 support included.
+
+The tested MT-32 setup requires **both** files, named exactly:
+
+```text
+MT32_CONTROL.ROM
+MT32_PCM.ROM
+```
+
+These are the MT-32's ROM data, not game files or a SoundFont. They are **not
+included** with this port or ScummVM; you must supply your own matching pair.
+
+1. Copy both ROM files to `SD:/scummvm/data/`, the port's default **Extra path**.
+2. If you previously changed that setting, open **Global Options → Paths** and
+   set **Extra path** to `/vol/external01/scummvm/data`, or use the directory
+   where you placed the ROMs. Check that the game's own path settings do not
+   override it with a different directory.
+3. Select a compatible game in the launcher and open **Game Options → Audio**.
+4. Enable **Override global audio settings**, then select **MT-32 emulator**
+   as the **Music device**. Configure it per game first, rather than changing
+   the global default for every game.
+5. Save the settings and start the game. Restart the game after changing its
+   music device.
+
+You do **not** need to enable **True Roland MT-32** manually when using the
+emulator. Selecting that checkbox alone is not a substitute for selecting
+**MT-32 emulator** as the music device.
+
+If ScummVM reports missing or invalid ROMs, check both filenames, the matching
+ROM pair and the Extra path. If music stutters, compare with another device
+supported by the game; MT-32 emulation requires more processing power.
+
+See the [official audio guide](https://docs.scummvm.org/en/latest/advanced_topics/understand_audio.html)
+for further background. The instructions above describe the MT-32 ROM pair
+confirmed in this port's user testing.
+
 ## Hardware testing
 
 The maintainer reports successful tests on a real Wii U with:
@@ -138,6 +210,11 @@ The maintainer reports successful tests on a real Wii U with:
 The native keyboard integration was also reported working in hardware testing
 on September 26, 2026. Earlier SDK tests covered TV/GamePad video, touch,
 buttons, audio, SD access and HOME background/return behavior.
+
+On October 1, 2026, the maintainer reported successful real-Wii-U tests of
+both MP3 decoding and MT-32 emulation in the expanded build. The MT-32 test
+used `MT32_CONTROL.ROM` and `MT32_PCM.ROM`. This confirms those tested audio
+scenarios, not every game/edition or the outstanding keyboard/exit freeze fixes.
 
 These are tests of specific scenarios, **not full-game completion reports or
 a guarantee that every game/version works**. Additional community testing is
@@ -153,8 +230,9 @@ Aroma.** Please do not describe it as confirmed Tiramisu or legacy support yet.
   Modern remakes and enhanced/remastered editions are not promised.
 - SCUMM v7/v8 and HE subengines remain disabled. The complete desktop ScummVM
   compatibility list does not describe this build.
-- MP3 decoding and MT-32 are compiled in, but audio quality/performance still
-  need console testing. Ogg Vorbis, FLAC and MPEG-2 are not included; editions
+- MP3 decoding and MT-32 have passed the maintainer's console tests, but
+  compatibility/performance across all games is not guaranteed.
+  Ogg Vorbis, FLAC and MPEG-2 are not included; editions
   requiring those optional codecs are outside this build's test scope.
 - Community reports describe freezes after saving/exiting and keyboard
   confirmation/cancellation in **Fate of Atlantis and The Secret of Monkey
@@ -165,7 +243,7 @@ Aroma.** Please do not describe it as confirmed Tiramisu or legacy support yet.
 - Native keyboard input follows the receiving game's character and length
   restrictions; it is not a synchronized editor for an existing field.
 
-## Expanded build testing and MT-32
+## Expanded build testing
 
 Read the [experimental build guide](backends/platform/sdl/wiiu/EXPERIMENTAL.md)
 before replacing your existing executable. It includes the regression checklist,
@@ -193,8 +271,17 @@ The port uses the existing ScummVM build system with devkitPPC, WUT,
 devkitPro's Wii U SDL2 branch, target zlib and `wut-tools`. SDL is responsible
 for native video, audio, input and Wii U application lifecycle handling.
 
-With a compatible Wii U SDK prepared and its environment activated, build
-outside the source tree:
+For the expanded profile including MP3 and MT-32, use the build script after
+preparing the dependencies described in the
+[experimental build guide](backends/platform/sdl/wiiu/EXPERIMENTAL.md):
+
+```sh
+bash backends/platform/sdl/wiiu/build-expanded.sh
+```
+
+The following is the historical **minimal SCUMM-only profile**, with MT-32
+explicitly disabled; it is not the expanded release profile. With a compatible
+Wii U SDK prepared and its environment activated, build outside the source tree:
 
 ```sh
 mkdir build-wiiu
