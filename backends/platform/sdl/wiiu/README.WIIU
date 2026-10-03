@@ -1,8 +1,8 @@
 ScummVM Wii U / Aroma — experimental SDL2 port
 =============================================
 
-Version 0.6.0 includes the renderer lifecycle fix, confirmed by the maintainer
-for the repeated-exit scenario on 2026-10-03. For SDK preparation, apply
+Version 0.6.0 includes the renderer lifecycle fix, which I confirmed resolved
+the repeated-exit scenario on 2026-10-03. For SDK preparation, apply
 sdl2-renderer-lifecycle.patch AFTER both swkbd patches, rebuild/install SDL2,
 and relink ScummVM. See RELEASE-0.6.0.md for release status and RENDERER_FIX.md
 for historical diagnosis and patch rationale.
@@ -88,14 +88,13 @@ Default in-game mouse controls: left stick moves, A left-clicks, B
 right-clicks, and holding R slows the pointer. GUI actions can differ.
 
 Validation:
-- SDK smoke test: user-tested on a real Wii U (video, input, touch, audio,
+- SDK smoke test: I tested it on my Wii U (video, input, touch, audio,
   SD, zlib, timer/thread, HOME/return and clean shutdown).
-- Launcher: user-tested on hardware; screenshots and a clean shutdown log
-  received. User also reports Sam & Max Hit the Road and Indiana Jones and
-  the Last Crusade running, saving, with working sound and controls.
-- Native keyboard: user reported successful real Wii U testing on
-  September 26, 2026, after the keyboard-enabled build was delivered.
-- Menu icon: user confirmed successful console testing on September 28, 2026.
+- Launcher: I tested it on my Wii U and captured screenshots and a clean
+  shutdown log. I also tested Sam & Max Hit the Road and Indiana Jones and
+  the Last Crusade, including saving, sound and controls.
+- Native keyboard: I tested it successfully on my Wii U on September 26, 2026.
+- Menu icon: I confirmed it worked on my console on September 28, 2026.
 - Standalone RPX through non-Aroma loaders: awaiting community hardware tests.
 
 The local SDK used devkitPPC r50 (GCC 16.1.0/newlib 4.6), WUT v1.9.1,

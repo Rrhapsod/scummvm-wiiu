@@ -1,7 +1,7 @@
 # Wii U renderer memory fix — test candidate, 2026-10-02
 
-Historical candidate instructions. On October 3 the maintainer confirmed the
-reported freeze was resolved; the log shows four successful game-return cycles,
+Historical candidate instructions. On October 3 I confirmed the repeated-exit
+freeze was resolved; my log shows four successful game-return cycles,
 keyboard use and logged shutdown cleanup. The fix is included in port v0.6.0;
 see [release notes](RELEASE-0.6.0.md) for current status and installation.
 
@@ -10,7 +10,7 @@ MP3 and MT-32 support. It is not yet a hardware-confirmed freeze fix.
 
 ## Evidence and scope
 
-The user's log from diagnostic build 337cc316 shows Sam & Max returning to
+My log from diagnostic build 337cc316 shows Sam & Max returning to
 the launcher successfully, followed by Fate of Atlantis exiting about four
 seconds after launch. Engine and MIDI cleanup completed. The log stops at
 `VIDEO before SDL_CreateRenderer` while restoring the launcher.

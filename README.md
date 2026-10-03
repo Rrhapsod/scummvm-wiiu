@@ -28,11 +28,11 @@ for packages, the renderer memory fix, controls and validation details.
 - **Analog-stick pointer control** with physical left/right mouse buttons.
 - **Native Wii U on-screen keyboard** for text entry and save descriptions.
 - Audio playback through the existing SDL mixer backend.
-- MP3 decoding (libmad) and integrated MT-32 emulation, user-tested on Wii U.
+- MP3 decoding (libmad) and integrated MT-32 emulation, both tested on my Wii U.
 - Game data browsing, configuration and save files on the SD card.
 - SDL2-based backend; no Libretro frontend or RetroArch dependency.
 - Corrected renderer texture cleanup for repeated game/launcher transitions;
-  the maintainer confirmed the reported freeze was resolved with this fix.
+  I confirmed that this fix resolved the repeated-exit freeze on my Wii U.
 
 ## Requirements
 
@@ -49,7 +49,7 @@ your saves when testing an experimental build.
 
 | Package | Intended use | Validation |
 | --- | --- | --- |
-| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | Corrected diagnostic build user-tested, including repeated exits, Riven, Blade Runner and The 11th Hour; final 0.6.0 release binaries still need a console smoke test |
+| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | I tested the corrected diagnostic build, including repeated exits, Riven, Blade Runner and The 11th Hour; I still need to smoke-test the final 0.6.0 release binaries on my console |
 | RPX experimental ZIP (`ScummVM.rpx`) | Community testing with a non-Aroma Wii U Homebrew Launcher/loader that supports RPX | **Not yet tested outside Aroma** |
 
 Both packages include the same executable and required data in different
@@ -202,54 +202,54 @@ supported by the game; MT-32 emulation requires more processing power.
 
 See the [official audio guide](https://docs.scummvm.org/en/latest/advanced_topics/understand_audio.html)
 for further background. The instructions above describe the MT-32 ROM pair
-confirmed in this port's user testing.
+I used successfully in my tests.
 
 ## Hardware testing
 
-The maintainer reports successful tests on a real Wii U with:
+I successfully tested the following games on my Wii U:
 
-| Game | Reported results |
+| Game | My test results |
 | --- | --- |
 | Sam & Max Hit the Road | Gameplay, saving, audio and controls |
 | Indiana Jones and the Last Crusade | Gameplay, saving, audio and controls |
 | Indiana Jones and the Fate of Atlantis | Repeated launch/return with the renderer fix |
-| Riven: The Sequel to Myst | Reported running without problems |
-| Blade Runner | Reported running without problems |
-| The 11th Hour | Reported running without problems |
+| Riven: The Sequel to Myst | Ran without problems in my tests |
+| Blade Runner | Ran without problems in my tests |
+| The 11th Hour | Ran without problems in my tests |
 
-The native keyboard integration was also reported working in hardware testing
-on September 26, 2026. Earlier SDK tests covered TV/GamePad video, touch,
+I also tested the native keyboard successfully on September 26, 2026.
+My earlier SDK tests covered TV/GamePad video, touch,
 buttons, audio, SD access and HOME background/return behavior.
 
-On October 1, 2026, the maintainer reported successful real-Wii-U tests of
-both MP3 decoding and MT-32 emulation in the expanded build. The MT-32 test
-used `MT32_CONTROL.ROM` and `MT32_PCM.ROM`. This confirms those tested audio
+On October 1, 2026, I successfully tested both MP3 decoding and MT-32 emulation
+on my Wii U using the expanded build. For MT-32, I used
+`MT32_CONTROL.ROM` and `MT32_PCM.ROM`. This confirms those tested audio
 scenarios, not every game or edition.
 
-On October 3, the maintainer confirmed the renderer memory fix resolved the
-reported freeze. The supplied log shows two Fate of Atlantis and two Sam & Max
+On October 3, I confirmed that the renderer memory fix resolved the
+repeated-exit freeze. My log shows two Fate of Atlantis and two Sam & Max
 launch/return cycles, keyboard use and shutdown cleanup ending with successful
-log closure. Riven, Blade Runner and The 11th Hour were also reported running
-without problems. These tests used the corrected diagnostic build; 0.6.0 keeps
+log closure. I also tested Riven, Blade Runner and The 11th Hour without
+problems. I used the corrected diagnostic build for these tests; 0.6.0 keeps
 the fix and disables detailed lifecycle tracing. The final release binaries
 still need a console smoke test before publication.
 
 These are tests of specific scenarios, **not full-game completion reports or
 a guarantee that every game/version works**. Additional community testing is
-welcome. The ScummVM menu icon was also confirmed working by the maintainer
-on September 28, 2026. **The separate RPX package has not been tested outside
-Aroma.** Please do not describe it as confirmed Tiramisu or legacy support yet.
+welcome. I also confirmed that the ScummVM menu icon worked on September 28,
+2026. **I have not tested the separate RPX package outside Aroma.** Please do
+not describe it as confirmed Tiramisu or legacy support yet.
 
 ## Current limitations
 
 - The expanded build targets **Myst (original / Masterpiece), Riven (original),
   Blade Runner (original), The 7th Guest and The 11th Hour**. Their engines
-  are included. Riven, Blade Runner and The 11th Hour have positive hardware
-  reports; Myst/Myst Masterpiece and The 7th Guest still await hardware reports.
+  are included. I tested Riven, Blade Runner and The 11th Hour successfully;
+  I have not yet tested Myst/Myst Masterpiece or The 7th Guest on my Wii U.
   Modern remakes and enhanced/remastered editions are not promised.
 - SCUMM v7/v8 and HE subengines remain disabled. The complete desktop ScummVM
   compatibility list does not describe this build.
-- MP3 decoding and MT-32 have passed the maintainer's console tests, but
+- MP3 decoding and MT-32 have passed my console tests, but
   compatibility/performance across all games is not guaranteed.
   Ogg Vorbis, FLAC and MPEG-2 are not included; editions
   requiring those optional codecs are outside this build's test scope.
@@ -334,7 +334,7 @@ contributors, [SDL](https://www.libsdl.org/), [devkitPro](https://devkitpro.org/
 [WUT](https://github.com/devkitPro/wut) and the
 [Aroma community](https://github.com/wiiu-env).
 
-This fork is maintained by [Rrhapsod](https://github.com/Rrhapsod).
+I'm [Rrhapsod](https://github.com/Rrhapsod), and I maintain this fork.
 The ScummVM name and icon are credited to the upstream project; their use here
 does not imply endorsement or official support.
 
