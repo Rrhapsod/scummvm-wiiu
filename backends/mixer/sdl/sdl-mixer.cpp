@@ -24,6 +24,7 @@
 #if defined(SDL_BACKEND)
 
 #include "backends/mixer/sdl/sdl-mixer.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 #include "common/debug.h"
 #include "common/system.h"
 #include "common/config-manager.h"
@@ -41,8 +42,10 @@ SdlMixerManager::SdlMixerManager() : _isSubsystemInitialized(false), _isAudioOpe
 }
 
 SdlMixerManager::~SdlMixerManager() {
+	WIIU_TRACE("AUDIO before mixer.setReady(false)");
 	if (_mixer)
 		_mixer->setReady(false);
+	WIIU_TRACE("AUDIO after mixer.setReady; before closing audio device");
 
 #if SDL_VERSION_ATLEAST(3, 0, 0)
 	SDL_CloseAudioDevice(SDL_GetAudioStreamDevice(_stream));
@@ -52,8 +55,10 @@ SdlMixerManager::~SdlMixerManager() {
 		SDL_CloseAudio();
 #endif
 
+	WIIU_TRACE("AUDIO after closing audio device; before SDL_QuitSubSystem");
 	if (_isSubsystemInitialized)
 		SDL_QuitSubSystem(SDL_INIT_AUDIO);
+	WIIU_TRACE("AUDIO after SDL_QuitSubSystem");
 }
 
 void SdlMixerManager::init() {

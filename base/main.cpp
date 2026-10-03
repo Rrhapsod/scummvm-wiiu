@@ -99,8 +99,10 @@
 #endif
 
 #include "gui/dump-all-dialogs.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 
 static bool launcherDialog() {
+	WIIU_TRACE("LAUNCHER enter dialog");
 
 	// Discard any command line options. Those that affect the graphics
 	// mode and the others (like bootparam etc.) should not
@@ -117,7 +119,9 @@ static bool launcherDialog() {
 		GUI::LauncherChooser dlg;
 		dlg.selectLauncher();
 #endif
+		WIIU_TRACE("LAUNCHER before runModal");
 		status = (dlg.runModal() != -1);
+		WIIU_TRACE("LAUNCHER after runModal");
 	} while (noQuit && nullptr == ConfMan.getActiveDomain());
 	return status;
 }
@@ -189,6 +193,7 @@ void saveLastLaunchedTarget(const Common::String &target) {
 // TODO: specify the possible return values here
 static Common::Error runGame(const Plugin *enginePlugin, OSystem &system, const DetectedGame &game, const void *meDescriptor) {
 	assert(enginePlugin);
+	WIIU_TRACE_GAME(game.engineId.c_str(), game.gameId.c_str());
 
 	// Determine the game data path, for validation and error messages
 	Common::FSNode dir(ConfMan.getPath("path"));
@@ -325,23 +330,33 @@ static Common::Error runGame(const Plugin *enginePlugin, OSystem &system, const 
 	system.getEventManager()->purgeMouseEvents();
 
 	// Run the engine
+	WIIU_TRACE("ENGINE before run");
 	Common::Error result = engine->run();
+	WIIU_TRACE("ENGINE after run");
 
 	// Make sure we do not return to the launcher if this is not possible.
 	if (!engine->hasFeature(Engine::kSupportsReturnToLauncher))
 		ConfMan.setBool("gui_return_to_launcher_at_exit", false, Common::ConfigManager::kTransientDomain);
 
 	// Inform backend that the engine finished
+	WIIU_TRACE("ENGINE before engineDone hook");
 	system.engineDone();
+	WIIU_TRACE("ENGINE after engineDone hook; instance still alive");
 
 	// Clean up any game-specific keymaps
+	WIIU_TRACE("ENGINE before cleanupGameKeymaps");
 	keymapper->cleanupGameKeymaps();
+	WIIU_TRACE("ENGINE after cleanupGameKeymaps");
 
 	// Free up memory
+	WIIU_TRACE("ENGINE before deleteInstance");
 	metaEngine.deleteInstance(engine, game, meDescriptor);
+	WIIU_TRACE("ENGINE after deleteInstance");
 
 	// Reset the file/directory mappings
+	WIIU_TRACE("ENGINE before SearchMan.clear");
 	SearchMan.clear();
+	WIIU_TRACE("ENGINE after SearchMan.clear");
 
 #ifdef USE_TRANSLATION
 	TransMan.setLanguage(previousLanguage);
@@ -356,6 +371,7 @@ static Common::Error runGame(const Plugin *enginePlugin, OSystem &system, const 
 }
 
 static void setupGraphics(OSystem &system) {
+	WIIU_TRACE("LAUNCHER before setupGraphics");
 
 	system.beginGFXTransaction();
 		// Set the user specified graphics mode (if any).
@@ -388,6 +404,7 @@ static void setupGraphics(OSystem &system) {
 
 	// Clear the main screen
 	system.fillScreen(0);
+	WIIU_TRACE("LAUNCHER after setupGraphics");
 }
 
 static void setupKeymapper(OSystem &system) {

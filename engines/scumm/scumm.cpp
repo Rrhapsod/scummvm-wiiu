@@ -20,6 +20,7 @@
  */
 
 #include "common/config-manager.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 #include "common/compression/clickteam.h"
 #include "common/debug-channels.h"
 #include "common/macresman.h"
@@ -476,7 +477,9 @@ ScummEngine::ScummEngine(OSystem *syst, const DetectorResult &dr)
 
 
 ScummEngine::~ScummEngine() {
+	WIIU_TRACE("SCUMM before deleting music engine");
 	delete _musicEngine;
+	WIIU_TRACE("SCUMM after deleting music engine");
 
 	// Delete the sound object earlier than the actors
 	// for HE games, since in SoundHE::stopAllSounds() we
@@ -484,7 +487,9 @@ ScummEngine::~ScummEngine() {
 	if (_game.heversion != 0)
 		delete _sound;
 
+	WIIU_TRACE("SCUMM before mixer.stopAll");
 	_mixer->stopAll();
+	WIIU_TRACE("SCUMM after mixer.stopAll; freeing resources");
 
 	if (_actors) {
 		for (int i = 0; i < _numActors; ++i)
@@ -559,6 +564,7 @@ ScummEngine::~ScummEngine() {
 
 	delete _res;
 	delete _gdi;
+	WIIU_TRACE("SCUMM destructor body complete");
 }
 
 

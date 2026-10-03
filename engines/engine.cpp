@@ -20,6 +20,7 @@
  */
 
 #include "engines/engine.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 #include "engines/dialogs.h"
 #include "engines/util.h"
 #include "engines/metaengine.h"
@@ -216,19 +217,25 @@ Engine::Engine(OSystem *syst)
 }
 
 Engine::~Engine() {
+	WIIU_TRACE("ENGINE base destructor before mixer.stopAll");
 	_mixer->stopAll();
+	WIIU_TRACE("ENGINE base destructor after mixer.stopAll");
 
 	// Flush any pending remaining events
 	Common::Event evt;
+	WIIU_TRACE("ENGINE before draining pending events");
 	while (g_system->getEventManager()->pollEvent(evt)) {}
+	WIIU_TRACE("ENGINE after draining pending events");
 
 	delete _debugger;
 	delete _mainMenuDialog;
 	g_engine = NULL;
+	WIIU_TRACE("ENGINE dialogs deleted; before cursor restore");
 
 	// Remove our cursors again to prevent memory leaks
 	CursorMan.popCursor();
 	CursorMan.popCursorPalette();
+	WIIU_TRACE("ENGINE base destructor body complete");
 }
 
 void Engine::initializePath(const Common::FSNode &gamePath) {

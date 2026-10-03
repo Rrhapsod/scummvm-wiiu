@@ -21,6 +21,7 @@
 
 
 #include "backends/platform/sdl/wiiu/wiiu.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 #include "backends/platform/sdl/wiiu/wiiu-events.h"
 #include "backends/fs/posix-drives/posix-drives-fs-factory.h"
 #include "backends/saves/default/default-saves.h"
@@ -41,7 +42,7 @@ void OSystem_WiiU::engineDone() {
 	debug(0, "Wii U engineDone: clearing keyboard input");
 	setFeatureState(kFeatureVirtualKeyboard, false);
 	OSystem_SDL::engineDone();
-	debug(0, "Wii U engineDone: returned to launcher path");
+	debug(0, "Wii U engineDone: hook complete; engine destruction still pending");
 }
 
 void OSystem_WiiU::quit() {
@@ -83,6 +84,7 @@ void OSystem_WiiU::initBackend() {
 		_savefileManager = new DefaultSaveFileManager(Common::Path(kDataRoot).join("saves"));
 	_eventSource = new WiiUEventSource();
 	OSystem_SDL::initBackend();
+	WIIU_TRACE("BUILD lifecycle diagnostic 20261002; automatic tracing enabled; not a freeze fix");
 	debug(0, "Wii U SDL backend initialized; config and saves under %s", kDataRoot);
 }
 

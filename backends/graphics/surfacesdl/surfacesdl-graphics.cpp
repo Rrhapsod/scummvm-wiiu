@@ -23,6 +23,7 @@
 
 #if defined(SDL_BACKEND)
 #include "backends/graphics/surfacesdl/surfacesdl-graphics.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 #include "backends/events/sdl/sdl-events.h"
 #include "common/config-manager.h"
 #include "common/mutex.h"
@@ -3019,13 +3020,17 @@ void SurfaceSdlGraphicsManager::deinitializeRenderer() {
 	destroyImGui();
 #endif
 
+	WIIU_TRACE("VIDEO before SDL_DestroyTexture texture=%p", (void *)_screenTexture);
 	if (_screenTexture)
 		SDL_DestroyTexture(_screenTexture);
 	_screenTexture = nullptr;
+	WIIU_TRACE("VIDEO after SDL_DestroyTexture");
 
+	WIIU_TRACE("VIDEO before SDL_DestroyRenderer renderer=%p", (void *)_renderer);
 	if (_renderer)
 		SDL_DestroyRenderer(_renderer);
 	_renderer = nullptr;
+	WIIU_TRACE("VIDEO after SDL_DestroyRenderer");
 }
 
 void SurfaceSdlGraphicsManager::recreateScreenTexture() {
@@ -3049,6 +3054,7 @@ void SurfaceSdlGraphicsManager::recreateScreenTexture() {
 }
 
 SDL_Surface *SurfaceSdlGraphicsManager::SDL_SetVideoMode(int width, int height, int bpp, Uint32 flags) {
+	WIIU_TRACE("VIDEO SDL_SetVideoMode begin %dx%d", width, height);
 	deinitializeRenderer();
 
 	uint32 createWindowFlags = SDL_WINDOW_RESIZABLE;
@@ -3060,9 +3066,12 @@ SDL_Surface *SurfaceSdlGraphicsManager::SDL_SetVideoMode(int width, int height, 
 #endif
 	}
 
+	WIIU_TRACE("VIDEO before createOrUpdateWindow");
 	if (!createOrUpdateWindow(width, height, createWindowFlags)) {
+		WIIU_TRACE("VIDEO createOrUpdateWindow failed");
 		return nullptr;
 	}
+	WIIU_TRACE("VIDEO after createOrUpdateWindow");
 
 #if SDL_VERSION_ATLEAST(3, 0, 0)
 	if ((flags & SDL_FULLSCREEN) != 0) {
@@ -3092,7 +3101,9 @@ SDL_Surface *SurfaceSdlGraphicsManager::SDL_SetVideoMode(int width, int height, 
 	if (_videoMode.vsync) {
 		rendererFlags |= SDL_RENDERER_PRESENTVSYNC;
 	}
+	WIIU_TRACE("VIDEO before SDL_CreateRenderer");
 	_renderer = SDL_CreateRenderer(_window->getSDLWindow(), -1, rendererFlags);
+	WIIU_TRACE("VIDEO after SDL_CreateRenderer renderer=%p", (void *)_renderer);
 #endif
 	if (!_renderer) {
 		if (_videoMode.vsync) {
@@ -3129,7 +3140,9 @@ SDL_Surface *SurfaceSdlGraphicsManager::SDL_SetVideoMode(int width, int height, 
 	Uint32 format = SDL_PIXELFORMAT_RGB565;
 #endif
 
+	WIIU_TRACE("VIDEO before SDL_CreateTexture");
 	_screenTexture = SDL_CreateTexture(_renderer, format, SDL_TEXTUREACCESS_STREAMING, width, height);
+	WIIU_TRACE("VIDEO after SDL_CreateTexture texture=%p", (void *)_screenTexture);
 	if (!_screenTexture) {
 		deinitializeRenderer();
 		return nullptr;

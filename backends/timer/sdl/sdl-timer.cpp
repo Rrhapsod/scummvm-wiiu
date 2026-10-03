@@ -25,6 +25,7 @@
 #if defined(SDL_BACKEND)
 
 #include "backends/timer/sdl/sdl-timer.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 
 #include "common/textconsole.h"
 
@@ -54,10 +55,14 @@ SdlTimerManager::SdlTimerManager() {
 
 SdlTimerManager::~SdlTimerManager() {
 	// Removes the timer callback
+	WIIU_TRACE("TIMER before SDL_RemoveTimer");
 	SDL_RemoveTimer(_timerID);
+	WIIU_TRACE("TIMER after SDL_RemoveTimer");
 
 #if !SDL_VERSION_ATLEAST(3, 0, 0)
+	WIIU_TRACE("TIMER before SDL_QuitSubSystem");
 	SDL_QuitSubSystem(SDL_INIT_TIMER);
+	WIIU_TRACE("TIMER after SDL_QuitSubSystem");
 #endif
 }
 

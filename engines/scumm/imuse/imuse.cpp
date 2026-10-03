@@ -22,6 +22,7 @@
 
 
 #include "base/version.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 
 #include "common/util.h"
 #include "common/system.h"
@@ -78,6 +79,7 @@ IMuseInternal::IMuseInternal(ScummEngine *vm, MidiDriverFlags sndType, bool nati
 }
 
 IMuseInternal::~IMuseInternal() {
+	WIIU_TRACE("IMUSE before mixer mutex / stopAllSounds");
 	// Do just enough stuff inside the mutex to
 	// make sure any MIDI timing threads won't
 	// interrupt us, and then do the rest outside
@@ -87,17 +89,24 @@ IMuseInternal::~IMuseInternal() {
 		_initialized = false;
 		stopAllSounds_internal();
 	}
+	WIIU_TRACE("IMUSE after mixer mutex / stopAllSounds");
 
 	if (_midi_adlib) {
+		WIIU_TRACE("IMUSE before AdLib close");
 		_midi_adlib->close();
+		WIIU_TRACE("IMUSE after AdLib close; before delete");
 		delete _midi_adlib;
 		_midi_adlib = nullptr;
+		WIIU_TRACE("IMUSE after AdLib delete");
 	}
 
 	if (_midi_native) {
+		WIIU_TRACE("IMUSE before native MIDI close");
 		_midi_native->close();
+		WIIU_TRACE("IMUSE after native MIDI close; before delete");
 		delete _midi_native;
 		_midi_native = nullptr;
+		WIIU_TRACE("IMUSE after native MIDI delete");
 	}
 }
 

@@ -23,6 +23,7 @@
 #define SDL_FUNCTION_POINTER_IS_VOID_POINTER
 
 #include "backends/platform/sdl/sdl.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 #include "common/config-manager.h"
 #include "gui/EventRecorder.h"
 #include "common/taskbar.h"
@@ -111,6 +112,7 @@ OSystem_SDL::OSystem_SDL()
 }
 
 OSystem_SDL::~OSystem_SDL() {
+	WIIU_TRACE("QUIT SDL backend destructor enter");
 #if SDL_VERSION_ATLEAST(3, 0, 0)
 	SDL_ShowCursor();
 #else
@@ -125,25 +127,32 @@ OSystem_SDL::~OSystem_SDL() {
 	// destructors would also take care of this for us. However, various
 	// of our managers must be deleted *before* we call SDL_Quit().
 	// Hence, we perform the destruction on our own.
+	WIIU_TRACE("QUIT before savefile manager destruction");
 	delete _savefileManager;
 	_savefileManager = nullptr;
+	WIIU_TRACE("QUIT after savefile manager; before graphics manager destruction");
 	if (_graphicsManager) {
 		dynamic_cast<SdlGraphicsManager *>(_graphicsManager)->deactivateManager();
 	}
 	delete _graphicsManager;
 	_graphicsManager = nullptr;
+	WIIU_TRACE("QUIT after graphics manager; before window destruction");
 	delete _window;
 	_window = nullptr;
+	WIIU_TRACE("QUIT after window; before event managers destruction");
 	delete _eventManager;
 	_eventManager = nullptr;
 	delete _eventSourceWrapper;
 	_eventSourceWrapper = nullptr;
 	delete _eventSource;
 	_eventSource = nullptr;
+	WIIU_TRACE("QUIT after event managers; before audio CD manager destruction");
 	delete _audiocdManager;
 	_audiocdManager = nullptr;
+	WIIU_TRACE("QUIT after audio CD manager; before mixer manager destruction");
 	delete _mixerManager;
 	_mixerManager = nullptr;
+	WIIU_TRACE("QUIT after mixer manager; before timer manager destruction");
 
 #ifdef ENABLE_EVENTRECORDER
 	// HACK HACK HACK
@@ -155,6 +164,7 @@ OSystem_SDL::~OSystem_SDL() {
 
 	_timerManager = nullptr;
 
+	WIIU_TRACE("QUIT after timer manager; closing log next (SDL_Quit follows, not traced)");
 	delete _logger;
 	_logger = nullptr;
 
