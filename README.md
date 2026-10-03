@@ -1,4 +1,4 @@
-# ScummVM for Wii U / Aroma
+# ScummVM for Wii U / Aroma — v0.6.0
 
 ![ScummVM icon](dists/psp2/icon0.png)
 
@@ -7,9 +7,13 @@ Launch **ScummVM** directly from the Wii U Menu and play using the GamePad
 touchscreen or the analog stick and buttons. **No RetroArch required.**
 
 This is an **unofficial, experimental port**, not an official ScummVM release.
-The September 30 experimental build includes **SCUMM v0–v6, Mohawk,
+Version **0.6.0** includes **SCUMM v0–v6, Mohawk,
 Blade Runner and Groovie**, not every engine supported by desktop ScummVM.
 Earlier packages included only SCUMM v0–v6. Games and MT-32 ROMs are not included.
+
+The port version is separate from the upstream ScummVM version shown in the
+launcher. See the [0.6.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.6.0.md)
+for packages, the renderer memory fix, controls and validation details.
 
 [Downloads](https://github.com/Rrhapsod/scummvm-wiiu/releases) ·
 [Report a Wii U issue](https://github.com/Rrhapsod/scummvm-wiiu/issues) ·
@@ -27,6 +31,8 @@ Earlier packages included only SCUMM v0–v6. Games and MT-32 ROMs are not inclu
 - MP3 decoding (libmad) and integrated MT-32 emulation, user-tested on Wii U.
 - Game data browsing, configuration and save files on the SD card.
 - SDL2-based backend; no Libretro frontend or RetroArch dependency.
+- Corrected renderer texture cleanup for repeated game/launcher transitions;
+  the maintainer confirmed the reported freeze was resolved with this fix.
 
 ## Requirements
 
@@ -43,7 +49,7 @@ your saves when testing an experimental build.
 
 | Package | Intended use | Validation |
 | --- | --- | --- |
-| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | Earlier SCUMM builds and expanded-build MP3/MT-32 user-tested; new engines and freeze fixes still awaiting validation |
+| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | Corrected diagnostic build user-tested, including repeated exits, Riven, Blade Runner and The 11th Hour; final 0.6.0 release binaries still need a console smoke test |
 | RPX experimental ZIP (`ScummVM.rpx`) | Community testing with a non-Aroma Wii U Homebrew Launcher/loader that supports RPX | **Not yet tested outside Aroma** |
 
 Both packages include the same executable and required data in different
@@ -128,7 +134,7 @@ field and press **−**.
 
 ## MP3 audio playback
 
-Use the expanded build or a later release that explicitly includes MP3 support.
+Version 0.6.0 includes MP3 support, as did the earlier expanded test build.
 Earlier SCUMM-only packages did not include the MP3 decoder.
 
 MP3 decoding is automatic when a supported game engine reads audio in a
@@ -206,6 +212,10 @@ The maintainer reports successful tests on a real Wii U with:
 | --- | --- |
 | Sam & Max Hit the Road | Gameplay, saving, audio and controls |
 | Indiana Jones and the Last Crusade | Gameplay, saving, audio and controls |
+| Indiana Jones and the Fate of Atlantis | Repeated launch/return with the renderer fix |
+| Riven: The Sequel to Myst | Reported running without problems |
+| Blade Runner | Reported running without problems |
+| The 11th Hour | Reported running without problems |
 
 The native keyboard integration was also reported working in hardware testing
 on September 26, 2026. Earlier SDK tests covered TV/GamePad video, touch,
@@ -214,7 +224,15 @@ buttons, audio, SD access and HOME background/return behavior.
 On October 1, 2026, the maintainer reported successful real-Wii-U tests of
 both MP3 decoding and MT-32 emulation in the expanded build. The MT-32 test
 used `MT32_CONTROL.ROM` and `MT32_PCM.ROM`. This confirms those tested audio
-scenarios, not every game/edition or the outstanding keyboard/exit freeze fixes.
+scenarios, not every game or edition.
+
+On October 3, the maintainer confirmed the renderer memory fix resolved the
+reported freeze. The supplied log shows two Fate of Atlantis and two Sam & Max
+launch/return cycles, keyboard use and shutdown cleanup ending with successful
+log closure. Riven, Blade Runner and The 11th Hour were also reported running
+without problems. These tests used the corrected diagnostic build; 0.6.0 keeps
+the fix and disables detailed lifecycle tracing. The final release binaries
+still need a console smoke test before publication.
 
 These are tests of specific scenarios, **not full-game completion reports or
 a guarantee that every game/version works**. Additional community testing is
@@ -226,7 +244,8 @@ Aroma.** Please do not describe it as confirmed Tiramisu or legacy support yet.
 
 - The expanded build targets **Myst (original / Masterpiece), Riven (original),
   Blade Runner (original), The 7th Guest and The 11th Hour**. Their engines
-  compile, but these games have **not yet been tested on a Wii U** in this build.
+  are included. Riven, Blade Runner and The 11th Hour have positive hardware
+  reports; Myst/Myst Masterpiece and The 7th Guest still await hardware reports.
   Modern remakes and enhanced/remastered editions are not promised.
 - SCUMM v7/v8 and HE subengines remain disabled. The complete desktop ScummVM
   compatibility list does not describe this build.
@@ -234,20 +253,20 @@ Aroma.** Please do not describe it as confirmed Tiramisu or legacy support yet.
   compatibility/performance across all games is not guaranteed.
   Ogg Vorbis, FLAC and MPEG-2 are not included; editions
   requiring those optional codecs are outside this build's test scope.
-- Community reports describe freezes after saving/exiting and keyboard
-  confirmation/cancellation in **Fate of Atlantis and The Secret of Monkey
-  Island on Aroma**. The expanded build contains keyboard/lifecycle hardening
-  and diagnostic logging, **not a hardware-confirmed fix**. Back up saves.
+- Version 0.6.0 includes the renderer memory fix validated for the reported
+  repeated-exit freeze. This does not guarantee that every game/edition or
+  possible freeze is resolved. Back up saves and report new failures.
 - Networking and OpenGL/shaders are not enabled.
 - Other controllers and untested games or game editions may behave differently.
 - Native keyboard input follows the receiving game's character and length
   restrictions; it is not a synchronized editor for an existing field.
 
-## Expanded build testing
+## Release and historical test builds
 
-Read the [experimental build guide](backends/platform/sdl/wiiu/EXPERIMENTAL.md)
-before replacing your existing executable. It includes the regression checklist,
-codec/engine scope and MT-32 setup. Keep the earlier ZIP for rollback.
+Read the [0.6.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.6.0.md)
+before replacing your existing executable. Keep the earlier ZIP for rollback.
+The [experimental build guide](backends/platform/sdl/wiiu/EXPERIMENTAL.md)
+documents the historical September 30 profile and dependency preparation.
 
 ## Reporting issues
 
@@ -271,12 +290,13 @@ The port uses the existing ScummVM build system with devkitPPC, WUT,
 devkitPro's Wii U SDL2 branch, target zlib and `wut-tools`. SDL is responsible
 for native video, audio, input and Wii U application lifecycle handling.
 
-For the expanded profile including MP3 and MT-32, use the build script after
+For release 0.6.0, including MP3 and MT-32 but without lifecycle tracing, use
+the release script after
 preparing the dependencies described in the
 [experimental build guide](backends/platform/sdl/wiiu/EXPERIMENTAL.md):
 
 ```sh
-bash backends/platform/sdl/wiiu/build-expanded.sh
+bash backends/platform/sdl/wiiu/build-release.sh
 ```
 
 The following is the historical **minimal SCUMM-only profile**, with MT-32
@@ -302,7 +322,9 @@ The SD installation tree is generated in `wiiu_release/`. The filename is
 existing 128×128 ScummVM asset at `dists/psp2/icon0.png`.
 
 See [Wii U backend notes](backends/platform/sdl/wiiu/README.WIIU) for SDK
-requirements and the accompanying SDL keyboard input patch. An arbitrary
+requirements and all three accompanying SDL patches: keyboard input,
+keyboard lifecycle, and renderer lifecycle. Rebuild/install SDL after applying
+them in that order, then relink ScummVM. An arbitrary
 unpatched SDL/WUT installation is not equivalent to the locally tested SDK.
 
 ## Credits and license

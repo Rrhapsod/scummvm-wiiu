@@ -3,7 +3,8 @@
 **For community testing outside Aroma. Compatibility has NOT been verified.**
 
 This package contains the same RPX executable embedded in the matching
-Aroma WUHB. The expanded build has not been hardware-tested in either format.
+Aroma WUHB. The corrected diagnostic build has positive Aroma hardware reports;
+the final 0.6.0 binaries still need a console smoke test. Non-Aroma remains unverified.
 It does not include runtime changes specifically for other loaders.
 Packaging an RPX is not proof that it works with Tiramisu or any other setup.
 Startup, filesystem access, native keyboard, audio and application lifecycle

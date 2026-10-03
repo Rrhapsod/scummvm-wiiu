@@ -19,6 +19,7 @@ wiiu_release: ScummVM.wuhb
 	if test -n "$(DIST_FILES_VKEYBD)"; then cp $(DIST_FILES_VKEYBD) wiiu_release/scummvm/data/; fi
 	cp $(srcdir)/COPYING $(srcdir)/COPYRIGHT $(srcdir)/AUTHORS wiiu_release/scummvm/doc/
 	cp $(srcdir)/README.md $(srcdir)/README.scummvm.md wiiu_release/scummvm/doc/
+	cp $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.6.0.md wiiu_release/RELEASE-NOTES.md
 	mkdir -p wiiu_release/scummvm/doc/dists/psp2 wiiu_release/scummvm/doc/backends/platform/sdl/wiiu
 	cp $(WIIU_ICON) wiiu_release/scummvm/doc/dists/psp2/icon0.png
 	cp $(srcdir)/backends/platform/sdl/wiiu/README.WIIU $(srcdir)/backends/platform/sdl/wiiu/sdl2-swkbd-input.patch wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
@@ -28,6 +29,9 @@ wiiu_release: ScummVM.wuhb
 	cp $(srcdir)/backends/platform/sdl/wiiu/EXPERIMENTAL.md $(srcdir)/backends/platform/sdl/wiiu/sdl2-swkbd-lifecycle.patch $(srcdir)/backends/platform/sdl/wiiu/build-expanded.sh wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
 	cp $(srcdir)/backends/platform/sdl/wiiu/EXPERIMENTAL.md wiiu_release/scummvm/doc/
 	cp $(srcdir)/backends/platform/sdl/wiiu/sdl2-renderer-lifecycle.patch $(srcdir)/backends/platform/sdl/wiiu/RENDERER_FIX.md wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
+	cp $(srcdir)/backends/platform/sdl/wiiu/build-release.sh wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
+	cp $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.6.0.md wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
+	cp $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.6.0.md wiiu_release/scummvm/doc/
 	mkdir -p wiiu_release/scummvm/doc/LICENSES
 	cp $(srcdir)/LICENSES/* $(srcdir)/backends/platform/sdl/wiiu/licenses/* wiiu_release/scummvm/doc/LICENSES/
 
@@ -39,6 +43,7 @@ wiiu_rpx_release: wiiu_release
 	cp $(srcdir)/backends/platform/sdl/wiiu/meta-rpx.xml wiiu_rpx_release/wiiu/apps/scummvm/meta.xml
 	cp -R wiiu_release/scummvm/. wiiu_rpx_release/scummvm/
 	cp $(srcdir)/backends/platform/sdl/wiiu/README.RPX.md wiiu_rpx_release/README-RPX.md
+	cp wiiu_release/RELEASE-NOTES.md wiiu_rpx_release/RELEASE-NOTES.md
 
 wiiu_release_all: wiiu_release wiiu_rpx_release
 

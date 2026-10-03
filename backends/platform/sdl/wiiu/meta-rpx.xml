@@ -2,7 +2,7 @@
 <app version="1">
   <name>ScummVM (RPX test)</name>
   <coder>ScummVM Team; Wii U port by Rrhapsod</coder>
-  <version>Experimental RPX package</version>
-  <short_description>ScummVM adventures - experimental build</short_description>
+  <version>0.6.0</version>
+  <short_description>ScummVM Wii U 0.6.0 - experimental RPX</short_description>
   <long_description>Experimental Wii U Homebrew Launcher package. This is the same executable shipped inside the matching Aroma WUHB, not a separately validated legacy port. Requires a launcher and loader with RPX support. Non-Aroma startup, SD access, audio, input, keyboard and exit behavior need testing. See the included README for this build's engine list and validation status. Games and MT-32 ROMs are not included. Back up configuration and saves before testing. See README-RPX.md and report the exact environment and launcher version at https://github.com/Rrhapsod/scummvm-wiiu/issues.</long_description>
 </app>

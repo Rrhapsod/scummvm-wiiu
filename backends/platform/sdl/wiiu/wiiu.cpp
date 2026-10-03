@@ -21,6 +21,7 @@
 
 
 #include "backends/platform/sdl/wiiu/wiiu.h"
+#include "backends/platform/sdl/wiiu/release-version.h"
 #include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 #include "backends/platform/sdl/wiiu/wiiu-events.h"
 #include "backends/fs/posix-drives/posix-drives-fs-factory.h"
@@ -84,6 +85,7 @@ void OSystem_WiiU::initBackend() {
 		_savefileManager = new DefaultSaveFileManager(Common::Path(kDataRoot).join("saves"));
 	_eventSource = new WiiUEventSource();
 	OSystem_SDL::initBackend();
+	logMessage(LogMessageType::kInfo, "ScummVM Wii U port " WIIU_PORT_VERSION "\n");
 	WIIU_TRACE("BUILD renderer-memory-fix candidate 20261002; automatic lifecycle tracing enabled");
 	debug(0, "Wii U SDL backend initialized; config and saves under %s", kDataRoot);
 }

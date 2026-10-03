@@ -1,9 +1,11 @@
 ScummVM Wii U / Aroma — experimental SDL2 port
 =============================================
 
-Renderer lifecycle candidate fix (2026-10-02): also apply
+Version 0.6.0 includes the renderer lifecycle fix, confirmed by the maintainer
+for the repeated-exit scenario on 2026-10-03. For SDK preparation, apply
 sdl2-renderer-lifecycle.patch AFTER both swkbd patches, rebuild/install SDL2,
-and relink ScummVM. See RENDERER_FIX.md for rationale and hardware tests.
+and relink ScummVM. See RELEASE-0.6.0.md for release status and RENDERER_FIX.md
+for historical diagnosis and patch rationale.
 
 Requires devkitPPC, WUT, the devkitPro Wii U SDL2 port, target zlib and
 wut-tools (elf2rpl and wuhbtool). DEVKITPRO must identify the same SDK used
@@ -16,11 +18,11 @@ Build outside the source tree, after activating the SDK:
 
 The above is the historical minimal build, not the expanded test profile.
 For Myst/Riven, Blade Runner, The 7th Guest/The 11th Hour, MP3 and MT-32:
-  bash backends/platform/sdl/wiiu/build-expanded.sh
+  bash backends/platform/sdl/wiiu/build-release.sh
 See EXPERIMENTAL.md for dependencies, build scope and the regression checklist.
 Apply sdl2-swkbd-lifecycle.patch in addition to sdl2-swkbd-input.patch, rebuild
 and install SDL, then relink ScummVM. The new keyboard/window cleanup changes
-have not been validated on hardware; community freezes remain an open issue.
+preceded the separate renderer fix; do not omit the renderer lifecycle patch.
 
 This software is based in part on the work of the Independent JPEG Group.
 libjpeg-turbo 3.1.4.1 and libmad 0.15.1b notices are in licenses/ (source tree)

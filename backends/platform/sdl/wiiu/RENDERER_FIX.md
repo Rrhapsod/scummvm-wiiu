@@ -1,5 +1,10 @@
 # Wii U renderer memory fix — test candidate, 2026-10-02
 
+Historical candidate instructions. On October 3 the maintainer confirmed the
+reported freeze was resolved; the log shows four successful game-return cycles,
+keyboard use and logged shutdown cleanup. The fix is included in port v0.6.0;
+see [release notes](RELEASE-0.6.0.md) for current status and installation.
+
 This package retains automatic lifecycle tracing and the expanded engine,
 MP3 and MT-32 support. It is not yet a hardware-confirmed freeze fix.
 

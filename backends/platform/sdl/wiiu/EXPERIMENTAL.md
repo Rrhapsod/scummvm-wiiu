@@ -1,5 +1,10 @@
 # Wii U expanded experimental build — September 30, 2026
 
+Historical document for the September 30 build. For current validation and
+installation, see [0.6.0 release notes](RELEASE-0.6.0.md). The renderer fix,
+Riven, Blade Runner and The 11th Hour subsequently received positive hardware
+reports; statements below describe the earlier test build.
+
 **Test build, not a stable release. Cross-compilation is not console validation.**
 
 ## Included
