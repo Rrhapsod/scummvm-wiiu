@@ -1,6 +1,10 @@
 ScummVM Wii U / Aroma — experimental SDL2 port
 =============================================
 
+Renderer lifecycle candidate fix (2026-10-02): also apply
+sdl2-renderer-lifecycle.patch AFTER both swkbd patches, rebuild/install SDL2,
+and relink ScummVM. See RENDERER_FIX.md for rationale and hardware tests.
+
 Requires devkitPPC, WUT, the devkitPro Wii U SDL2 port, target zlib and
 wut-tools (elf2rpl and wuhbtool). DEVKITPRO must identify the same SDK used
 to build SDL2; DEVKITPPC and WUT_ROOT may be set explicitly.

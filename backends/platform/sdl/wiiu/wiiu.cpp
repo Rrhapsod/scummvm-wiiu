@@ -84,7 +84,7 @@ void OSystem_WiiU::initBackend() {
 		_savefileManager = new DefaultSaveFileManager(Common::Path(kDataRoot).join("saves"));
 	_eventSource = new WiiUEventSource();
 	OSystem_SDL::initBackend();
-	WIIU_TRACE("BUILD lifecycle diagnostic 20261002; automatic tracing enabled; not a freeze fix");
+	WIIU_TRACE("BUILD renderer-memory-fix candidate 20261002; automatic lifecycle tracing enabled");
 	debug(0, "Wii U SDL backend initialized; config and saves under %s", kDataRoot);
 }
 

@@ -1,5 +1,11 @@
 # Wii U lifecycle diagnostic build — 2026-10-02
 
+Update: the current build script produces the renderer-memory-fix candidate
+described in `RENDERER_FIX.md`, with this tracing retained. The unchanged-SDK
+description below refers to the original `337cc316` diagnostic build only.
+The new startup marker is `BUILD renderer-memory-fix candidate 20261002`;
+its default build directory is `build-scummvm-wiiu-renderer-fix-20261002`.
+
 This is a test build, **not a confirmed freeze fix or a stable release**.
 It investigates intermittent freezes when leaving a game, particularly when
 the first return to the launcher succeeds but a quick second launch/exit freezes.

@@ -27,6 +27,7 @@ wiiu_release: ScummVM.wuhb
 	cp $(srcdir)/backends/platform/sdl/wiiu/README.RPX.md wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
 	cp $(srcdir)/backends/platform/sdl/wiiu/EXPERIMENTAL.md $(srcdir)/backends/platform/sdl/wiiu/sdl2-swkbd-lifecycle.patch $(srcdir)/backends/platform/sdl/wiiu/build-expanded.sh wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
 	cp $(srcdir)/backends/platform/sdl/wiiu/EXPERIMENTAL.md wiiu_release/scummvm/doc/
+	cp $(srcdir)/backends/platform/sdl/wiiu/sdl2-renderer-lifecycle.patch $(srcdir)/backends/platform/sdl/wiiu/RENDERER_FIX.md wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
 	mkdir -p wiiu_release/scummvm/doc/LICENSES
 	cp $(srcdir)/LICENSES/* $(srcdir)/backends/platform/sdl/wiiu/licenses/* wiiu_release/scummvm/doc/LICENSES/
 

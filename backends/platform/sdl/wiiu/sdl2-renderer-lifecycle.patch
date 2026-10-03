@@ -1,0 +1,163 @@
+diff --git a/src/render/wiiu/SDL_render_wiiu.c b/src/render/wiiu/SDL_render_wiiu.c
+index ea3b196..5673bec 100644
+--- a/src/render/wiiu/SDL_render_wiiu.c
++++ b/src/render/wiiu/SDL_render_wiiu.c
+@@ -44,6 +44,13 @@ int WIIU_SDL_CreateRenderer(SDL_Renderer * renderer, SDL_Window * window, Uint32
+         return SDL_OutOfMemory();
+     }
+ 
++    /* Local ScummVM fix: validate allocations before binding GPU state. */
++    data->ctx = (GX2ContextState *) memalign(GX2_CONTEXT_STATE_ALIGNMENT, sizeof(GX2ContextState));
++    if (!data->ctx) {
++        SDL_free(data);
++        return SDL_OutOfMemory();
++    }
++
+     /* Setup renderer functions */
+     renderer->WindowEvent = WIIU_SDL_WindowEvent;
+     renderer->SupportsBlendMode = WIIU_SDL_SupportsBlendMode;
+@@ -82,7 +89,6 @@ int WIIU_SDL_CreateRenderer(SDL_Renderer * renderer, SDL_Window * window, Uint32
+     GX2SetPointSize(1.0f, 1.0f);
+ 
+     /* Create a fresh context state */
+-    data->ctx = (GX2ContextState *) memalign(GX2_CONTEXT_STATE_ALIGNMENT, sizeof(GX2ContextState));
+     SDL_memset(data->ctx, 0, sizeof(GX2ContextState));
+     GX2SetupContextStateEx(data->ctx, TRUE);
+     GX2SetContextState(data->ctx);
+@@ -99,7 +105,10 @@ int WIIU_SDL_CreateRenderer(SDL_Renderer * renderer, SDL_Window * window, Uint32
+     data->drawState.projectionMatrix[3][3] = 1.0f;
+ 
+     /* Make a texture for the window */
+-    WIIU_SDL_CreateWindowTex(renderer, window);
++    if (WIIU_SDL_CreateWindowTex(renderer, window) < 0) {
++        WIIU_SDL_DestroyRenderer(renderer);
++        return -1;
++    }
+ 
+     /* Setup colour buffer, rendering to the window */
+     WIIU_SDL_SetRenderTarget(renderer, NULL);
+@@ -127,16 +136,12 @@ SDL_bool WIIU_SDL_SupportsBlendMode(SDL_Renderer * renderer, SDL_BlendMode blend
+     return SDL_TRUE;
+ }
+ 
+-void WIIU_SDL_CreateWindowTex(SDL_Renderer * renderer, SDL_Window * window)
++int WIIU_SDL_CreateWindowTex(SDL_Renderer * renderer, SDL_Window * window)
+ {
+     WIIU_RenderData *data = (WIIU_RenderData *) renderer->driverdata;
+     const char *s_hint;
+     SDL_ScaleMode s_mode;
+-
+-    if (data->windowTex.driverdata) {
+-        WIIU_SDL_DestroyTexture(renderer, &data->windowTex);
+-        data->windowTex = (SDL_Texture) {0};
+-    }
++    SDL_Texture replacement;
+ 
+     /* Setup scaling mode; this is normally handled by
+        SDL_CreateTexture/SDL_GetScaleMode, but those can't
+@@ -153,23 +158,40 @@ void WIIU_SDL_CreateWindowTex(SDL_Renderer * renderer, SDL_Window * window)
+     }
+ 
+     /* Allocate a buffer for the window */
+-    data->windowTex = (SDL_Texture) {
++    replacement = (SDL_Texture) {
+         .format = SDL_PIXELFORMAT_RGBA8888,
+         .driverdata = WIIU_TEXTURE_MEM1_MAGIC,
+         .scaleMode = s_mode,
+     };
+ 
+-    SDL_GetWindowSize(window, &data->windowTex.w, &data->windowTex.h);
++    SDL_GetWindowSize(window, &replacement.w, &replacement.h);
+ 
+     /* Setup texture and color buffer for the window */
+-    WIIU_SDL_CreateTexture(renderer, &data->windowTex);
++    /* Local ScummVM fix: never publish the MEM1 sentinel on failure. Keep
++       the old texture usable if a resize/recreation allocation fails. */
++    if (WIIU_SDL_CreateTexture(renderer, &replacement) < 0) {
++        return -1;
++    }
++    WIIU_SDL_DestroyWindowTex(renderer, window);
++    data->windowTex = replacement;
++    return 0;
+ }
+ 
+ void WIIU_SDL_DestroyWindowTex(SDL_Renderer * renderer, SDL_Window * window)
+ {
+     WIIU_RenderData *data = (WIIU_RenderData *) renderer->driverdata;
++    WIIU_VideoData *videodata = (WIIU_VideoData *) SDL_GetVideoDevice()->driverdata;
+ 
++    if (!data->windowTex.driverdata) {
++        return;
++    }
++    /* This private texture is also used by scan-buffer copies, outside the
++       normal SDL texture list. Wait before releasing its backing storage. */
++    if (videodata->hasForeground) {
++        GX2DrawDone();
++    }
+     WIIU_SDL_DestroyTexture(renderer, &data->windowTex);
++    data->windowTex = (SDL_Texture) {0};
+ }
+ 
+ int WIIU_SDL_SetRenderTarget(SDL_Renderer * renderer, SDL_Texture * texture)
+@@ -205,6 +227,9 @@ void WIIU_SDL_DestroyRenderer(SDL_Renderer * renderer)
+         GX2SetContextState(NULL);
+     }
+ 
++    /* Local ScummVM fix: SDL does not own this embedded/private texture. */
++    WIIU_SDL_DestroyWindowTex(renderer, renderer->window);
++
+     /* Free both render data queues */
+     WIIU_FreeRenderData(data, 0);
+     WIIU_FreeRenderData(data, 1);
+@@ -214,6 +239,7 @@ void WIIU_SDL_DestroyRenderer(SDL_Renderer * renderer)
+     WIIU_SDL_DestroyShaders();
+ 
+     SDL_free(data);
++    renderer->driverdata = NULL;
+ }
+ 
+ int WIIU_SDL_RenderReadPixels(SDL_Renderer * renderer, const SDL_Rect * rect,
+diff --git a/src/render/wiiu/SDL_render_wiiu.h b/src/render/wiiu/SDL_render_wiiu.h
+index 5ded006..72b8e97 100644
+--- a/src/render/wiiu/SDL_render_wiiu.h
++++ b/src/render/wiiu/SDL_render_wiiu.h
+@@ -133,7 +133,7 @@ void WIIU_SDL_DestroyTexture(SDL_Renderer * renderer, SDL_Texture * texture);
+ void WIIU_SDL_DestroyRenderer(SDL_Renderer * renderer);
+ 
+ /* Driver internal functions */
+-void WIIU_SDL_CreateWindowTex(SDL_Renderer * renderer, SDL_Window * window);
++int WIIU_SDL_CreateWindowTex(SDL_Renderer * renderer, SDL_Window * window);
+ void WIIU_SDL_DestroyWindowTex(SDL_Renderer * renderer, SDL_Window * window);
+ 
+ /* Utility/helper functions */
+diff --git a/src/render/wiiu/SDL_rwindow_wiiu.c b/src/render/wiiu/SDL_rwindow_wiiu.c
+index 0403e68..bc6c6c5 100644
+--- a/src/render/wiiu/SDL_rwindow_wiiu.c
++++ b/src/render/wiiu/SDL_rwindow_wiiu.c
+@@ -30,7 +30,10 @@ void WIIU_SDL_WindowEvent(SDL_Renderer * renderer, const SDL_WindowEvent *event)
+ {
+     if (event->event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+         /* Re-init the colour buffer etc. for new window size */
+-        WIIU_SDL_CreateWindowTex(renderer, renderer->window);
++        if (WIIU_SDL_CreateWindowTex(renderer, renderer->window) < 0) {
++            SDL_LogError(SDL_LOG_CATEGORY_RENDER, "Wii U window texture resize failed: %s", SDL_GetError());
++            return;
++        }
+         WIIU_SDL_SetRenderTarget(renderer, NULL);
+     }
+ }
+diff --git a/src/video/wiiu/SDL_wiiuvideo.c b/src/video/wiiu/SDL_wiiuvideo.c
+index db5b77c..79f5d2b 100644
+--- a/src/video/wiiu/SDL_wiiuvideo.c
++++ b/src/video/wiiu/SDL_wiiuvideo.c
+@@ -118,7 +118,9 @@ static int WIIU_ForegroundAcquired(_THIS)
+ 
+ 		// Recreate the window texture, now that we have foreground memory available
+ 		if (renderer) {
+-			WIIU_SDL_CreateWindowTex(renderer, window);
++			if (WIIU_SDL_CreateWindowTex(renderer, window) < 0) {
++				return -1;
++			}
+ 		}
+ 
+ 		// We're now in foreground, window is visible
