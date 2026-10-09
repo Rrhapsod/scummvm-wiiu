@@ -3,6 +3,8 @@ WIIU_ELF2RPL := $(DEVKITPRO)/tools/bin/elf2rpl
 WIIU_WUHBTOOL := $(DEVKITPRO)/tools/bin/wuhbtool
 # Reuse the upstream ScummVM icon, already at WUHB's required 128x128 size.
 WIIU_ICON := $(srcdir)/dists/psp2/icon0.png
+WIIU_RELEASE_NOTES ?= $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.6.0.md
+WIIU_RPX_META ?= $(srcdir)/backends/platform/sdl/wiiu/meta-rpx.xml
 
 scummvm.rpx: $(EXECUTABLE)
 	$(WIIU_ELF2RPL) $< $@
@@ -19,7 +21,7 @@ wiiu_release: ScummVM.wuhb
 	if test -n "$(DIST_FILES_VKEYBD)"; then cp $(DIST_FILES_VKEYBD) wiiu_release/scummvm/data/; fi
 	cp $(srcdir)/COPYING $(srcdir)/COPYRIGHT $(srcdir)/AUTHORS wiiu_release/scummvm/doc/
 	cp $(srcdir)/README.md $(srcdir)/README.scummvm.md wiiu_release/scummvm/doc/
-	cp $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.6.0.md wiiu_release/RELEASE-NOTES.md
+	cp $(WIIU_RELEASE_NOTES) wiiu_release/RELEASE-NOTES.md
 	mkdir -p wiiu_release/scummvm/doc/dists/psp2 wiiu_release/scummvm/doc/backends/platform/sdl/wiiu
 	cp $(WIIU_ICON) wiiu_release/scummvm/doc/dists/psp2/icon0.png
 	cp $(srcdir)/backends/platform/sdl/wiiu/README.WIIU $(srcdir)/backends/platform/sdl/wiiu/sdl2-swkbd-input.patch wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
@@ -40,7 +42,7 @@ wiiu_release: ScummVM.wuhb
 wiiu_rpx_release: wiiu_release
 	mkdir -p wiiu_rpx_release/wiiu/apps/scummvm wiiu_rpx_release/scummvm
 	cp scummvm.rpx wiiu_rpx_release/wiiu/apps/scummvm/ScummVM.rpx
-	cp $(srcdir)/backends/platform/sdl/wiiu/meta-rpx.xml wiiu_rpx_release/wiiu/apps/scummvm/meta.xml
+	cp $(WIIU_RPX_META) wiiu_rpx_release/wiiu/apps/scummvm/meta.xml
 	cp -R wiiu_release/scummvm/. wiiu_rpx_release/scummvm/
 	cp $(srcdir)/backends/platform/sdl/wiiu/README.RPX.md wiiu_rpx_release/README-RPX.md
 	cp wiiu_release/RELEASE-NOTES.md wiiu_rpx_release/RELEASE-NOTES.md

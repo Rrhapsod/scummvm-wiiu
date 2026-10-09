@@ -15,6 +15,11 @@ The port version is separate from the upstream ScummVM version shown in the
 launcher. See the [0.6.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.6.0.md)
 for packages, the renderer memory fix, controls and validation details.
 
+For my separate post-0.6.0 compatibility test with **SCUMM v7/v8, MM/Xeen and
+SCI/SCI32**, see the [October 9 testing guide](backends/platform/sdl/wiiu/COMPATIBILITY-20261009.md).
+Those additional games still need Wii U testing; they are not included in the
+original 0.6.0 binaries.
+
 [Downloads](https://github.com/Rrhapsod/scummvm-wiiu/releases) ·
 [Report a Wii U issue](https://github.com/Rrhapsod/scummvm-wiiu/issues) ·
 [Upstream ScummVM README](README.scummvm.md)

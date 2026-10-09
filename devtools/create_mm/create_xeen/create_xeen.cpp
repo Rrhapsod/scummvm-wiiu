@@ -59,8 +59,15 @@ static void writeVersion() {
  * up to form the xeen data file
  */
 int main(int argc, char *argv[]) {
+	// Refresh source-derived data without re-extracting the game-derived files.
+	if (argc == 2 && strcmp(argv[1], "--constants-only") == 0) {
+		writeVersion();
+		writeConstants();
+		return 0;
+	}
+
 	if (argc != 3) {
-		error("Format: %s dark.cc \"swords xeen.dat\"", argv[0]);
+		error("Format: %s dark.cc \"swords xeen.dat\" OR --constants-only", argv[0]);
 	}
 
 	writeVersion();

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<app version="1">
+  <name>ScummVM (RPX test)</name>
+  <coder>ScummVM Team; Wii U port by Rrhapsod</coder>
+  <version>0.6.0-compat-20261009</version>
+  <short_description>SCUMM v7/v8, MM/Xeen and SCI/SCI32 test</short_description>
+  <long_description>Post-0.6.0 compatibility test, not a stable release. Adds engines for The Curse of Monkey Island, World of Xeen and Quest for Glory IV. I have not tested these games with this build on Wii U yet. Non-Aroma RPX operation remains unverified. Includes the same executable as the matching Aroma WUHB. Back up configuration and saves; extract the complete package including scummvm/data/mm.dat. See TESTING.md for installation, controls and test scenarios. Games and MT-32 ROMs are not included.</long_description>
+</app>

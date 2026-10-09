@@ -197,6 +197,58 @@ Common::KeymapArray MMMetaEngine::initKeymaps(const char *target) const {
 
 	keymaps.push_back(mainKeymap);
 
+#ifdef ENABLE_XEEN
+	if (isXeenGame(target)) {
+		// Xeen handles arrow keys (not the generic keypad movement bindings).
+		// Keep text confirmation separate from clicking so the native keyboard
+		// can submit text without implicitly closing the game's input dialog.
+		Keymap *xeenKeymap = new Keymap(Keymap::kKeymapTypeGame, "xeen-controls", _("Xeen controls"));
+		xeenKeymap->setPartialMatchAllowed(false);
+
+		act = new Action(kStandardActionMoveUp, _("Move forward"));
+		act->setKeyEvent(KEYCODE_UP);
+		act->addDefaultInputMapping("UP");
+		act->addDefaultInputMapping("JOY_UP");
+		act->allowKbdRepeats();
+		xeenKeymap->addAction(act);
+
+		act = new Action(kStandardActionMoveDown, _("Move backward"));
+		act->setKeyEvent(KEYCODE_DOWN);
+		act->addDefaultInputMapping("DOWN");
+		act->addDefaultInputMapping("JOY_DOWN");
+		act->allowKbdRepeats();
+		xeenKeymap->addAction(act);
+
+		act = new Action(kStandardActionMoveLeft, _("Turn left"));
+		act->setKeyEvent(KEYCODE_LEFT);
+		act->addDefaultInputMapping("LEFT");
+		act->addDefaultInputMapping("JOY_LEFT");
+		act->allowKbdRepeats();
+		xeenKeymap->addAction(act);
+
+		act = new Action(kStandardActionMoveRight, _("Turn right"));
+		act->setKeyEvent(KEYCODE_RIGHT);
+		act->addDefaultInputMapping("RIGHT");
+		act->addDefaultInputMapping("JOY_RIGHT");
+		act->allowKbdRepeats();
+		xeenKeymap->addAction(act);
+
+		act = new Action("RETURN", _("Confirm"));
+		act->setKeyEvent(KeyState(KEYCODE_RETURN, ASCII_RETURN));
+		act->addDefaultInputMapping("RETURN");
+		act->addDefaultInputMapping("JOY_X");
+		xeenKeymap->addAction(act);
+
+		act = new Action(kStandardActionSkip, _("Cancel"));
+		act->setKeyEvent(KeyState(KEYCODE_ESCAPE, ASCII_ESCAPE));
+		act->addDefaultInputMapping("ESCAPE");
+		act->addDefaultInputMapping("JOY_Y");
+		xeenKeymap->addAction(act);
+
+		keymaps.push_back(xeenKeymap);
+	}
+#endif
+
 #ifdef ENABLE_MM1
 	const Common::String gameId = getGameId(target);
 	if (gameId == "mm1" || gameId == "mm1_enh") {
