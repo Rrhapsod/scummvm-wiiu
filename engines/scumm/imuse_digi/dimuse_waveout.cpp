@@ -121,6 +121,17 @@ void IMuseDigital::waveOutWrite(uint8 **audioData, int &feedSize, int &sampleRat
 		byte *ptr = (byte *)malloc(_outputFeedSize * _waveOutBytesPerSample * _waveOutNumChannels);
 		memcpy(ptr, curBufferBlock, _outputFeedSize * _waveOutBytesPerSample * _waveOutNumChannels);
 
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+		// Already under the iMUSE resource mutex. No log or filesystem IO here.
+		++_diagQueuedBuffers;
+		for (int i = 0; i < _outputFeedSize * _waveOutBytesPerSample * _waveOutNumChannels; ++i) {
+			if (ptr[i]) {
+				++_diagNonzeroBuffers;
+				break;
+			}
+		}
+#endif
+
 		_internalMixer->getStream(-1)->queueBuffer(ptr,
 			_outputFeedSize * _waveOutBytesPerSample * _waveOutNumChannels,
 			DisposeAfterUse::YES,

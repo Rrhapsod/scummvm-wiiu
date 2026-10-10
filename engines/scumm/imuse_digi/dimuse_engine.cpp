@@ -26,6 +26,7 @@
 #include "scumm/scumm_v7.h"
 #include "scumm/sound.h"
 #include "scumm/imuse_digi/dimuse_engine.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 #include "scumm/imuse_digi/dimuse_defs.h"
 #include "scumm/imuse_digi/dimuse_bndmgr.h"
 #include "scumm/imuse_digi/dimuse_sndmgr.h"
@@ -140,8 +141,45 @@ IMuseDigital::IMuseDigital(ScummEngine_v7 *scumm, int sampleRate, Audio::Mixer *
 	_nominalBufferCount = _maxQueuedStreams;
 	_underrunCooldown = _maxQueuedStreams;
 
+	WIIU_TRACE("DIMUSE init ready=%d rate=%d stereo=%d buffer=%d internalRate=%d feed=%d lowLatency=%d",
+		(int)_mixer->isReady(), _mixer->getOutputRate(), (int)_mixer->getOutputStereo(),
+		(int)_mixer->getOutputBufSize(), _internalSampleRate, _internalFeedSize, (int)_lowLatencyMode);
 	_vm->getTimerManager()->installTimerProc(timer_handler, 1000000 / _callbackFps, this, "IMuseDigital");
 }
+
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+void IMuseDigital::reportWiiUDiagnostics() {
+	const uint32 now = g_system->getMillis();
+	if (_diagReports >= 16 || (_diagReports && now - _diagLastReport < 2000))
+		return;
+	_diagLastReport = now;
+	++_diagReports;
+	uint32 queued, nonzero;
+	int paused, disabled, writeDisabled, state, sequence, queuedNow;
+	{
+		Common::StackLock lock(*_mutex);
+		queued = _diagQueuedBuffers;
+		nonzero = _diagNonzeroBuffers;
+		paused = _cmdsPauseCount;
+		disabled = _isEngineDisabled;
+		writeDisabled = _waveOutDisableWrite;
+		state = _curMusicState;
+		sequence = _curMusicSeq;
+		queuedNow = _internalMixer->_stream ? (int)_internalMixer->_stream->numQueuedStreams() : -1;
+	}
+	WIIU_TRACE("DIMUSE sample=%d ready=%d paused=%d disabled=%d writeDisabled=%d queuedTotal=%lu nonzeroTotal=%lu queueNow=%d state=%d sequence=%d",
+		_diagReports, (int)_mixer->isReady(), paused, disabled, writeDisabled,
+		(unsigned long)queued, (unsigned long)nonzero, queuedNow, state, sequence);
+	WIIU_TRACE("DIMUSE volumes music=%d speech=%d sfx=%d mutePlain=%d muteMusic=%d muteSpeech=%d muteSfx=%d",
+		_mixer->getVolumeForSoundType(Audio::Mixer::kMusicSoundType),
+		_mixer->getVolumeForSoundType(Audio::Mixer::kSpeechSoundType),
+		_mixer->getVolumeForSoundType(Audio::Mixer::kSFXSoundType),
+		(int)_mixer->isSoundTypeMuted(Audio::Mixer::kPlainSoundType),
+		(int)_mixer->isSoundTypeMuted(Audio::Mixer::kMusicSoundType),
+		(int)_mixer->isSoundTypeMuted(Audio::Mixer::kSpeechSoundType),
+		(int)_mixer->isSoundTypeMuted(Audio::Mixer::kSFXSoundType));
+}
+#endif
 
 IMuseDigital::~IMuseDigital() {
 	_vm->getTimerManager()->removeTimerProc(timer_handler);

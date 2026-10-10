@@ -20,6 +20,7 @@
  */
 
 #include "common/system.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 #include "common/config-manager.h"
 #include "common/debug-channels.h"
 #include "common/translation.h"
@@ -274,11 +275,15 @@ SciEngine::~SciEngine() {
 extern int showScummVMDialog(const Common::U32String &message, const Common::U32String &altButton = Common::U32String(), bool alignCenter = true);
 
 Common::Error SciEngine::run() {
+	WIIU_TRACE("SCI run begin game=%s platform=%d", ConfMan.get("gameid").c_str(), (int)getPlatform());
 	_tts = new SciTTS();
 
 	_resMan = new ResourceManager();
+	WIIU_TRACE("SCI before resource sources");
 	_resMan->addAppropriateSources();
+	WIIU_TRACE("SCI before resource init");
 	_resMan->init();
+	WIIU_TRACE("SCI resource init complete version=%d", (int)getSciVersion());
 
 	// TODO: Add error handling. Check return values of addAppropriateSources
 	// and init. We first have to *add* sensible return values, though ;).
@@ -292,7 +297,9 @@ Common::Error SciEngine::run() {
 	// Add the after market patches for the specified game, if they exist
 	_resMan->addNewGMPatch(_gameId);
 	_resMan->addNewD110Patch(_gameId);
+	WIIU_TRACE("SCI before findGameObject");
 	_gameObjectAddress = _resMan->findGameObject(true);
+	WIIU_TRACE("SCI findGameObject complete");
 
 	_scriptPatcher = new ScriptPatcher();
 	SegManager *segMan = new SegManager(_resMan, _scriptPatcher);
@@ -339,13 +346,16 @@ Common::Error SciEngine::run() {
 		_gfxScreen->enableUndithering(undither);
 	}
 
+	WIIU_TRACE("SCI before kernel/features");
 	_kernel = new Kernel(_resMan, segMan);
 	_features = new GameFeatures(segMan, _kernel);
 	_vocabulary = hasParser() ? new Vocabulary(_resMan, false) : nullptr;
 
 	_gamestate = new EngineState(segMan);
 	_guestAdditions = new GuestAdditions(_gamestate, _features, _kernel);
+	WIIU_TRACE("SCI before event manager");
 	_eventMan = new EventManager(_resMan->detectFontExtended());
+	WIIU_TRACE("SCI before audio/video objects");
 #ifdef ENABLE_SCI32
 	if (getSciVersion() >= SCI_VERSION_2) {
 		_audio32 = new Audio32(_resMan);
@@ -366,12 +376,14 @@ Common::Error SciEngine::run() {
 	// The game needs to be initialized before the graphics system is initialized, as
 	// the graphics code checks parts of the seg manager upon initialization (e.g. for
 	// the presence of the fastCast object)
+	WIIU_TRACE("SCI before initGame");
 	if (!initGame()) { /* Initialize */
 		warning("Game initialization failed: Aborting...");
 		// TODO: Add an "init failed" error?
 		return Common::kUnknownError;
 	}
 
+	WIIU_TRACE("SCI initGame complete");
 	// we try to find the super class address of the game object, we can't do that earlier
 	const Object *gameObject = segMan->getObject(_gameObjectAddress);
 	if (!gameObject) {
@@ -385,13 +397,16 @@ Common::Error SciEngine::run() {
 	_kernel->loadKernelNames(_features);
 
 	// Initialize all graphics related subsystems
+	WIIU_TRACE("SCI before initGraphics");
 	initGraphics();
+	WIIU_TRACE("SCI initGraphics complete; before sound parser");
 
 	// Sound must be initialized after graphics because SysEx transfers at the
 	// start of the game must pump the event loop to avoid making the OS think
 	// that ScummVM is hanged, and pumping the event loop requires GfxCursor to
 	// be initialized
 	_soundCmd = new SoundCommandParser(_resMan, segMan, _kernel, _audio, _features->detectDoSoundType());
+	WIIU_TRACE("SCI sound parser complete");
 
 	syncSoundSettings();
 	_guestAdditions->syncAudioOptionsFromScummVM();
@@ -458,7 +473,9 @@ Common::Error SciEngine::run() {
 		warning("Fan made script patch detected");
 	}
 
+	WIIU_TRACE("SCI before runGame");
 	runGame();
+	WIIU_TRACE("SCI runGame returned");
 
 	ConfMan.flushToDisk();
 
@@ -648,7 +665,9 @@ void SciEngine::initStackBaseWithSelector(Selector selector) {
 void SciEngine::runGame() {
 	setTotalPlayTime(17);
 
+	WIIU_TRACE("SCI before play selector");
 	initStackBaseWithSelector(SELECTOR(play)); // Call the play selector
+	WIIU_TRACE("SCI play selector ready");
 
 	// Attach the debug console on game startup, if requested
 	if (DebugMan.isDebugChannelEnabled(kDebugLevelOnStartup))
@@ -658,7 +677,9 @@ void SciEngine::runGame() {
 
 	do {
 		_gamestate->_executionStackPosChanged = false;
+		WIIU_TRACE("SCI before run_vm");
 		run_vm(_gamestate);
+		WIIU_TRACE("SCI run_vm returned");
 
 		// Stop audio and sound components, unless loading a game.
 		// EngineState::saveLoadWithSerializer has already handled that.

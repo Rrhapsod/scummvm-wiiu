@@ -67,6 +67,12 @@ struct IMuseDigiStreamZone;
 
 class IMuseDigital : public MusicEngine {
 private:
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	uint32 _diagQueuedBuffers = 0;
+	uint32 _diagNonzeroBuffers = 0;
+	uint32 _diagLastReport = 0;
+	int _diagReports = 0;
+#endif
 	Common::Mutex *_mutex;
 	ScummEngine_v7 *_vm;
 	Audio::Mixer *_mixer;
@@ -319,6 +325,10 @@ private:
 	uint8 *_waveOutLowLatencyOutputBuffer;
 
 public:
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	// Main thread only; copy counters under the audio lock, log after releasing it.
+	void reportWiiUDiagnostics();
+#endif
 	IMuseDigital(ScummEngine_v7 *scumm, int sampleRate, Audio::Mixer *mixer, Common::Mutex *mutex, bool lowLatencyMode = false);
 	~IMuseDigital() override;
 

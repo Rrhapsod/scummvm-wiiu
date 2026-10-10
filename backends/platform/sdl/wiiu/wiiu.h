@@ -37,6 +37,9 @@ public:
 	bool getFeatureState(Feature f) override;
 
 protected:
+#ifdef WIIU_COMPAT_DIAGNOSTICS
+	Common::WriteStream *createLogFile() override;
+#endif
 	Common::Path getDefaultConfigFileName() override;
 	Common::Path getDefaultLogFileName() override;
 };

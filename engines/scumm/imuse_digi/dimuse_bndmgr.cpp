@@ -25,6 +25,7 @@
 #include "scumm/util.h"
 #include "scumm/file.h"
 #include "scumm/imuse_digi/dimuse_bndmgr.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 #include "scumm/imuse_digi/dimuse_codecs.h"
 
 namespace Scumm {
@@ -402,10 +403,14 @@ bool BundleMgr::isExtCompBun(byte gameId) {
 	bool isExtComp = false;
 	if (gameId == GID_CMI) {
 		bool isExtComp1 = false, isExtComp2 = false, isExtComp3 = false, isExtComp4 = false;
-		this->open("voxdisk1.bun", isExtComp1); this->close();
-		this->open("voxdisk2.bun", isExtComp2); this->close();
-		this->open("musdisk1.bun", isExtComp3); this->close();
-		this->open("musdisk2.bun", isExtComp4); this->close();
+		const bool vox1 = this->open("voxdisk1.bun", isExtComp1); this->close();
+		const bool vox2 = this->open("voxdisk2.bun", isExtComp2); this->close();
+		const bool mus1 = this->open("musdisk1.bun", isExtComp3); this->close();
+		const bool mus2 = this->open("musdisk2.bun", isExtComp4); this->close();
+		WIIU_TRACE("COMI bundles open vox1=%d vox2=%d mus1=%d mus2=%d recompressed=%d/%d/%d/%d",
+			(int)vox1, (int)vox2, (int)mus1, (int)mus2,
+			(int)isExtComp1, (int)isExtComp2, (int)isExtComp3, (int)isExtComp4);
+		(void)vox1; (void)vox2; (void)mus1; (void)mus2;
 
 		isExtComp = isExtComp1 | isExtComp2 | isExtComp3 | isExtComp4;
 	} else {

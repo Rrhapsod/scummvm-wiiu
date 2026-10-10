@@ -4192,6 +4192,9 @@ void ScummEngine_v7::scummLoop_handleSound() {
 	if (_imuseDigital) {
 		_imuseDigital->flushTracks();
 		_imuseDigital->refreshScripts();
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+		_imuseDigital->reportWiiUDiagnostics();
+#endif
 	}
 
 	if (_game.id == GID_REBEL1 || _game.id == GID_REBEL2)

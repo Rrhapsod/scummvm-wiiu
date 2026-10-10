@@ -24,6 +24,7 @@
 #include "backends/platform/sdl/wiiu/release-version.h"
 #include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 #include "backends/platform/sdl/wiiu/wiiu-events.h"
+#include "backends/platform/sdl/wiiu/wiiu-log.h"
 #include "backends/fs/posix-drives/posix-drives-fs-factory.h"
 #include "backends/saves/default/default-saves.h"
 #include "common/config-manager.h"
@@ -86,7 +87,7 @@ void OSystem_WiiU::initBackend() {
 	_eventSource = new WiiUEventSource();
 	OSystem_SDL::initBackend();
 	logMessage(LogMessageType::kInfo, "ScummVM Wii U port " WIIU_PORT_VERSION "\n");
-	WIIU_TRACE("BUILD renderer-memory-fix candidate 20261002; automatic lifecycle tracing enabled");
+	WIIU_TRACE("BUILD " WIIU_PORT_VERSION "; automatic lifecycle tracing enabled");
 	debug(0, "Wii U SDL backend initialized; config and saves under %s", kDataRoot);
 }
 
@@ -119,5 +120,20 @@ Common::Path OSystem_WiiU::getDefaultConfigFileName() {
 }
 
 Common::Path OSystem_WiiU::getDefaultLogFileName() {
+#ifdef WIIU_COMPAT_DIAGNOSTICS
+	return Common::Path(kDataRoot).join("scummvm-compat-diagnostic.log");
+#else
 	return Common::Path(kDataRoot).join("scummvm.log");
+#endif
 }
+
+#ifdef WIIU_COMPAT_DIAGNOSTICS
+Common::WriteStream *OSystem_WiiU::createLogFile() {
+	_logFilePath.clear();
+	const Common::Path path = getDefaultLogFileName();
+	StdioStream *stream = openWiiUDiagnosticLog(path.toString(Common::Path::kNativeSeparator));
+	if (stream)
+		_logFilePath = path;
+	return stream;
+}
+#endif
