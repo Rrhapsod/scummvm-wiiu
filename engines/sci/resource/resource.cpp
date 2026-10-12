@@ -38,6 +38,27 @@
 #include "sci/resource/resource_intern.h"
 #include "sci/resource/resource_patcher.h"
 #include "sci/util.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
+
+// Only the initial, main-thread resource scan is traced. Never log resource
+// loads made by audio callbacks after startup; bound per-resource SD writes.
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+#define SCI_PHASE_TRACE(...) do { if (_diagInitActive) WIIU_TRACE(__VA_ARGS__); } while (0)
+#define SCI_INIT_TRACE(...) do { \
+	if (_diagInitActive) { \
+		if (_diagInitTraceCount < 256) { \
+			++_diagInitTraceCount; \
+			WIIU_TRACE(__VA_ARGS__); \
+		} else if (_diagInitTraceCount == 256) { \
+			++_diagInitTraceCount; \
+			WIIU_TRACE("SCI resource detail limit reached; phase markers continue"); \
+		} \
+	} \
+} while (0)
+#else
+#define SCI_PHASE_TRACE(...) do {} while (0)
+#define SCI_INIT_TRACE(...) do {} while (0)
+#endif
 
 namespace Sci {
 
@@ -421,10 +442,15 @@ void ResourceManager::disposeVolumeFileStream(Common::SeekableReadStream *fileSt
 }
 
 void ResourceManager::loadResource(Resource *res) {
+	SCI_INIT_TRACE("SCI load begin type=%d number=%u source=%s", (int)res->getType(),
+		(unsigned int)res->getNumber(), res->_source->getLocationName().toString().c_str());
 	res->_source->loadResource(this, res);
+	SCI_INIT_TRACE("SCI load returned type=%d number=%u bytes=%u; before patch",
+		(int)res->getType(), (unsigned int)res->getNumber(), (unsigned int)res->size());
 	if (_patcher) {
 		_patcher->applyPatch(*res);
 	};
+	SCI_INIT_TRACE("SCI load/patch complete");
 }
 
 
@@ -846,7 +872,10 @@ void ResourceManager::scanNewSources() {
 
 		if (!source->_scanned) {
 			source->_scanned = true;
+			SCI_INIT_TRACE("SCI scan begin type=%d source=%s", (int)source->getSourceType(),
+				source->getLocationName().toString().c_str());
 			source->scanSource(this);
+			SCI_INIT_TRACE("SCI scan complete resources=%u", (unsigned int)_resMap.size());
 		}
 	}
 
@@ -1005,6 +1034,16 @@ ResourceManager::ResourceManager(const bool detectionMode) :
 	_detectionMode(detectionMode) {}
 
 void ResourceManager::init() {
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	// Clear the flag even on the early unknown-format return.
+	struct InitTraceScope {
+		bool &active;
+		InitTraceScope(bool &flag, bool enabled) : active(flag) { active = enabled; }
+		~InitTraceScope() { active = false; }
+	} traceScope(_diagInitActive, !_detectionMode && g_sci);
+	_diagInitTraceCount = 0;
+#endif
+	SCI_INIT_TRACE("SCI init resource state begin");
 	_maxMemoryLRU = 256 * 1024; // 256KiB
 	_memoryLocked = 0;
 	_memoryLRU = 0;
@@ -1015,16 +1054,21 @@ void ResourceManager::init() {
 	_currentDiscNo = 1;
 #endif
 	if (g_sci) {
+		SCI_INIT_TRACE("SCI init before resource patcher");
 		_patcher = new ResourcePatcher(g_sci->getGameId(), g_sci->isCD(), g_sci->getPlatform(), g_sci->getLanguage());
 		addSource(_patcher);
+		SCI_INIT_TRACE("SCI init resource patcher complete");
 	} else {
 		_patcher = nullptr;
 	};
 
 	// FIXME: put this in an Init() function, so that we can error out if detection fails completely
 
+	SCI_INIT_TRACE("SCI init before detectMapVersion");
 	_mapVersion = detectMapVersion();
+	SCI_INIT_TRACE("SCI init map version=%d; before detectVolVersion", (int)_mapVersion);
 	_volVersion = detectVolVersion();
+	SCI_INIT_TRACE("SCI init volume version=%d", (int)_volVersion);
 
 	if ((_volVersion == kResVersionUnknown) && (_mapVersion != kResVersionUnknown)) {
 		warning("Volume version not detected, but map version has been detected. Setting volume version to map version");
@@ -1057,7 +1101,9 @@ void ResourceManager::init() {
 #endif
 		_isSci2Mac = false;
 
+	SCI_PHASE_TRACE("SCI init before first source scan");
 	scanNewSources();
+	SCI_PHASE_TRACE("SCI init first scan complete; before audio sources");
 
 	if (!addAudioSources()) {
 		// FIXME: This error message is not always correct.
@@ -1067,10 +1113,14 @@ void ResourceManager::init() {
 		//error("Somehow I can't seem to find the sound files I need (RESOURCE.AUD/RESOURCE.SFX), aborting");
 	}
 
+	SCI_PHASE_TRACE("SCI init audio sources complete; before script chunks");
 	addScriptChunkSources();
+	SCI_PHASE_TRACE("SCI init script chunks complete; before second source scan");
 	scanNewSources();
+	SCI_PHASE_TRACE("SCI init second scan complete; before detectSciVersion");
 
 	detectSciVersion();
+	SCI_PHASE_TRACE("SCI init detectSciVersion complete version=%d", (int)getSciVersion());
 
 	debugC(1, kDebugLevelResMan, "resMan: Detected %s", getSciVersionDesc(getSciVersion()));
 

@@ -1,5 +1,9 @@
 # Curse audio / Quest for Glory IV diagnostic build — October 10, 2026
 
+Historical test instructions for the October 10 artifacts. For the current
+build helper and next test, see `COMPAT-DIAGNOSTIC-20261012.md`. Earlier
+packages remain unchanged.
+
 This is a diagnostic build, not a confirmed repair or a stable release.
 I tested the October 9 candidate: Curse ran without sound; World of Xeen was
 playable; Quest for Glory IV CD/Windows went black at startup and the ordinary

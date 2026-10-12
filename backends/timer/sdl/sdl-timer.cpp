@@ -26,6 +26,7 @@
 
 #include "backends/timer/sdl/sdl-timer.h"
 #include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
+#include "backends/platform/sdl/wiiu/wiiu-audio-probe.h"
 
 #include "common/textconsole.h"
 
@@ -36,7 +37,9 @@ static Uint32 timer_handler(void *userdata, SDL_TimerID timerID, Uint32 interval
 }
 #else
 static Uint32 timer_handler(Uint32 interval, void *param) {
+	WIIU_AUDIO_HIT(kWiiUTimerEnter);
 	((DefaultTimerManager *)param)->handler();
+	WIIU_AUDIO_HIT(kWiiUTimerLeave);
 	return interval;
 }
 #endif
@@ -51,6 +54,7 @@ SdlTimerManager::SdlTimerManager() {
 
 	// Creates the timer callback
 	_timerID = SDL_AddTimer(10, &timer_handler, this);
+	WIIU_TRACE("TIMER registered ok=%d", (int)(_timerID != 0));
 }
 
 SdlTimerManager::~SdlTimerManager() {

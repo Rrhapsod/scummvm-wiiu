@@ -2,7 +2,7 @@
 <app version="1">
   <name>ScummVM (diagnostic RPX)</name>
   <coder>ScummVM Team; Wii U port by Rrhapsod</coder>
-  <version>0.6.0-diag-20261010</version>
+  <version>0.6.0-diag-20261012</version>
   <short_description>Curse audio / SCI32 startup diagnostics</short_description>
   <long_description>Diagnostic build, not a confirmed fix or stable release. Includes the October 9 engine set. Writes an append-only, synchronized scummvm-compat-diagnostic.log under SD:/scummvm. Logging may affect timing and performance. Back up configuration and saves; read TESTING.md before testing. Non-Aroma RPX operation remains unverified. No games or MT-32 ROMs included.</long_description>
 </app>

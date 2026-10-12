@@ -34,6 +34,7 @@
 
 #include "audio/audiostream.h"
 #include "audio/mixer.h"
+#include "backends/platform/sdl/wiiu/wiiu-audio-probe.h"
 
 namespace Scumm {
 
@@ -156,6 +157,7 @@ void IMuseDigital::reportWiiUDiagnostics() {
 	++_diagReports;
 	uint32 queued, nonzero;
 	int paused, disabled, writeDisabled, state, sequence, queuedNow;
+	int maxQueued, tracksPaused, xorTrigger;
 	{
 		Common::StackLock lock(*_mutex);
 		queued = _diagQueuedBuffers;
@@ -166,6 +168,9 @@ void IMuseDigital::reportWiiUDiagnostics() {
 		state = _curMusicState;
 		sequence = _curMusicSeq;
 		queuedNow = _internalMixer->_stream ? (int)_internalMixer->_stream->numQueuedStreams() : -1;
+		maxQueued = _maxQueuedStreams;
+		tracksPaused = _tracksPauseTimer;
+		xorTrigger = _waveOutXorTrigger;
 	}
 	WIIU_TRACE("DIMUSE sample=%d ready=%d paused=%d disabled=%d writeDisabled=%d queuedTotal=%lu nonzeroTotal=%lu queueNow=%d state=%d sequence=%d",
 		_diagReports, (int)_mixer->isReady(), paused, disabled, writeDisabled,
@@ -178,6 +183,8 @@ void IMuseDigital::reportWiiUDiagnostics() {
 		(int)_mixer->isSoundTypeMuted(Audio::Mixer::kMusicSoundType),
 		(int)_mixer->isSoundTypeMuted(Audio::Mixer::kSpeechSoundType),
 		(int)_mixer->isSoundTypeMuted(Audio::Mixer::kSFXSoundType));
+	WIIU_TRACE("DIMUSE gates maxQueued=%d tracksPaused=%d xorTrigger=%d", maxQueued, tracksPaused, xorTrigger);
+	WIIU_AUDIO_REPORT();
 }
 #endif
 
@@ -449,14 +456,21 @@ int IMuseDigital::startSfx(int soundId, int priority) {
 }
 
 void IMuseDigital::callback() {
-	if (_cmdsPauseCount)
+	WIIU_AUDIO_HIT(kWiiUIMuseEnter);
+	if (_cmdsPauseCount) {
+		WIIU_AUDIO_HIT(kWiiUIMusePaused);
+		WIIU_AUDIO_HIT(kWiiUIMuseLeave);
 		return;
+	}
 
 	if (!_callbackInterruptFlag) {
 		_callbackInterruptFlag = 1;
 		diMUSEHeartbeat();
 		_callbackInterruptFlag = 0;
+	} else {
+		WIIU_AUDIO_HIT(kWiiUIMuseReentered);
 	}
+	WIIU_AUDIO_HIT(kWiiUIMuseLeave);
 }
 
 void IMuseDigital::diMUSEHeartbeat() {

@@ -96,6 +96,7 @@ ifdef WIIU
 MODULE_OBJS += \
 	wiiu/wiiu-main.o \
 	wiiu/wiiu-diagnostics.o \
+	wiiu/wiiu-audio-probe.o \
 	wiiu/wiiu-log.o \
 	wiiu/wiiu-events.o \
 	wiiu/wiiu.o

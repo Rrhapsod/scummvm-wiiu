@@ -489,6 +489,10 @@ public:
 
 protected:
 	bool _detectionMode;
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	bool _diagInitActive = false;
+	unsigned int _diagInitTraceCount = 0;
+#endif
 
 	// Maximum number of bytes to allow being allocated for resources
 	// Note: maxMemory will not be interpreted as a hard limit, only as a restriction

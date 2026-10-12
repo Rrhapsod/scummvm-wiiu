@@ -20,6 +20,7 @@
  */
 
 #include "scumm/imuse_digi/dimuse_engine.h"
+#include "backends/platform/sdl/wiiu/wiiu-audio-probe.h"
 
 namespace Scumm {
 
@@ -146,12 +147,15 @@ int IMuseDigital::waveOutDeinit() {
 }
 
 void IMuseDigital::waveOutCallback() {
+	WIIU_AUDIO_HIT(kWiiUWaveEnter);
 	Common::StackLock lock(*_mutex);
+	WIIU_AUDIO_HIT(kWiiUWaveLocked);
 	if (_lowLatencyMode) {
 		tracksLowLatencyCallback();
 	} else {
 		tracksCallback();
 	}
+	WIIU_AUDIO_HIT(kWiiUWaveLeave);
 }
 
 byte IMuseDigital::waveOutGetStreamFlags() {

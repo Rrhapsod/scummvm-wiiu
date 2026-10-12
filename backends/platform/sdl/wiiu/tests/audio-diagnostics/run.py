@@ -45,6 +45,7 @@ void trace(const char *format, ...) {
     messages.emplace_back(text);
 }
 #define WIIU_TRACE(...) trace(__VA_ARGS__)
+#define WIIU_AUDIO_REPORT() do { assert(!locked); } while (0)
 namespace Audio {
 struct Mixer {
     enum SoundType { kPlainSoundType, kMusicSoundType, kSpeechSoundType, kSFXSoundType };
@@ -68,6 +69,7 @@ public:
     int _diagReports = 0;
     int _cmdsPauseCount = 2, _isEngineDisabled = 0, _waveOutDisableWrite = 0;
     int _curMusicState = 4, _curMusicSeq = 5;
+    int _maxQueuedStreams = 3, _tracksPauseTimer = 0, _waveOutXorTrigger = 1;
     void reportWiiUDiagnostics();
     void record(const uint8 *ptr, int _outputFeedSize, int _waveOutBytesPerSample, int _waveOutNumChannels) {
         Common::StackLock lock(*_mutex);
@@ -83,26 +85,27 @@ int main() {
     assert(engine._diagQueuedBuffers == 2 && engine._diagNonzeroBuffers == 1);
     assert(messages.empty()); // Counting queued PCM must not log from callback.
     engine.reportWiiUDiagnostics();
-    assert(messages.size() == 2);
+    assert(messages.size() == 3);
     assert(messages[0].find("queuedTotal=2 nonzeroTotal=1 queueNow=3") != std::string::npos);
     assert(messages[0].find("paused=2 disabled=0") != std::string::npos);
     assert(messages[1].find("music=101 speech=102 sfx=103") != std::string::npos);
     assert(messages[1].find("mutePlain=0 muteMusic=1 muteSpeech=0 muteSfx=0") != std::string::npos);
+    assert(messages[2].find("maxQueued=3 tracksPaused=0 xorTrigger=1") != std::string::npos);
     for (int i = 1; i < 16; ++i) {
         systemMock.now += 1999;
         engine.reportWiiUDiagnostics();
-        assert(messages.size() == unsigned(i * 2));
+        assert(messages.size() == unsigned(i * 3));
         ++systemMock.now; // Also crosses uint32 milliseconds wraparound.
         engine.reportWiiUDiagnostics();
-        assert(messages.size() == unsigned((i + 1) * 2));
+        assert(messages.size() == unsigned((i + 1) * 3));
     }
     systemMock.now += 2000;
     engine.reportWiiUDiagnostics();
-    assert(messages.size() == 32);
+    assert(messages.size() == 48);
     IMuseDigital lowLatency;
     lowLatency.internal._stream = nullptr;
     lowLatency.reportWiiUDiagnostics();
-    assert(messages[32].find("queueNow=-1") != std::string::npos);
+    assert(messages[48].find("queueNow=-1") != std::string::npos);
     puts("PASS: actual audio snapshot/counters, no callback logging, lock release, rate limit, timer wrap and null stream (host mocks)");
 }
 '''
