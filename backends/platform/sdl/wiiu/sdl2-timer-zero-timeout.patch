@@ -1,0 +1,15 @@
+diff --git a/src/thread/wiiu/SDL_syssem.c b/src/thread/wiiu/SDL_syssem.c
+--- a/src/thread/wiiu/SDL_syssem.c
++++ b/src/thread/wiiu/SDL_syssem.c
+@@ -92,9 +92,9 @@ SDL_SemWaitTimeout(SDL_sem * sem, Uint32 ms)
+ 	WIIU_SemWaitTimeoutData data;
+     OSAlarm alarm;
+ 
+-	// timeout is zero
++	// Local ScummVM fix: a zero timeout must not arm an alarm or wait.
+ 	if (!ms)
+-		SDL_SemTryWait(sem);
++		return SDL_SemTryWait(sem);
+ 
+ 	OSLockMutex(&sem->mtx);
+ 

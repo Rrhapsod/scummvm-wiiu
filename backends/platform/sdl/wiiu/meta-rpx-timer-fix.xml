@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<app version="1">
+  <name>ScummVM (timer fix test RPX)</name>
+  <coder>ScummVM Team; Wii U port by Rrhapsod</coder>
+  <version>0.6.0-timerfix-20261012</version>
+  <short_description>SDL zero-timeout candidate with diagnostics</short_description>
+  <long_description>Candidate fix, not yet confirmed on hardware. Restores the immediate return for zero-timeout SDL semaphore waits. Audio timer and SCI resource diagnostics retained. Read TESTING.md, back up saves and config. Non-Aroma RPX unverified. No games or MT-32 ROMs included.</long_description>
+</app>
