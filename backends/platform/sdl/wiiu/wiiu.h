@@ -35,6 +35,7 @@ public:
 	bool hasFeature(Feature f) override;
 	void setFeatureState(Feature f, bool enable) override;
 	bool getFeatureState(Feature f) override;
+	void setVirtualKeyboardText(const Common::U32String &text) override;
 
 protected:
 #ifdef WIIU_COMPAT_DIAGNOSTICS

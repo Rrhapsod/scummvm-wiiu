@@ -365,6 +365,8 @@ bool EditableWidget::handleKeyDown(Common::KeyState state) {
 	if (forcecaret)
 		makeCaretVisible();
 
+	if (_hasFocus)
+		g_system->setVirtualKeyboardText(_editString);
 	return handled;
 }
 
@@ -520,6 +522,8 @@ void EditableWidget::handleOtherEvent(const Common::Event &evt) {
 
 	if (forcecaret)
 		makeCaretVisible();
+	if (_hasFocus)
+		g_system->setVirtualKeyboardText(_editString);
 }
 
 int EditableWidget::getCaretOffset() const {

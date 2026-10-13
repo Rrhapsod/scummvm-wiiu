@@ -5,6 +5,7 @@ SDL_Window window;
 bool focused = true, shown = false, animateClose = false;
 int starts = 0, stops = 0, forwarded = 0;
 std::deque<SDL_Event> input;
+std::string initialText;
 System systemClock;
 System *g_system = &systemClock;
 static SDL_SysWMmsg messages[] = {
@@ -80,8 +81,53 @@ int main() {
     s.setKeyboardVisible(false);
     s.setKeyboardVisible(true);
     wm(0); text("new"); wm(1); assert(drain(s) == U"new");
+    // Whole-field edit: GUI widgets can have a mid-string caret/selection;
+    // original SCUMM labels ignore End but already edit at their end.
+    for (bool original : {false, true}) {
+        for (const char *replacement : {"Save 2", "", "New name", "Save 1"}) {
+            s.setKeyboardVisible(false);
+            s.setKeyboardText(Common::U32String("Save 1"));
+            s.setKeyboardVisible(true);
+            assert(initialText == "Save 1");
+            wm(0); text(replacement); wm(1);
+            std::u32string field = U"Save 1";
+            size_t caret = original ? field.size() : 1;
+            for (int tick = 0; tick < 100; ++tick) {
+                int downs = 0;
+                while (s.pollEvent(e)) {
+                    assert(!s.allowMapping());
+                    if (e.type == Common::EVENT_KEYUP) continue;
+                    assert(e.type == Common::EVENT_KEYDOWN);
+                    ++downs;
+                    if (e.kbd.keycode == Common::KEYCODE_END) { if (!original) caret = field.size(); }
+                    else if (e.kbd.keycode == Common::KEYCODE_BACKSPACE) {
+                        assert(caret > 0); field.erase(--caret, 1);
+                    } else field.insert(caret++, 1, e.kbd.ascii);
+                }
+                assert(downs <= 1);
+                systemClock.now += 100;
+            }
+            assert(field == Common::U32String(replacement));
+        }
+    }
+    s.setKeyboardVisible(false);
+    s.setKeyboardText(Common::U32String("Ação"));
+    s.setKeyboardVisible(true);
+    assert(initialText == "Ação");
+    wm(0); text("discarded"); wm(2); assert(drain(s).empty());
+    s.setKeyboardVisible(true); assert(initialText == "Ação");
+    wm(0); text("Ação"); wm(1); assert(drain(s).empty());
+    s.setKeyboardVisible(false);
+    s.setKeyboardText(Common::U32String("old"));
+    s.setKeyboardVisible(true); wm(0); wm(1);
+    assert(s.pollEvent(e) && e.kbd.keycode == Common::KEYCODE_END);
+    s.setKeyboardVisible(false); // focus loss drops queued erasure too
+    assert(s.pollEvent(e) && e.type == Common::EVENT_KEYUP);
+    assert(drain(s).empty());
+    s.setKeyboardVisible(true); assert(initialText.empty());
+    wm(2); assert(drain(s).empty());
     input.push_back(SDL_Event()); assert(s.pollEvent(e));
     assert(e.type == Common::EVENT_QUIT && forwarded == 1); // fallback stays intact
     assert(s.allowMapping());
-    std::cout << "PASS: WiiUEventSource mock tests (not hardware): UTF-8, pacing, key pairs, confirm/cancel, duplicate close, fade-out redraw/reopen, discarded partial submission, focus loss, timer wrap, fallback\n";
+    std::cout << "PASS: WiiUEventSource mock tests (not hardware): prefill/edit/erase/unchanged/cancel, UTF-8, pacing, key pairs, duplicate close, fade-out redraw/reopen, discarded partial submission, focus loss, timer wrap, fallback\n";
 }

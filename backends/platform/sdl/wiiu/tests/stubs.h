@@ -11,7 +11,7 @@ using uint32 = uint32_t;
 using int32 = int32_t;
 using uint16 = uint16_t;
 namespace Common {
-enum KeyCode { KEYCODE_INVALID, KEYCODE_TILDE = 176 };
+enum KeyCode { KEYCODE_INVALID, KEYCODE_BACKSPACE = 8, KEYCODE_END = 279, KEYCODE_TILDE = 176 };
 struct KeyState {
     KeyCode keycode; uint16 ascii; unsigned char flags;
     KeyState(KeyCode k = KEYCODE_INVALID, uint16 a = 0, unsigned char f = 0) : keycode(k), ascii(a), flags(f) {}
@@ -21,6 +21,7 @@ struct Event { EventType type = EVENT_INVALID; KeyState kbd; };
 struct U32String : std::u32string {
     U32String() = default;
     explicit U32String(const char *s) : std::u32string(std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t>().from_bytes(s)) {}
+    std::string encode() const { return std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t>().to_bytes(*this); }
 };
 }
 enum { SDL_FALSE, SDL_TRUE, SDL_ENABLE, SDL_SYSWMEVENT, SDL_TEXTINPUT, SDL_SYSWM_WIIU,
@@ -37,6 +38,8 @@ extern SDL_Window window;
 extern bool focused, shown, animateClose;
 extern int starts, stops, forwarded;
 extern std::deque<SDL_Event> input;
+extern std::string initialText;
+inline void SDL_WiiUSetSWKBDInitialText(const char *s) { initialText = s ? s : ""; }
 inline int SDL_EventState(int, int) { return SDL_ENABLE; }
 inline SDL_Window *SDL_GetKeyboardFocus() { return focused ? &window : nullptr; }
 inline int SDL_IsScreenKeyboardShown(SDL_Window *w) { return w && shown ? SDL_TRUE : SDL_FALSE; }

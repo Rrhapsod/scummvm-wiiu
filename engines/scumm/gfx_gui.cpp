@@ -2345,6 +2345,9 @@ bool ScummEngine::userWriteLabelRoutine(Common::KeyState &ks, bool &leftMsClicke
 	bool hasLoadedState = false;
 	int firstChar = (_game.version == 4 && _game.id != GID_LOOM) ? 0 : 4;
 	bool opResult = true;
+	// The slot number is a protected prefix, not part of the editable name.
+	_system->setVirtualKeyboardText(Common::U32String(
+		_savegameNames[_mainMenuSavegameLabel - 1].substr(firstChar), getDialogCodePage()));
 	beginTextInput();
 
 	while (!shouldQuit()) {
@@ -2384,6 +2387,8 @@ bool ScummEngine::userWriteLabelRoutine(Common::KeyState &ks, bool &leftMsClicke
 			}
 		}
 
+		_system->setVirtualKeyboardText(Common::U32String(
+			_savegameNames[_mainMenuSavegameLabel - 1].substr(firstChar), getDialogCodePage()));
 		clearClickedStatus();
 	}
 

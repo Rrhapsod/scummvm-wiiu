@@ -25,6 +25,7 @@
 #include "common/system.h"
 #include "common/textconsole.h"
 #include <SDL_syswm.h>
+#include <SDL_system.h>
 
 WiiUEventSource::WiiUEventSource() {
 	// SDL's Wii U keyboard brackets its UTF-8 submission with SYSWM events.
@@ -38,6 +39,11 @@ void WiiUEventSource::closeKeyboard() {
 	SDL_StopTextInput();
 }
 
+void WiiUEventSource::setKeyboardText(const Common::U32String &text) {
+	_fieldText = text;
+	_hasFieldText = true;
+}
+
 void WiiUEventSource::setKeyboardVisible(bool visible) {
 	if (!visible) {
 		closeKeyboard();
@@ -46,6 +52,10 @@ void WiiUEventSource::setKeyboardVisible(bool visible) {
 		_textPos = 0;
 		_acceptText = false;
 		_inSubmission = false;
+		_hasFieldText = _hasOpeningText = _moveToEnd = false;
+		_fieldText.clear();
+		_openingText.clear();
+		_eraseCount = 0;
 		return;
 	}
 
@@ -54,6 +64,11 @@ void WiiUEventSource::setKeyboardVisible(bool visible) {
 		return;
 	_text.clear();
 	_textPos = 0;
+	_eraseCount = 0;
+	_moveToEnd = false;
+	_hasOpeningText = _hasFieldText;
+	_openingText = _fieldText;
+	SDL_WiiUSetSWKBDInitialText(_hasOpeningText ? _openingText.encode().c_str() : nullptr);
 	debug(0, "Wii U keyboard opening");
 	SDL_StartTextInput();
 	_keyboardActive = SDL_IsScreenKeyboardShown(window) == SDL_TRUE;
@@ -86,11 +101,29 @@ bool WiiUEventSource::pollKeyboardEvent(Common::Event &event) {
 		_nativeKeyEvent = true;
 		return true;
 	}
-	if (_inSubmission || _textPos >= _text.size())
+	if (_inSubmission || (!_moveToEnd && !_eraseCount && _textPos >= _text.size()))
 		return false;
 	uint32 now = g_system->getMillis();
 	if ((int32)(now - _nextKeyTime) < 0)
 		return false;
+
+	// Only change the field after OK. Keep the common prefix, delete the old
+	// suffix, then insert the new suffix. Original SCUMM labels edit at their
+	// end and ignore End; GUI widgets use it to clear selection/move the caret.
+	if (_moveToEnd || _eraseCount) {
+		const bool end = _moveToEnd;
+		_moveToEnd = false;
+		if (!end)
+			--_eraseCount;
+		event = Common::Event();
+		event.type = Common::EVENT_KEYDOWN;
+		event.kbd = Common::KeyState(end ? Common::KEYCODE_END : Common::KEYCODE_BACKSPACE,
+			end ? 0 : 8, 0);
+		_lastKey = event.kbd;
+		_keyUpPending = _nativeKeyEvent = true;
+		_nextKeyTime = now + 100;
+		return true;
+	}
 
 	// KeyState stores 16-bit characters. Never turn a supplementary Unicode
 	// character into a truncated key (possibly a control character).
@@ -137,6 +170,15 @@ bool WiiUEventSource::dispatchSDLEvent(SDL_Event &ev, Common::Event &event) {
 				// Close only AFTER all SDL_TEXTINPUT chunks have been collected:
 				// StopTextInput disables and flushes queued SDL text events.
 				closeKeyboard();
+				if (_hasOpeningText) {
+					uint32 prefix = 0;
+					while (prefix < _openingText.size() && prefix < _text.size() &&
+						_openingText[prefix] == _text[prefix])
+						++prefix;
+					_eraseCount = _openingText.size() - prefix;
+					_textPos = prefix;
+					_moveToEnd = _eraseCount || prefix < _text.size();
+				}
 				debug(0, "Wii U keyboard accepted %u characters", (unsigned int)_text.size());
 				_acceptText = false;
 				_nextKeyTime = g_system->getMillis();
@@ -145,7 +187,12 @@ bool WiiUEventSource::dispatchSDLEvent(SDL_Event &ev, Common::Event &event) {
 			return pollKeyboardEvent(event);
 		case SDL_WIIU_SYSWM_SWKBD_CANCEL_EVENT:
 			debug(0, "Wii U keyboard cancelled");
-			setKeyboardVisible(false);
+			// Keep the focused field context for a manual reopen, but never
+			// deliver partial text or deletion keys on Cancel.
+			closeKeyboard();
+			_text.clear();
+			_textPos = _eraseCount = 0;
+			_moveToEnd = _acceptText = false;
 			_inSubmission = false;
 			return false;
 		}

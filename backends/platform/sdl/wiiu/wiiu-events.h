@@ -31,6 +31,7 @@ public:
 	bool pollEvent(Common::Event &event) override;
 	bool allowMapping() const override { return !_nativeKeyEvent; }
 	void setKeyboardVisible(bool visible);
+	void setKeyboardText(const Common::U32String &text);
 	bool isKeyboardActive() const { return _keyboardActive; }
 
 protected:
@@ -47,6 +48,11 @@ private:
 	bool _nativeKeyEvent = false;
 	Common::KeyState _lastKey;
 	Common::U32String _text;
+	Common::U32String _fieldText, _openingText;
+	bool _hasFieldText = false;
+	bool _hasOpeningText = false;
+	bool _moveToEnd = false;
+	uint32 _eraseCount = 0;
 	uint32 _textPos = 0;
 	uint32 _nextKeyTime = 0;
 };

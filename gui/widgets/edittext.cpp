@@ -144,6 +144,7 @@ Common::Rect EditTextWidget::getEditRect() const {
 }
 
 void EditTextWidget::receivedFocusWidget() {
+	g_system->setVirtualKeyboardText(_editString);
 	g_system->setFeatureState(OSystem::kFeatureVirtualKeyboard, true);
 }
 

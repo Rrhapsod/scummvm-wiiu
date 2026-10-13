@@ -1044,6 +1044,7 @@ void ListWidget::startEditMode() {
 		_caretPos = _editString.size();	// Force caret to the *end* of the selection.
 		_editColor = ThemeEngine::kFontColorNormal;
 		markAsDirty();
+		g_system->setVirtualKeyboardText(_editString);
 		g_system->setFeatureState(OSystem::kFeatureVirtualKeyboard, true);
 		sendCommand(kListItemEditModeStartedCmd, _selectedItem);
 	}

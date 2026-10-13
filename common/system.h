@@ -660,6 +660,15 @@ public:
 	virtual void setFeatureState(Feature f, bool enable) {}
 
 	/**
+	 * Supply the current editable field to a whole-string native keyboard.
+	 * Call before showing kFeatureVirtualKeyboard and after field edits. The
+	 * backend may translate the result to End/Backspace/printable key events;
+	 * the field must handle End or already edit at its end. Hiding the keyboard
+	 * on focus loss ends this context. Backends without this facility ignore it.
+	 */
+	virtual void setVirtualKeyboardText(const Common::U32String &text) {}
+
+	/**
 	 * Query the state of the specified feature.
 	 *
 	 * For example, test whether fullscreen mode is active or not.

@@ -115,6 +115,11 @@ bool OSystem_WiiU::getFeatureState(Feature f) {
 	return OSystem_SDL::getFeatureState(f);
 }
 
+void OSystem_WiiU::setVirtualKeyboardText(const Common::U32String &text) {
+	if (_eventSource)
+		static_cast<WiiUEventSource *>(_eventSource)->setKeyboardText(text);
+}
+
 Common::Path OSystem_WiiU::getDefaultConfigFileName() {
 	return Common::Path(kDataRoot).join("scummvm.ini");
 }
