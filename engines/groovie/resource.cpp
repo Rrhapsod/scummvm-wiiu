@@ -28,6 +28,7 @@
 #include "common/config-manager.h"
 
 #include "groovie/resource.h"
+#include "common/bufferedstream.h"
 #include "groovie/groovie.h"
 
 namespace Groovie {
@@ -89,7 +90,13 @@ Common::SeekableReadStream *ResMan::open(const ResInfo &resInfo) {
 	if (ConfMan.getBool("dump_resources")) {
 		dumpResource(file, Common::Path(resInfo.filename), false);
 	}
+#ifdef WIIU
+	// ROQ/VDX decoding performs many byte-sized reads. Buffer the bounded,
+	// exclusively owned resource stream before entering Wii U/newlib stdio.
+	return Common::wrapBufferedSeekableReadStream(file, 64 * 1024, DisposeAfterUse::YES);
+#else
 	return file;
+#endif
 }
 
 Common::String ResMan::getGjdName(const ResInfo &resInfo) {

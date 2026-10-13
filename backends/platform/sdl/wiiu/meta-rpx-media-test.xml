@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<app version="1">
+  <name>ScummVM (media test RPX)</name>
+  <coder>ScummVM Team; Wii U port by Rrhapsod</coder>
+  <version>0.6.0-mediatest-20261013</version>
+  <short_description>Keyboard editing, Ogg Vorbis and Groovie tests</short_description>
+  <long_description>Native keyboard text editing, Ogg/Vorbis decoding and buffered Groovie reads with video diagnostics. Retains the validated Curse/QFG4 loading fixes. New changes require console tests; Groovie issues are not confirmed fixed. Read TESTING.md and back up saves/config. Non-Aroma RPX unverified. No games or ROMs included.</long_description>
+</app>

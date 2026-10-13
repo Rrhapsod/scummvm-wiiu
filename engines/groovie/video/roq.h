@@ -105,10 +105,10 @@ private:
 	byte _codebook4[256 * 4];
 
 	// Flags
-	bool _flagNoPlay;	 //!< Play only first frame and do not print the image to the screen
-	bool _flagOverlay;	 //!< If _flagNoPlay is set. Copy frame to the foreground otherwise to the background
-	bool _altMotionDecoder; // Some ROQ vids use a variation on the copy codeblock
-	bool _flagMasked; //!< Clear the video instead of play it, used in pente
+	bool _flagNoPlay = false; //!< Play only first frame and do not print the image to the screen
+	bool _flagOverlay = false; //!< Copy to foreground when set, background otherwise; read on first load
+	bool _altMotionDecoder = false; // Some ROQ vids use a variation on the copy codeblock
+	bool _flagMasked = false; //!< Clear the video instead of play it, used in pente
 
 	// Buffers
 	void redrawRestoreArea(int screenOffset, bool force);
@@ -116,14 +116,17 @@ private:
 	byte _scaleX, _scaleY;
 	byte _offScale;
 	int8 _motionOffX, _motionOffY;
-	bool _interlacedVideo;
-	bool _dirty;
-	byte _alpha;
+	bool _interlacedVideo = false;
+	bool _dirty = false;
+	byte _alpha = 0;
 	bool _firstFrame;
 	Common::Rect *_restoreArea;	// Area to be repainted by foreground
 
 	Video::VideoDecoder *_videoDecoder;
-	bool _isFileHandled;
+	bool _isFileHandled = false; // No decoder owns the stream without USE_MPEG2.
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	uint32 _diagSlowFrames = 0;
+#endif
 };
 
 class ROQSoundPlayer : public ROQPlayer {

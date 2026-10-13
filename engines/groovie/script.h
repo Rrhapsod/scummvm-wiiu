@@ -81,6 +81,9 @@ public:
 
 private:
 	GroovieEngine *_vm;
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	uint32 _diagVideoFiles = 0;
+#endif
 
 	Common::RandomSource _random;
 

@@ -25,6 +25,7 @@
 #include "groovie/video/roq.h"
 #include "groovie/graphics.h"
 #include "groovie/groovie.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 
 #include "common/debug.h"
 #include "common/debug-channels.h"
@@ -471,6 +472,9 @@ void ROQPlayer::buildShowBuf() {
 
 bool ROQPlayer::playFrameInternal() {
 	debugC(5, kDebugVideo, "Groovie::ROQ: Playing frame");
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	const uint32 decodeStart = _syst->getMillis();
+#endif
 
 #ifdef USE_MPEG2
 	if (_videoDecoder) {
@@ -494,11 +498,24 @@ bool ROQPlayer::playFrameInternal() {
 	while (!endframe && !_file->eos()) {
 		endframe = processBlock();
 	}
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	const uint32 decodeDone = _syst->getMillis();
+#endif
 
 	if (_dirty) {
 		// Build the show buffer from the current buffer
 		buildShowBuf();
 	}
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	const uint32 drawDone = _syst->getMillis();
+	if (drawDone - decodeStart >= 100 && _diagSlowFrames < 24) {
+		++_diagSlowFrames;
+		WIIU_TRACE("GROOVIE ROQ slow frame decodeMs=%u drawMs=%u frame=%dx%d scale=%u/%u alpha=%u sample=%u/24",
+			(unsigned int)(decodeDone - decodeStart), (unsigned int)(drawDone - decodeDone),
+			(int)_currBuf->w, (int)_currBuf->h, (unsigned int)_scaleX, (unsigned int)_scaleY,
+			(unsigned int)_alpha, (unsigned int)_diagSlowFrames);
+	}
+#endif
 
 	// Wait until the current frame can be shown
 	// Don't wait if we're just showing one frame

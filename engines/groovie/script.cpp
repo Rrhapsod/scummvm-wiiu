@@ -22,6 +22,7 @@
 #include "audio/mididrv.h"
 
 #include "groovie/script.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 #include "groovie/cursor.h"
 #include "groovie/graphics.h"
 #include "groovie/music.h"
@@ -950,6 +951,12 @@ bool Script::playvideofromref(uint32 fileref, bool loopUntilAudioDone) {
 			return true;
 		}
 
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+		if (++_diagVideoFiles <= 24)
+			WIIU_TRACE("GROOVIE before video open ref=%u file=%s archive=%s bytes=%u script=%s",
+				(unsigned int)fileref, resInfo.filename.c_str(), _vm->_resMan->getGjdName(resInfo).c_str(),
+				(unsigned int)resInfo.size, _scriptFile.c_str());
+#endif
 		_videoFile = _vm->_resMan->open(resInfo);
 
 		if (_videoFile) {
@@ -965,7 +972,13 @@ bool Script::playvideofromref(uint32 fileref, bool loopUntilAudioDone) {
 			// HACK: Clandestiny bricks puzzle appears to use different behavior for copying the _overBuf to the _bg
 			if (_version == kGroovieCDY && _scriptFile == "26a_graf.grv")
 				_bitflags |= 1;
-			_vm->_videoPlayer->load(_videoFile, _bitflags);
+			const bool videoLoaded = _vm->_videoPlayer->load(_videoFile, _bitflags);
+			(void)videoLoaded;
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+			if (_diagVideoFiles <= 24)
+				WIIU_TRACE("GROOVIE video load done loaded=%d decoderOwnsFile=%d flags=%u",
+					videoLoaded, _vm->_videoPlayer->isFileHandled(), (unsigned int)_bitflags);
+#endif
 
 			// Find correct filename
 			ResInfo info;
@@ -1035,6 +1048,10 @@ bool Script::playvideofromref(uint32 fileref, bool loopUntilAudioDone) {
 		}
 
 		if (endVideo || (loopUntilAudioDone && !_vm->_musicPlayer->isPlaying())) {
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+			if (_diagVideoFiles <= 24)
+				WIIU_TRACE("GROOVIE video ended ref=%u", (unsigned int)_videoRef);
+#endif
 			// The video has ended, or it was being looped and the audio has ended.
 
 			// Close the file
