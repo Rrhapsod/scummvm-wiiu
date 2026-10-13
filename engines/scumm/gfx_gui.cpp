@@ -20,6 +20,7 @@
  */
 
 #include "scumm/scumm.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 #include "scumm/scumm_v2.h"
 #include "scumm/scumm_v4.h"
 #include "scumm/scumm_v6.h"
@@ -2454,7 +2455,10 @@ void ScummEngine::showMainMenu() {
 	}
 
 	// Generate the thumbnail, in case the game is saved
-	Graphics::createThumbnail(_savegameThumbnail);
+	{
+		WIIU_PERF_SCOPE("SCUMM menu thumbnail", 0);
+		Graphics::createThumbnail(_savegameThumbnail);
+	}
 
 	// Pause the engine
 	PauseToken pt = pauseEngine();
@@ -2647,6 +2651,7 @@ void ScummEngine::showMainMenu() {
 		}
 	}
 
+	WIIU_PERF_SCOPE("SCUMM menu restore", 0);
 	_saveSound = oldSaveSound;
 
 	if (isSmushActive())

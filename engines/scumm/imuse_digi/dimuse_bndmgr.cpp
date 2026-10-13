@@ -233,7 +233,9 @@ bool BundleMgr::loadCompTable(int32 index) {
 
 	_numCompItems = _file->readUint32BE();
 	assert(_numCompItems > 0);
-	_file->seek(4, SEEK_CUR);
+	// Consume the reserved word sequentially. On Wii U, repeated SEEK_CUR
+	// calls enter newlib's input flush/seek path while building this index.
+	_file->readUint32BE();
 	_lastBlockDecompressedSize = _file->readUint32BE();
 	if (tag != MKTAG('C','O','M','P')) {
 		debug("BundleMgr::loadCompTable() Compressed sound %d (%s:%d) invalid (%s)", index, _file->getDebugName().c_str(), _bundleTable[index].offset, tag2str(tag));
@@ -247,7 +249,7 @@ bool BundleMgr::loadCompTable(int32 index) {
 		_compTable[i].offset = _file->readUint32BE();
 		_compTable[i].size = _file->readUint32BE();
 		_compTable[i].codec = _file->readUint32BE();
-		_file->seek(4, SEEK_CUR);
+		_file->readUint32BE(); // Reserved word; keep the table read sequential.
 		if (_compTable[i].size > maxSize)
 			maxSize = _compTable[i].size;
 	}

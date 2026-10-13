@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<app version="1">
+  <name>ScummVM (IO optimization test RPX)</name>
+  <coder>ScummVM Team; Wii U port by Rrhapsod</coder>
+  <version>0.6.0-iofix-20261012</version>
+  <short_description>Curse / QFG4 loading optimization candidate</short_description>
+  <long_description>Retains the validated SDL audio timer fix. Sequential audio index reading and SCI read-only volume size caching; hardware speedup not yet measured. Read TESTING.md. Back up saves and config. Non-Aroma RPX unverified. No games or MT-32 ROMs included.</long_description>
+</app>

@@ -9,6 +9,32 @@ int main() {
 	WIIU_TRACE("safe before system exists");
 	OSystem system;
 	g_system = &system;
+#if defined(WIIU) && defined(WIIU_LIFECYCLE_DIAGNOSTICS) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	{ WIIU_PERF_SCOPE("fast", 1); system.now += 49; }
+	assert(system.messages.empty());
+	system.now = 0xfffffff0;
+	{ WIIU_PERF_SCOPE("wrapped", 2); system.now += 50; }
+	assert(system.messages.size() == 1);
+	assert(system.messages.back().find("elapsedMs=50") != std::string::npos);
+	for (int i = 0; i < 100; ++i) {
+		WIIU_PERF_SCOPE("slow", i);
+		system.now += 3000;
+	}
+	assert(system.messages.size() == 24);
+	WIIU_TRACE_GAME("scumm", "reset-budget");
+	{ WIIU_PERF_SCOPE("new-game", 0); system.now += 3000; }
+	assert(system.messages.size() == 26);
+	assert(system.messages.back().find("sample=1/24") != std::string::npos);
+	g_system = nullptr;
+	{ WIIU_PERF_SCOPE("null-system", 0); }
+	assert(system.messages.size() == 26);
+	std::puts("Performance scope tests passed (threshold, wraparound, cap, game reset, null)");
+	return 0;
+#else
+	int perfSideEffects = 0;
+	{ WIIU_PERF_SCOPE("disabled", ++perfSideEffects); }
+	assert(perfSideEffects == 0);
+#endif
 #if defined(WIIU) && defined(WIIU_LIFECYCLE_DIAGNOSTICS)
 	WIIU_TRACE("startup %d", 42);
 	assert(system.messages.size() == 1);

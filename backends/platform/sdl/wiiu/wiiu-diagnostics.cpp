@@ -8,6 +8,23 @@
 
 static unsigned long traceSequence = 0;
 static unsigned long gameCycle = 0;
+#if defined(WIIU_COMPAT_DIAGNOSTICS)
+static unsigned int performanceReports = 0;
+
+WiiUPerformanceScope::WiiUPerformanceScope(const char *phase, int detail)
+	: _phase(phase), _detail(detail), _start(g_system ? g_system->getMillis() : 0) {}
+
+WiiUPerformanceScope::~WiiUPerformanceScope() {
+	if (!g_system)
+		return;
+	const unsigned int elapsed = g_system->getMillis() - _start;
+	if (elapsed >= 50 && performanceReports < 24) {
+		++performanceReports;
+		WIIU_TRACE("PERF phase=%s detail=%d elapsedMs=%u sample=%u/24",
+			_phase, _detail, elapsed, performanceReports);
+	}
+}
+#endif
 
 void wiiuTrace(const char *format, ...) {
 	if (!g_system)
@@ -27,6 +44,9 @@ void wiiuTrace(const char *format, ...) {
 
 void wiiuTraceBeginGame(const char *engine, const char *game) {
 	++gameCycle;
+#if defined(WIIU_COMPAT_DIAGNOSTICS)
+	performanceReports = 0;
+#endif
 	wiiuTrace("GAME begin engine=%s game=%s", engine, game);
 }
 #endif

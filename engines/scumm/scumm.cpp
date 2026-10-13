@@ -4450,6 +4450,7 @@ void ScummEngine::pauseEngineIntern(bool pause) {
 
 #ifdef ENABLE_SCUMM_7_8
 void ScummEngine_v7::pauseEngineIntern(bool pause) {
+	WIIU_PERF_SCOPE("SCUMM pause/resume", pause ? 1 : 0);
 	if (_splayer) { // We may call it from setupScumm() before _splayer is inited
 		if (pause) {
 			_splayer->pause();

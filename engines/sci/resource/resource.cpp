@@ -376,6 +376,25 @@ bool Resource::loadFromPatchFile() {
 	return loadPatch(&file);
 }
 
+#ifdef WIIU
+// Only used for the read-only files owned by _volumeFiles. A new object is
+// created on every open/cache miss, so eviction also invalidates the size.
+// Do not apply this to save files or transient chunk/FSNode streams.
+class WiiUCachedVolumeFile final : public Common::File {
+	mutable int64 _cachedSize = -1;
+public:
+	int64 size() const override {
+		if (_cachedSize < 0)
+			_cachedSize = Common::File::size();
+		return _cachedSize;
+	}
+	void close() override {
+		_cachedSize = -1;
+		Common::File::close();
+	}
+};
+#endif
+
 Common::SeekableReadStream *ResourceManager::getVolumeFile(ResourceSource *source) {
 	Common::List<Common::File *>::iterator it = _volumeFiles.begin();
 	Common::File *file;
@@ -408,7 +427,11 @@ Common::SeekableReadStream *ResourceManager::getVolumeFile(ResourceSource *sourc
 		++it;
 	}
 	// adding a new file
+#ifdef WIIU
+	file = new WiiUCachedVolumeFile;
+#else
 	file = new Common::File;
+#endif
 	if (file->open(source->getLocationName())) {
 		if (_volumeFiles.size() == MAX_OPENED_VOLUMES) {
 			it = --_volumeFiles.end();

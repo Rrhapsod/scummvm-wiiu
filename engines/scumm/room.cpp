@@ -32,6 +32,7 @@
 #include "scumm/scumm_v7.h"
 #include "scumm/sound.h"
 #include "scumm/util.h"
+#include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 
 namespace Scumm {
 
@@ -40,6 +41,7 @@ namespace Scumm {
  * The actor is placed next to the object indicated by objectNr.
  */
 void ScummEngine::startScene(int room, Actor *a, int objectNr) {
+	WIIU_PERF_SCOPE("SCUMM startScene", room);
 	int i, where;
 
 	debugC(DEBUG_GENERAL, "Loading room %d", room);
