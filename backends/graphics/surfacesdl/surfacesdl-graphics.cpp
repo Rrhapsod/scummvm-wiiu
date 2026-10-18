@@ -1208,6 +1208,10 @@ void SurfaceSdlGraphicsManager::internUpdateScreen() {
 	SDL_Surface *srcSurf, *origSurf;
 	int height, width;
 	int scale1;
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	const bool traceRender = !_overlayVisible && _screenFormat.bytesPerPixel == 4 && _wiiuRenderReports < 24;
+	uint32 convertMs = 0, softwareMs = 0;
+#endif
 
 	// If there's an active debugger, update it
 	GUI::Debugger *debugger = g_engine ? g_engine->getDebugger() : nullptr;
@@ -1379,6 +1383,9 @@ void SurfaceSdlGraphicsManager::internUpdateScreen() {
 		uint32 bpp, srcPitch, dstPitch;
 		SDL_Rect *lastRect = _dirtyRectList + actualDirtyRects;
 
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+		const uint32 convertStart = traceRender ? SDL_GetTicks() : 0;
+#endif
 		for (r = _dirtyRectList; r != lastRect; ++r) {
 			dst = *r;
 			dst.x += _maxExtraPixels;	// Shift rect since some scalers need to access the data around
@@ -1388,6 +1395,10 @@ void SurfaceSdlGraphicsManager::internUpdateScreen() {
 				error("SDL_BlitSurface failed: %s", SDL_GetError());
 		}
 
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+		const uint32 convertDone = traceRender ? SDL_GetTicks() : 0;
+		convertMs = convertDone - convertStart;
+#endif
 		SDL_LockSurface(srcSurf);
 		SDL_LockSurface(_hwScreen);
 
@@ -1569,6 +1580,10 @@ void SurfaceSdlGraphicsManager::internUpdateScreen() {
 
 		// Finally, blit all our changes to the screen
 		if (!_displayDisabled) {
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+			if (traceRender)
+				softwareMs = SDL_GetTicks() - convertDone;
+#endif
 			updateScreen(_dirtyRectList, actualDirtyRects);
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 			doPresent = true;
@@ -1591,7 +1606,30 @@ void SurfaceSdlGraphicsManager::internUpdateScreen() {
 #endif
 
 	if (doPresent) {
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+		const uint32 presentStart = traceRender ? SDL_GetTicks() : 0;
+#endif
 		SDL_RenderPresent(_renderer);
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+		if (traceRender) {
+			const uint32 presentMs = SDL_GetTicks() - presentStart;
+			_wiiuConvertMs += convertMs;
+			_wiiuSoftwareMs += softwareMs;
+			_wiiuUploadMs += _wiiuFrameUploadMs;
+			_wiiuSubmitMs += _wiiuFrameSubmitMs;
+			_wiiuPresentMs += presentMs;
+			_wiiuMaxPresentMs = MAX(_wiiuMaxPresentMs, presentMs);
+			if (++_wiiuRenderFrames == 120) {
+				WIIU_TRACE("VIDEO stages frames=120 convertMs=%u softwareMs=%u uploadMs=%u submitMs=%u presentMs=%u maxPresentMs=%u src=%s dst=%s size=%dx%d report=%u/24",
+					(unsigned)_wiiuConvertMs, (unsigned)_wiiuSoftwareMs, (unsigned)_wiiuUploadMs,
+					(unsigned)_wiiuSubmitMs, (unsigned)_wiiuPresentMs, (unsigned)_wiiuMaxPresentMs,
+					SDL_GetPixelFormatName(_screen->format->format), SDL_GetPixelFormatName(_hwScreen->format->format),
+					(int)_screen->w, (int)_screen->h, (unsigned)++_wiiuRenderReports);
+				_wiiuRenderFrames = _wiiuConvertMs = _wiiuSoftwareMs = _wiiuUploadMs = 0;
+				_wiiuSubmitMs = _wiiuPresentMs = _wiiuMaxPresentMs = 0;
+			}
+		}
+#endif
 	}
 #else
 	if (_isDoubleBuf)
@@ -3055,6 +3093,11 @@ void SurfaceSdlGraphicsManager::recreateScreenTexture() {
 
 SDL_Surface *SurfaceSdlGraphicsManager::SDL_SetVideoMode(int width, int height, int bpp, Uint32 flags) {
 	WIIU_TRACE("VIDEO SDL_SetVideoMode begin %dx%d", width, height);
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	_wiiuRenderFrames = _wiiuRenderReports = 0;
+	_wiiuConvertMs = _wiiuSoftwareMs = _wiiuUploadMs = 0;
+	_wiiuSubmitMs = _wiiuPresentMs = _wiiuMaxPresentMs = 0;
+#endif
 	deinitializeRenderer();
 
 	uint32 createWindowFlags = SDL_WINDOW_RESIZABLE;
@@ -3170,7 +3213,14 @@ SDL_Surface *SurfaceSdlGraphicsManager::SDL_SetVideoMode(int width, int height, 
 }
 
 void SurfaceSdlGraphicsManager::SDL_UpdateRects(SDL_Surface *screen, int numrects, SDL_Rect *rects) {
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	const uint32 uploadStart = SDL_GetTicks();
+#endif
 	SDL_UpdateTexture(_screenTexture, nullptr, screen->pixels, screen->pitch);
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	const uint32 uploadDone = SDL_GetTicks();
+	_wiiuFrameUploadMs = uploadDone - uploadStart;
+#endif
 
 	SDL_Rect viewport;
 
@@ -3211,6 +3261,9 @@ void SurfaceSdlGraphicsManager::SDL_UpdateRects(SDL_Surface *screen, int numrect
 		SDL_RenderCopy(_renderer, _screenTexture, nullptr, &viewport);
 #endif
 	}
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	_wiiuFrameSubmitMs = SDL_GetTicks() - uploadDone;
+#endif
 }
 
 int SurfaceSdlGraphicsManager::SDL_SetColors(SDL_Surface *surface, SDL_Color *colors, int firstcolor, int ncolors) {

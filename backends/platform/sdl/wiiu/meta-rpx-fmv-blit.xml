@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<app version="1">
+  <name>ScummVM (FMV blit test RPX)</name>
+  <coder>ScummVM Team; Wii U port by Rrhapsod</coder>
+  <version>0.6.0-fmv-blit-20261018-r2</version>
+  <short_description>Groovie pixel conversion and rendering diagnostics</short_description>
+  <long_description>Specialized RGBA8888-to-RGB565 SDL conversion and bounded rendering-stage timings. Previous fixes, engines and Ogg/MP3/MT-32 retained. Hardware confirmation is required; non-Aroma RPX unverified. Back up saves/config and read TESTING.md. No games or ROMs included.</long_description>
+</app>

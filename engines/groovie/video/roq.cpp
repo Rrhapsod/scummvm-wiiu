@@ -166,6 +166,10 @@ void ROQPlayer::stopAudioStream() {
 uint16 ROQPlayer::loadInternal() {
 #if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
 	_diagLastDone = 0; // Do not count the time between different movies as a stall.
+	// A window must not combine movies with different frame rates/audio tracks.
+	// Keep the report cap across loads, but discard an incomplete old window.
+	_diagFrames = _diagDecodeMs = _diagDrawMs = _diagWaitMs = 0;
+	_diagMaxWorkMs = _diagMaxGapMs = _diagLateFrames = _diagEmptyAudio = 0;
 #endif
 	if (DebugMan.isDebugChannelEnabled(kDebugVideo)) {
 		int8 i;

@@ -197,6 +197,12 @@ protected:
 	 * around this API to keep the code paths as close as possible. */
 	SDL_Renderer *_renderer;
 	SDL_Texture *_screenTexture;
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	uint32 _wiiuRenderFrames = 0, _wiiuRenderReports = 0;
+	uint32 _wiiuConvertMs = 0, _wiiuSoftwareMs = 0, _wiiuUploadMs = 0;
+	uint32 _wiiuSubmitMs = 0, _wiiuPresentMs = 0, _wiiuMaxPresentMs = 0;
+	uint32 _wiiuFrameUploadMs = 0, _wiiuFrameSubmitMs = 0;
+#endif
 	void deinitializeRenderer();
 	void recreateScreenTexture();
 
