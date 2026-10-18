@@ -101,6 +101,20 @@ static inline void copyPixelWithA(byte *dst, const byte *src) {
 	// In case of alpha == 0 just do not copy
 }
 
+#ifdef WIIU
+// The common movie path is unscaled and opaque. Check every alpha byte before
+// replacing blending by a row copy: partially decoded/transparent pixels must
+// still preserve the destination. No assumption based on the file header alone.
+static bool copyOpaqueRow(byte *dst, const byte *src, int pixels) {
+	if (pixels <= 0)
+		return true;
+	for (int x = 0; x < pixels; ++x)
+		if (src[x * 4 + kAIndex] != 255)
+			return false;
+	memcpy(dst, src, pixels * 4);
+	return true;
+}
+#endif
 
 ROQPlayer::ROQPlayer(GroovieEngine *vm) :
 	VideoPlayer(vm), _codingTypeCount(0),
@@ -150,6 +164,9 @@ void ROQPlayer::stopAudioStream() {
 }
 
 uint16 ROQPlayer::loadInternal() {
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	_diagLastDone = 0; // Do not count the time between different movies as a stall.
+#endif
 	if (DebugMan.isDebugChannelEnabled(kDebugVideo)) {
 		int8 i;
 		debugCN(1, kDebugVideo, "Groovie::ROQ: Loading video. New ROQ: bitflags are ");
@@ -421,6 +438,11 @@ void ROQPlayer::buildShowBuf() {
 			mask = (byte *)maskBuf->getBasePtr(MAX(0, -_origX) / _scaleX, (line - _origY) / _scaleY);
 		}
 
+#ifdef WIIU
+		if (!_alpha && !_flagMasked && destBuf != _overBuf && _scaleX == 1 &&
+			copyOpaqueRow(out, in, stopX - startX))
+			continue;
+#endif
 
 		for (int x = startX; x < stopX; x++) {
 			if (_flagMasked) {
@@ -522,6 +544,10 @@ bool ROQPlayer::playFrameInternal() {
 	if (!playFirstFrame())
 		waitFrame();
 
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+	recordFrameTiming(decodeStart, decodeDone, drawDone);
+#endif
+
 	if (_dirty) {
 		// TODO: Update the screen
 		void *src = /*(_alpha && 0)*/ false ? _bg->getPixels() : _screen->getPixels();
@@ -545,6 +571,37 @@ bool ROQPlayer::playFrameInternal() {
 	}
 	return false;
 }
+
+#if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
+void ROQPlayer::recordFrameTiming(uint32 start, uint32 decoded, uint32 drawn) {
+	const uint32 done = _syst->getMillis();
+	if (_diagReports >= 24)
+		return;
+	++_diagFrames;
+	_diagDecodeMs += decoded - start;
+	_diagDrawMs += drawn - decoded;
+	_diagWaitMs += done - drawn;
+	_diagMaxWorkMs = MAX(_diagMaxWorkMs, drawn - start);
+	if (_diagLastDone)
+		_diagMaxGapMs = MAX(_diagMaxGapMs, start - _diagLastDone);
+	_diagLastDone = done;
+	if (!playFirstFrame() && getFrameDuration() > 0 && drawn - start > getFrameDuration())
+		++_diagLateFrames;
+	if (_audioStream && !_file->eos() && _audioStream->numQueuedStreams() == 0)
+		++_diagEmptyAudio;
+	if (_diagFrames < 120)
+		return;
+	WIIU_TRACE("GROOVIE ROQ window frames=%u decodeMs=%u drawMs=%u waitMs=%u maxWorkMs=%u maxGapMs=%u late=%u emptyAudio=%u queued=%u fps=%u size=%dx%d report=%u/24",
+		(unsigned int)_diagFrames, (unsigned int)_diagDecodeMs, (unsigned int)_diagDrawMs,
+		(unsigned int)_diagWaitMs, (unsigned int)_diagMaxWorkMs, (unsigned int)_diagMaxGapMs,
+		(unsigned int)_diagLateFrames, (unsigned int)_diagEmptyAudio,
+		(unsigned int)(_audioStream ? _audioStream->numQueuedStreams() : 0), (unsigned int)getFrameRate(),
+		(int)_currBuf->w, (int)_currBuf->h, (unsigned int)++_diagReports);
+	_diagFrames = _diagDecodeMs = _diagDrawMs = _diagWaitMs = 0;
+	_diagMaxWorkMs = _diagMaxGapMs = _diagLateFrames = _diagEmptyAudio = 0;
+	_diagLastDone = _syst->getMillis(); // Exclude this report's synchronous log IO.
+}
+#endif
 
 bool ROQPlayer::readBlockHeader(ROQBlockHeader &blockHeader) {
 	if (_file->eos()) {

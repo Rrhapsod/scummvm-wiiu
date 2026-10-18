@@ -60,6 +60,8 @@ protected:
 	virtual bool playFrameInternal() = 0;
 
 	bool getOverrideSpeed() const { return _overrideSpeed; }
+	float getFrameDuration() const { return _millisBetweenFrames; }
+	uint16 getFrameRate() const { return _fps; }
 
 	GroovieEngine *_vm;
 	OSystem *_syst;

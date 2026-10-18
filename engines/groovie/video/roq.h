@@ -126,6 +126,10 @@ private:
 	bool _isFileHandled = false; // No decoder owns the stream without USE_MPEG2.
 #if defined(WIIU) && defined(WIIU_COMPAT_DIAGNOSTICS)
 	uint32 _diagSlowFrames = 0;
+	void recordFrameTiming(uint32 start, uint32 decoded, uint32 drawn);
+	uint32 _diagFrames = 0, _diagDecodeMs = 0, _diagDrawMs = 0, _diagWaitMs = 0;
+	uint32 _diagMaxWorkMs = 0, _diagMaxGapMs = 0, _diagLateFrames = 0, _diagEmptyAudio = 0;
+	uint32 _diagLastDone = 0, _diagReports = 0;
 #endif
 };
 
