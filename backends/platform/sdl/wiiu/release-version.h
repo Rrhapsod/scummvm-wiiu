@@ -1,7 +1,9 @@
 // Version of the community Wii U port, independent of upstream ScummVM.
 #ifndef WIIU_RELEASE_VERSION_H
 #define WIIU_RELEASE_VERSION_H
-#ifdef WIIU_MEDIA_TEST
+#ifdef WIIU_INPUT_FMV_TEST
+#define WIIU_PORT_VERSION "0.6.0 + input/FMVs candidate 20261018 (Pro keyboard / Groovie rendering)"
+#elif defined(WIIU_MEDIA_TEST)
 #define WIIU_PORT_VERSION "0.6.0 + media test 20261013 (keyboard editing / Ogg Vorbis / Groovie diagnostics)"
 #elif defined(WIIU_IO_FIX_TEST)
 #define WIIU_PORT_VERSION "0.6.0 + IO optimization candidate 20261012 (Curse / QFG4; timer fix retained)"

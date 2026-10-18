@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<app version="1">
+  <name>ScummVM (input/FMV test RPX)</name>
+  <coder>ScummVM Team; Wii U port by Rrhapsod</coder>
+  <version>0.6.0-input-fmv-20261018</version>
+  <short_description>Pro Controller keyboard and Groovie FMV candidate</short_description>
+  <long_description>Native keyboard controller selection, late GamePad input and HOME cancellation; Groovie opaque-row rendering optimization and timing/audio-queue diagnostics. Retains previous fixes and Ogg/MP3/MT-32. Hardware confirmation is required; non-Aroma RPX unverified. Back up saves/config and read TESTING.md. No games or ROMs included.</long_description>
+</app>
