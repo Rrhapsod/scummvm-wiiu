@@ -70,6 +70,14 @@ void WiiUEventSource::setKeyboardVisible(bool visible) {
 	_openingText = _fieldText;
 	SDL_WiiUSetSWKBDInitialText(_hasOpeningText ? _openingText.encode().c_str() : nullptr);
 	debug(0, "Wii U keyboard opening");
+#ifdef WIIU_COMPAT_DIAGNOSTICS
+	const int controllers = SDL_NumJoysticks();
+	debug(0, "Wii U keyboard: %d detected controller(s)", controllers);
+	for (int i = 0; i < controllers && i < 8; ++i) {
+		const char *name = SDL_JoystickNameForIndex(i);
+		debug(0, "Wii U keyboard: controller %d = %s", i, name ? name : "unknown");
+	}
+#endif
 	SDL_StartTextInput();
 	_keyboardActive = SDL_IsScreenKeyboardShown(window) == SDL_TRUE;
 	if (!_keyboardActive)

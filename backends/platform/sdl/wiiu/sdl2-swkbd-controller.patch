@@ -1,0 +1,317 @@
+--- a/src/video/wiiu/SDL_wiiuswkbd.cpp
++++ b/src/video/wiiu/SDL_wiiuswkbd.cpp
+@@ -203,6 +203,71 @@
+         VPADStatus vpad;
+         std::array<KPADStatus, 4> kpad;
+ 
++        // Local ScummVM fix: choose the input device, not the output screen.
++        nn::swkbd::ControllerType activeController = nn::swkbd::ControllerType::DrcGamepad;
++        nn::swkbd::ControllerType shownController = nn::swkbd::ControllerType::DrcGamepad;
++
++        bool kpadActive(const KPADStatus &s)
++        {
++            switch (s.extensionType) {
++            case WPAD_EXT_PRO_CONTROLLER:
++                return s.pro.trigger || SDL_fabsf(s.pro.leftStick.x) > 0.5f || SDL_fabsf(s.pro.leftStick.y) > 0.5f;
++            case WPAD_EXT_CLASSIC:
++            case WPAD_EXT_MPLUS_CLASSIC:
++                return s.classic.trigger || SDL_fabsf(s.classic.leftStick.x) > 0.5f || SDL_fabsf(s.classic.leftStick.y) > 0.5f;
++            default:
++                return s.trigger;
++            }
++        }
++
++        void collectKeyboardInput()
++        {
++            // SDL normally updates only opened joysticks. A GamePad connected
++            // after a Pro Controller must still be able to operate swkbd.
++            // Reuse supplied samples; only poll devices not supplied this pump.
++            bool vpadConnected = controllerInfo.vpad != nullptr;
++            if (!controllerInfo.vpad) {
++                VPADReadError error;
++                if (VPADRead(VPAD_CHAN_0, &vpad, 1, &error) == 1 && error == VPAD_READ_SUCCESS) {
++                    VPADGetTPCalibratedPoint(VPAD_CHAN_0, &vpad.tpNormal, &vpad.tpNormal);
++                    controllerInfo.vpad = &vpad;
++                }
++                vpadConnected = error == VPAD_READ_SUCCESS || error == VPAD_READ_NO_SAMPLES;
++            }
++            for (int channel = 0; channel < 4; ++channel) {
++                if (!controllerInfo.kpad[channel]) {
++                    KPADError error;
++                    if (KPADReadEx(static_cast<WPADChan>(channel), &kpad[channel], 1, &error) == 1 && error == KPAD_ERROR_OK)
++                        controllerInfo.kpad[channel] = &kpad[channel];
++                }
++            }
++
++            int selected = static_cast<int>(activeController);
++            bool selectedConnected = vpadConnected;
++            if (selected != 4) {
++                WPADExtensionType extension;
++                selectedConnected = controllerInfo.kpad[selected] != nullptr ||
++                    WPADProbe(static_cast<WPADChan>(selected), &extension) == 0;
++            }
++            // No new sample is not a disconnect. Keep the selected controller
++            // between polls instead of oscillating between an idle DRC and Pro.
++            if (!selectedConnected) {
++                if (controllerInfo.vpad)
++                    activeController = nn::swkbd::ControllerType::DrcGamepad;
++                else
++                    for (int channel = 0; channel < 4; ++channel)
++                        if (controllerInfo.kpad[channel]) {
++                            activeController = static_cast<nn::swkbd::ControllerType>(channel);
++                            break;
++                        }
++            }
++            if (controllerInfo.vpad && (controllerInfo.vpad->trigger || controllerInfo.vpad->tpNormal.touched))
++                activeController = nn::swkbd::ControllerType::DrcGamepad;
++            for (int channel = 0; channel < 4; ++channel)
++                if (controllerInfo.kpad[channel] && kpadActive(*controllerInfo.kpad[channel]))
++                    activeController = static_cast<nn::swkbd::ControllerType>(channel);
++        }
++
+         SDL_SysWMmsg wmMsgStart;
+         SDL_SysWMmsg wmMsgFinish;
+ 
+@@ -576,6 +641,13 @@
+     if (!detail::create::created)
+         return;
+ 
++    if (detail::appear::window && nn::swkbd::GetStateInputForm() != nn::swkbd::State::Hidden) {
++        detail::collectKeyboardInput();
++        if (detail::shownController != detail::activeController) {
++            nn::swkbd::SetControllerRemo(detail::activeController);
++            detail::shownController = detail::activeController;
++        }
++    }
+     nn::swkbd::Calc(detail::controllerInfo);
+     detail::controllerInfo = {};
+ 
+@@ -641,7 +713,8 @@
+     if (state == nn::swkbd::State::Hidden)
+         return;
+ 
+-    if (window->flags & SDL_WINDOW_WIIU_TV_ONLY)
++    if ((window->flags & SDL_WINDOW_WIIU_TV_ONLY) ||
++        detail::shownController != nn::swkbd::ControllerType::DrcGamepad)
+         nn::swkbd::DrawTV();
+     else
+         nn::swkbd::DrawDRC();
+@@ -710,10 +783,9 @@
+     // Set show copy paste buttons
+     arg.inputFormArg.showCopyPasteButtons = detail::appear::showCopyPasteButtons;
+ 
+-    if (window->flags & SDL_WINDOW_WIIU_TV_ONLY)
+-        arg.keyboardArg.configArg.controllerType = nn::swkbd::ControllerType::WiiRemote0;
+-    else
+-        arg.keyboardArg.configArg.controllerType = nn::swkbd::ControllerType::DrcGamepad;
++    detail::collectKeyboardInput();
++    arg.keyboardArg.configArg.controllerType = detail::activeController;
++    detail::shownController = detail::activeController;
+ 
+     nn::swkbd::AppearInputForm(arg);
+     detail::appear::reset();
+@@ -729,6 +801,22 @@
+     // detail::appear::window = nullptr;
+ }
+ 
++void WIIU_SWKBD_Suspend(void)
++{
++    // Local ScummVM fix: dispose native UI before foreground GX2/AX resources
++    // disappear. Cancel, never commit pending text, on HOME/background exit.
++    if (!detail::create::created)
++        return;
++    if (detail::appear::window && !detail::appear::decisionSent) {
++        WIIU_SWKBD_HideScreenKeyboard(nullptr, nullptr);
++        SDL_VERSION(&detail::wmMsgFinish.version);
++        detail::wmMsgFinish.subsystem = SDL_SYSWM_WIIU;
++        detail::wmMsgFinish.msg.wiiu.event = SDL_WIIU_SYSWM_SWKBD_CANCEL_EVENT;
++        SDL_SendSysWMEvent(&detail::wmMsgFinish);
++    }
++    WIIU_SWKBD_Finalize();
++}
++
+ SDL_bool WIIU_SWKBD_IsScreenKeyboardShown(_THIS, SDL_Window *window)
+ {
+     if (!detail::create::created)
+@@ -833,11 +921,14 @@
+ 
+ SDL_bool SDL_WiiUSetSWKBDVPAD(const void *vpad)
+ {
++    const auto &sample = *reinterpret_cast<const VPADStatus *>(vpad);
++    if (sample.trigger || sample.tpNormal.touched)
++        detail::activeController = nn::swkbd::ControllerType::DrcGamepad;
+     if (!detail::create::created)
+         return SDL_FALSE;
+ 
+     nn::swkbd::State state = nn::swkbd::GetStateInputForm();
+-    if (state != nn::swkbd::State::Visible)
++    if (state == nn::swkbd::State::Hidden)
+         return SDL_FALSE;
+ 
+     // printf("swkbd is consuming vpad input, window=%p\n", detail::appear::window);
+@@ -848,6 +939,10 @@
+ 
+ SDL_bool SDL_WiiUSetSWKBDKPAD(int channel, const void *kpad)
+ {
++    if (channel < 0 || channel > 3)
++        return SDL_FALSE;
++    if (detail::kpadActive(*reinterpret_cast<const KPADStatus *>(kpad)))
++        detail::activeController = static_cast<nn::swkbd::ControllerType>(channel);
+     if (!detail::create::created)
+         return SDL_FALSE;
+ 
+@@ -855,7 +950,7 @@
+         return SDL_FALSE;
+ 
+     nn::swkbd::State state = nn::swkbd::GetStateInputForm();
+-    if (state != nn::swkbd::State::Visible)
++    if (state == nn::swkbd::State::Hidden)
+         return SDL_FALSE;
+ 
+     // printf("swkbd is consuming kpad input\n");
+--- a/src/video/wiiu/SDL_wiiuswkbd.h
++++ b/src/video/wiiu/SDL_wiiuswkbd.h
+@@ -36,6 +36,7 @@
+ 
+ void WIIU_SWKBD_Initialize(void);
+ void WIIU_SWKBD_Finalize(void);
++void WIIU_SWKBD_Suspend(void);
+ 
+ void WIIU_SWKBD_Calc(void);
+ 
+--- a/src/video/wiiu/SDL_wiiuvideo.c
++++ b/src/video/wiiu/SDL_wiiuvideo.c
+@@ -146,6 +146,8 @@
+ 
+ 	// make sure the GPU is done drawing
+ 	GX2DrawDone();
++	/* Cancel native input before its foreground rendering resources vanish. */
++	WIIU_SWKBD_Suspend();
+ 
+ 	if (videodata->tvScanBuffer) {
+ 		WIIU_GfxHeap_ForegroundFree(videodata->tvScanBuffer);
+--- a/src/joystick/wiiu/SDL_wiiujoystick.c
++++ b/src/joystick/wiiu/SDL_wiiujoystick.c
+@@ -467,6 +467,7 @@
+ 		static uint16_t last_touched = 0;
+ 		static uint32_t swkbd_buttons = 0;
+ 		static SDL_bool swkbd_touch = SDL_FALSE;
++		static SDL_bool swkbd_was_open = SDL_FALSE;
+ 
+ 		static int16_t x1_old = 0;
+ 		static int16_t y1_old = 0;
+@@ -506,10 +507,16 @@
+ 			}
+ 			swkbd_buttons = vpad.hold;
+ 			swkbd_touch = vpad.tpNormal.touched != 0;
++			swkbd_was_open = SDL_TRUE;
+ 			return;
+ 		}
+ 
+ 		/* Do not leak the keyboard's OK/Cancel press into the application. */
++		if (swkbd_was_open) {
++			swkbd_buttons |= vpad.hold;
++			swkbd_touch = swkbd_touch || vpad.tpNormal.touched;
++			swkbd_was_open = SDL_FALSE;
++		}
+ 		swkbd_buttons &= vpad.hold;
+ 		swkbd_touch = swkbd_touch && vpad.tpNormal.touched;
+ 		vpad.hold &= ~swkbd_buttons;
+@@ -581,6 +588,9 @@
+ 		KPADStatus kpad;
+ 		KPADError err;
+ 		int32_t read;
++		static uint32_t swkbd_buttons[4] = {0};
++		static SDL_bool swkbd_was_open[4] = {SDL_FALSE};
++		const int channel = WIIU_WPAD_CHAN(wiiu_device);
+ 
+ 		if (WPADProbe(WIIU_WPAD_CHAN(wiiu_device), &ext) != 0) {
+ 			/* Do nothing, we'll catch it in Detect() */
+@@ -591,31 +601,48 @@
+ 		if (read != 1 || err != KPAD_ERROR_OK)
+ 			return;
+ 
++		uint32_t held = kpad.hold;
++		const uint32_t *button_map = wiimote_button_map;
++		switch (ext) {
++		case WPAD_EXT_PRO_CONTROLLER:
++			held = kpad.pro.hold; button_map = pro_button_map; break;
++		case WPAD_EXT_CLASSIC:
++		case WPAD_EXT_MPLUS_CLASSIC:
++			held = kpad.classic.hold; button_map = classic_button_map; break;
++		case WPAD_EXT_NUNCHUK:
++		case WPAD_EXT_MPLUS_NUNCHUK:
++			held |= kpad.nunchuk.hold << 16; button_map = nunchuk_button_map; break;
++		default: break;
++		}
+ 		if (SDL_WiiUSetSWKBDKPAD(WIIU_WPAD_CHAN(wiiu_device), &kpad)) {
+-			/* Do not generate SDL events when the swkbd is consuming the input. */
++			/* Local ScummVM fix: reconcile Pro/Classic/Remote just like VPAD.
++			 * Do not leave a held application click or leak keyboard OK/Cancel. */
++			for (int i = 0; i < joystick->nbuttons; ++i)
++				SDL_PrivateJoystickButton(joystick, (Uint8)i, SDL_RELEASED);
++			for (int i = 0; i < joystick->naxes; ++i)
++				SDL_PrivateJoystickAxis(joystick, (Uint8)i, 0);
++			swkbd_buttons[channel] = held;
++			swkbd_was_open[channel] = SDL_TRUE;
+ 			return;
+ 		}
++		if (swkbd_was_open[channel]) {
++			swkbd_buttons[channel] |= held;
++			swkbd_was_open[channel] = SDL_FALSE;
++		}
++		swkbd_buttons[channel] &= held;
++		held &= ~swkbd_buttons[channel];
++		for (int i = 0; i < joystick->nbuttons; ++i)
++			SDL_PrivateJoystickButton(joystick, (Uint8)i,
++				(held & button_map[i]) ? SDL_PRESSED : SDL_RELEASED);
+ 
+ 		switch (ext) {
+ 		case WPAD_EXT_CORE:
+ 		case WPAD_EXT_MPLUS:
+ 		default: {
+-			for(int i = 0; i < joystick->nbuttons; i++)
+-				if (kpad.trigger & wiimote_button_map[i])
+-					SDL_PrivateJoystickButton(joystick, (Uint8)i, SDL_PRESSED);
+-			for(int i = 0; i < joystick->nbuttons; i++)
+-				if (kpad.release & wiimote_button_map[i])
+-					SDL_PrivateJoystickButton(joystick, (Uint8)i, SDL_RELEASED);
+ 			break;
+ 		}
+ 		case WPAD_EXT_NUNCHUK:
+ 		case WPAD_EXT_MPLUS_NUNCHUK: {
+-			for(int i = 0; i < joystick->nbuttons; i++)
+-				if ((kpad.trigger | (kpad.nunchuk.trigger << 16)) & nunchuk_button_map[i])
+-					SDL_PrivateJoystickButton(joystick, (Uint8)i, SDL_PRESSED);
+-			for(int i = 0; i < joystick->nbuttons; i++)
+-				if ((kpad.release | (kpad.nunchuk.release << 16)) & nunchuk_button_map[i])
+-					SDL_PrivateJoystickButton(joystick, (Uint8)i, SDL_RELEASED);
+ 
+ 			x1 = (int16_t) ((kpad.nunchuk.stick.x) * 0x7ff0);
+ 			y1 = (int16_t) -((kpad.nunchuk.stick.y) * 0x7ff0);
+@@ -625,12 +652,6 @@
+ 		}
+ 		case WPAD_EXT_CLASSIC:
+ 		case WPAD_EXT_MPLUS_CLASSIC: {
+-			for(int i = 0; i < joystick->nbuttons; i++)
+-				if (kpad.classic.trigger & classic_button_map[i])
+-					SDL_PrivateJoystickButton(joystick, (Uint8)i, SDL_PRESSED);
+-			for(int i = 0; i < joystick->nbuttons; i++)
+-				if (kpad.classic.release & classic_button_map[i])
+-					SDL_PrivateJoystickButton(joystick, (Uint8)i, SDL_RELEASED);
+ 
+ 			x1 = (int16_t) ((kpad.classic.leftStick.x) * 0x7ff0);
+ 			y1 = (int16_t) -((kpad.classic.leftStick.y) * 0x7ff0);
+@@ -643,12 +664,6 @@
+ 			break;
+ 		}
+ 		case WPAD_EXT_PRO_CONTROLLER: {
+-			for(int i = 0; i < joystick->nbuttons; i++)
+-				if (kpad.pro.trigger & pro_button_map[i])
+-					SDL_PrivateJoystickButton(joystick, (Uint8)i, SDL_PRESSED);
+-			for(int i = 0; i < joystick->nbuttons; i++)
+-				if (kpad.pro.release & pro_button_map[i])
+-					SDL_PrivateJoystickButton(joystick, (Uint8)i, SDL_RELEASED);
+ 
+ 			x1 = (int16_t) ((kpad.pro.leftStick.x) * 0x7ff0);
+ 			y1 = (int16_t) -((kpad.pro.leftStick.y) * 0x7ff0);
