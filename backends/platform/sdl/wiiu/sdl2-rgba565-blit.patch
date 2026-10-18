@@ -1,0 +1,44 @@
+diff --git a/src/video/SDL_blit_N.c b/src/video/SDL_blit_N.c
+index 41161d5..93ae1e6 100644
+--- a/src/video/SDL_blit_N.c
++++ b/src/video/SDL_blit_N.c
+@@ -1327,6 +1327,30 @@ static void Blit_RGB888_RGB555(SDL_BlitInfo *info)
+                            (((src[LO]) & 0x000000F8) >> 3);    \
+     }
+ #endif
++/* Wii U port addition: Groovie uses packed RGBA8888, not RGB888. Keep this
++   no-blend conversion out of the generic per-pixel format dispatcher. Alpha
++   is intentionally ignored, exactly as in BlitNtoN with an RGB565 target. */
++static void Blit_RGBA8888_RGB565(SDL_BlitInfo *info)
++{
++    int y, x;
++    Uint8 *srcrow = info->src;
++    Uint8 *dstrow = info->dst;
++    const int width = info->dst_w;
++
++    for (y = 0; y < info->dst_h; ++y) {
++        const Uint32 *src = (const Uint32 *)srcrow;
++        Uint16 *dst = (Uint16 *)dstrow;
++        for (x = 0; x < width; ++x) {
++            const Uint32 pixel = src[x];
++            dst[x] = (Uint16)(((pixel >> 16) & 0xf800) |
++                              ((pixel >> 13) & 0x07e0) |
++                              ((pixel >> 11) & 0x001f));
++        }
++        srcrow += width * 4 + info->src_skip;
++        dstrow += width * 2 + info->dst_skip;
++    }
++}
++
+ static void Blit_RGB888_RGB565(SDL_BlitInfo *info)
+ {
+ #ifndef USE_DUFFS_LOOP
+@@ -3327,6 +3351,8 @@ static const struct blit_table normal_blit_4[] = {
+ #endif
+           SET_ALPHA | COPY_ALPHA },
+     /* RGB 888 and RGB 565 */
++    { 0xFF000000, 0x00FF0000, 0x0000FF00, 2, 0x0000F800, 0x000007E0, 0x0000001F,
++      0, Blit_RGBA8888_RGB565, NO_ALPHA },
+     { 0x00FF0000, 0x0000FF00, 0x000000FF, 2, 0x0000F800, 0x000007E0, 0x0000001F,
+       0, Blit_RGB888_RGB565, NO_ALPHA },
+     { 0x00FF0000, 0x0000FF00, 0x000000FF, 2, 0x00007C00, 0x000003E0, 0x0000001F,
