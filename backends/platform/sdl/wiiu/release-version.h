@@ -16,6 +16,6 @@
 #elif defined(WIIU_COMPATIBILITY_TEST)
 #define WIIU_PORT_VERSION "0.6.0 + compatibility test 20261009 (SCUMM v7/v8, MM/Xeen, SCI/SCI32)"
 #else
-#define WIIU_PORT_VERSION "0.6.0"
+#define WIIU_PORT_VERSION "0.7.0"
 #endif
 #endif

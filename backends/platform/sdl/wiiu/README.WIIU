@@ -1,11 +1,21 @@
 ScummVM Wii U / Aroma — experimental SDL2 port
 =============================================
 
-Version 0.6.0 includes the renderer lifecycle fix, which I confirmed resolved
-the repeated-exit scenario on 2026-10-03. For SDK preparation, apply
-sdl2-renderer-lifecycle.patch AFTER both swkbd patches, rebuild/install SDL2,
-and relink ScummVM. See RELEASE-0.6.0.md for release status and RENDERER_FIX.md
-for historical diagnosis and patch rationale.
+Version 0.7.0 includes SCUMM v0-v8, MM/Xeen, SCI/SCI32, Mohawk/Myst/Riven,
+Blade Runner and Groovie/Groovie2, with MP3, Vorbis and MT-32. It retains the
+renderer fix, fixes SDL zero-timeout waits, speeds up Curse/QFG4 IO and Groovie
+RGBA conversion, and improves existing-text editing/controller keyboard input.
+See RELEASE-0.7.0.md for hardware results and remaining limitations.
+
+Apply these incremental patches to devkitPro/SDL wiiu-sdl2-2.32 in order:
+  1. sdl2-swkbd-input.patch
+  2. sdl2-swkbd-lifecycle.patch
+  3. sdl2-renderer-lifecycle.patch
+  4. sdl2-timer-zero-timeout.patch
+  5. sdl2-swkbd-controller.patch
+  6. sdl2-rgba565-blit.patch
+Then rebuild/install SDL and relink ScummVM. Do not apply a patch twice.
+The local SDK compatibility adjustments listed below are also retained.
 
 Requires devkitPPC, WUT, the devkitPro Wii U SDL2 port, target zlib and
 wut-tools (elf2rpl and wuhbtool). DEVKITPRO must identify the same SDK used
@@ -16,13 +26,14 @@ Build outside the source tree, after activating the SDK:
     --enable-engine=scumm --disable-detection-full --disable-mt32emu
   make -j2 wiiu_release
 
-The above is the historical minimal build, not the expanded test profile.
-For Myst/Riven, Blade Runner, The 7th Guest/The 11th Hour, MP3 and MT-32:
+The above is the historical minimal build, not the 0.7.0 release profile.
+For all release engines and MP3/Vorbis/MT-32, with diagnostics disabled:
   bash backends/platform/sdl/wiiu/build-release.sh
-See EXPERIMENTAL.md for dependencies, build scope and the regression checklist.
-Apply sdl2-swkbd-lifecycle.patch in addition to sdl2-swkbd-input.patch, rebuild
-and install SDL, then relink ScummVM. The new keyboard/window cleanup changes
-preceded the separate renderer fix; do not omit the renderer lifecycle patch.
+See EXPERIMENTAL.md for historical JPEG/MP3 dependency preparation. For pinned
+libogg 1.3.6/libvorbis 1.3.7 sources, activate the SDK, set WIIU_CODEC_DIR to a
+separate source/build directory and run build-vorbis-sdk.sh. The release helper
+checks required features and generates Xeen mm.dat version 1.3 using the host
+generator (no game files needed). Do not replace it with upstream mm.dat 1.2.
 
 This software is based in part on the work of the Independent JPEG Group.
 libjpeg-turbo 3.1.4.1 and libmad 0.15.1b notices are in licenses/ (source tree)
@@ -73,10 +84,14 @@ Native keyboard:
   Wait for the name to finish appearing before saving. Characters are sent
   at 100 ms intervals for original SCUMM dialogs that keep one key per tick.
 - Cancel dismisses only the keyboard, without inserting text or sending Esc.
-- The keyboard starts blank and inserts at the receiving field's cursor;
-  the feature API does not provide the existing field contents for editing.
-  Use a new empty save slot for the first test. Original game dialogs have
-  their own length/character restrictions; use plain letters/numbers there.
+- Supported ScummVM fields and original SCUMM labels supply existing text for
+  editing. Confirm replaces the changed suffix; unchanged/Cancel leaves it
+  intact. Other engine fields may still use insertion-only behavior. Original
+  dialogs keep their own length/character restrictions.
+- Controller selection no longer depends on the output display; missing input
+  samples are polled for native keyboard input, including a late GamePad.
+  Native keyboard resources are cancelled/released before HOME foreground
+  memory release. Pro-only/HOME behavior still needs hardware confirmation.
 - Keep ENABLE_VKEYBD disabled: this uses SDL's native keyboard, not the
   separate ScummVM keyboard pack. SDL's Wii U SYSWM submission events and
   multi-chunk UTF-8 text are handled by the small Wii U event adapter.

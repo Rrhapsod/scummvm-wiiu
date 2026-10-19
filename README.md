@@ -1,4 +1,4 @@
-# ScummVM for Wii U / Aroma — v0.6.0
+# ScummVM for Wii U / Aroma — v0.7.0
 
 ![ScummVM icon](dists/psp2/icon0.png)
 
@@ -7,18 +7,14 @@ Launch **ScummVM** directly from the Wii U Menu and play using the GamePad
 touchscreen or the analog stick and buttons. **No RetroArch required.**
 
 This is an **unofficial, experimental port**, not an official ScummVM release.
-Version **0.6.0** includes **SCUMM v0–v6, Mohawk,
-Blade Runner and Groovie**, not every engine supported by desktop ScummVM.
-Earlier packages included only SCUMM v0–v6. Games and MT-32 ROMs are not included.
+Version **0.7.0** includes **SCUMM v0–v8, MM/Xeen, SCI/SCI32, Mohawk,
+Blade Runner and Groovie/Groovie2**, not every engine supported by desktop
+ScummVM. Humongous Entertainment and MM1 remain disabled. Games and MT-32 ROMs
+are not included.
 
 The port version is separate from the upstream ScummVM version shown in the
-launcher. See the [0.6.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.6.0.md)
-for packages, the renderer memory fix, controls and validation details.
-
-For my separate post-0.6.0 compatibility test with **SCUMM v7/v8, MM/Xeen and
-SCI/SCI32**, see the [October 9 testing guide](backends/platform/sdl/wiiu/COMPATIBILITY-20261009.md).
-Those additional games still need Wii U testing; they are not included in the
-original 0.6.0 binaries.
+launcher. See the [0.7.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.7.0.md)
+for downloads, changes since 0.6.0, controls and validation details.
 
 [Downloads](https://github.com/Rrhapsod/scummvm-wiiu/releases) ·
 [Report a Wii U issue](https://github.com/Rrhapsod/scummvm-wiiu/issues) ·
@@ -34,6 +30,10 @@ original 0.6.0 binaries.
 - **Native Wii U on-screen keyboard** for text entry and save descriptions.
 - Audio playback through the existing SDL mixer backend.
 - MP3 decoding (libmad) and integrated MT-32 emulation, both tested on my Wii U.
+- Ogg Vorbis decoding for compatible game audio resources.
+- Existing-text editing in supported launcher/ScummVM and original SCUMM fields.
+- Faster Curse of Monkey Island transitions and Quest for Glory IV resource loading.
+- Faster Groovie pixel conversion; my latest 11th Hour movie/audio test improved.
 - Game data browsing, configuration and save files on the SD card.
 - SDL2-based backend; no Libretro frontend or RetroArch dependency.
 - Corrected renderer texture cleanup for repeated game/launcher transitions;
@@ -54,7 +54,7 @@ your saves when testing an experimental build.
 
 | Package | Intended use | Validation |
 | --- | --- | --- |
-| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | I tested the corrected diagnostic build, including repeated exits, Riven, Blade Runner and The 11th Hour; I still need to smoke-test the final 0.6.0 release binaries on my console |
+| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | I tested the changes in diagnostic builds; the final 0.7.0 package still needs a short console smoke test |
 | RPX experimental ZIP (`ScummVM.rpx`) | Community testing with a non-Aroma Wii U Homebrew Launcher/loader that supports RPX | **Not yet tested outside Aroma** |
 
 Both packages include the same executable and required data in different
@@ -120,11 +120,17 @@ Back button.** The native Wii U keyboard uses its own on-screen controls.
 For a right-click while using touch, use **B**; this guide does not assume
 multitouch support. To exit ScummVM, use the launcher's **Quit** button.
 
+World of Xeen uses game-specific mappings: the D-pad moves/turns, **X** sends
+Enter and **Y** sends Escape. Escape at its title screen can quit the game;
+use X or click **Start Game** with A/touch instead.
+
 ## Native on-screen keyboard
 
-The Wii U keyboard opens on the GamePad when a supported field requests text
-input. If a game's own input field does not open it automatically, select that
-field and press **−**.
+The native Wii U keyboard opens when a supported field requests text input.
+If a game's own input field does not open it automatically, select that field
+and press **−**. GamePad touch input is supported. This version also improves
+native input routing for Pro/Classic/Remote controllers and a GamePad connected
+later; I still need hardware confirmation of the reported Pro-only/HOME case.
 
 - **OK** submits the text and dismisses the keyboard. It does **not** press
   Enter or activate the game's Save button.
@@ -132,15 +138,18 @@ field and press **−**.
   Text is delivered gradually to accommodate older SCUMM input routines.
 - **Cancel** dismisses only the keyboard, without inserting text or sending
   Escape to the underlying dialog.
-- The keyboard starts empty and inserts at the receiving field's cursor.
-  It does not load the field's existing contents for editing.
+- Supported ScummVM fields and original SCUMM save dialogs pass their existing
+  text to the keyboard. Confirming edits replaces the changed text rather than
+  simply appending; Cancel or an unchanged submission leaves it alone. I tested
+  editing successfully in Sam & Max. Arbitrary fields in other engines may
+  still lack this context and use insertion-only behavior.
 - Original game dialogs may restrict name length and supported characters.
   Plain letters and numbers are recommended for the first save test.
 
 ## MP3 audio playback
 
-Version 0.6.0 includes MP3 support, as did the earlier expanded test build.
-Earlier SCUMM-only packages did not include the MP3 decoder.
+MP3 support remains included in 0.7.0. Earlier SCUMM-only packages did not
+include the MP3 decoder.
 
 MP3 decoding is automatic when a supported game engine reads audio in a
 supported MP3-based format. **There is no MP3 switch to enable**, and the
@@ -167,7 +176,26 @@ file requirements. Otherwise an engine may prefer the original audio. Check
 the relevant speech, music or effects; hearing a different audio source does
 not confirm MP3 playback. Keep the originals as a backup.
 
-MP3 support does not add Ogg Vorbis or FLAC support to this build.
+## Ogg Vorbis audio playback
+
+Version 0.7.0 also includes **Ogg Vorbis** decoding. It is automatic when an
+included engine reads a supported Vorbis resource; there is no Ogg toggle.
+
+1. Keep the game's required filenames and directory layout. Some engines use
+   ordinary `.ogg` tracks; others use compressed speech containers such as
+   `.sog`. An `.ogg` extension alone does not identify a supported codec.
+2. Add and launch the game normally. Existing compatible Vorbis resources do
+   not need conversion to MP3.
+3. To compress original audio, keep a backup and use the appropriate ScummVM
+   Tools utility with Vorbis output where supported. Do not rename `.sou`,
+   `.so3`, `.mp3` or other files to `.ogg`/`.sog`: renaming is not conversion.
+4. For a decoding test, use a separate game copy with the intended compressed
+   resources and keep alternative originals outside it, following that game's
+   data requirements. Otherwise the engine may prefer the original audio.
+
+This adds Vorbis, not Opus or Theora. FLAC and MPEG-2 are also not enabled.
+Host decoding checks passed; I have not yet recorded a confirmed Wii U test
+using specifically identified Vorbis assets.
 
 ## MT-32 music emulation
 
@@ -221,6 +249,9 @@ I successfully tested the following games on my Wii U:
 | Riven: The Sequel to Myst | Ran without problems in my tests |
 | Blade Runner | Ran without problems in my tests |
 | The 11th Hour | Ran without problems in my tests |
+| The Curse of Monkey Island | Gameplay and all audio; scene/menu delays resolved in my tests |
+| Might and Magic: World of Xeen | Playable; game-specific keyboard mappings apply |
+| Quest for Glory IV | DOS and Windows editions opened and were playable; startup greatly improved |
 
 I also tested the native keyboard successfully on September 26, 2026.
 My earlier SDK tests covered TV/GamePad video, touch,
@@ -235,9 +266,19 @@ On October 3, I confirmed that the renderer memory fix resolved the
 repeated-exit freeze. My log shows two Fate of Atlantis and two Sam & Max
 launch/return cycles, keyboard use and shutdown cleanup ending with successful
 log closure. I also tested Riven, Blade Runner and The 11th Hour without
-problems. I used the corrected diagnostic build for these tests; 0.6.0 keeps
-the fix and disables detailed lifecycle tracing. The final release binaries
-still need a console smoke test before publication.
+problems. That renderer fix remains included.
+
+Since 0.6.0 I also tested Curse, World of Xeen and QFG4. The timer fix restored
+Curse audio, and the IO changes removed the noticeable Curse/QFG4 delays in my
+tests. Existing-text editing worked in Sam & Max. On October 18, my 11th Hour
+movie/audio test looked and sounded good with the RGBA conversion optimization.
+The diagnostic log shows roughly 29–31 ms drawing per frame instead of about
+48 ms, two game launches and normal shutdown. It still records late frames
+and some empty audio-queue observations, so I do not claim constant 30 fps or
+perfect playback across all Groovie games.
+
+These tests used diagnostic candidates. The final 0.7.0 binaries retain their
+fixes with detailed tracing disabled and still need a short console smoke test.
 
 These are tests of specific scenarios, **not full-game completion reports or
 a guarantee that every game/version works**. Additional community testing is
@@ -252,23 +293,26 @@ not describe it as confirmed Tiramisu or legacy support yet.
   are included. I tested Riven, Blade Runner and The 11th Hour successfully;
   I have not yet tested Myst/Myst Masterpiece or The 7th Guest on my Wii U.
   Modern remakes and enhanced/remastered editions are not promised.
-- SCUMM v7/v8 and HE subengines remain disabled. The complete desktop ScummVM
-  compatibility list does not describe this build.
+- SCUMM v7/v8, MM/Xeen and SCI32 are now enabled, but HE/MM1 and other unlisted
+  engines are not. The complete desktop compatibility list is not a Wii U guarantee.
 - MP3 decoding and MT-32 have passed my console tests, but
   compatibility/performance across all games is not guaranteed.
-  Ogg Vorbis, FLAC and MPEG-2 are not included; editions
-  requiring those optional codecs are outside this build's test scope.
-- Version 0.6.0 includes the renderer memory fix validated for the reported
+  Vorbis is included but still needs a specifically identified console test.
+  FLAC, MPEG-2, Opus and Theora are not included.
+- Clandestiny, Tender Loving Care and Uncle Henry's Playhouse community reports
+  remain unresolved/unverified; the 11th Hour result does not validate them.
+- Version 0.7.0 retains the renderer memory fix validated for the reported
   repeated-exit freeze. This does not guarantee that every game/edition or
   possible freeze is resolved. Back up saves and report new failures.
 - Networking and OpenGL/shaders are not enabled.
 - Other controllers and untested games or game editions may behave differently.
+  Pro Controller keyboard/HOME changes are included but not hardware-confirmed.
 - Native keyboard input follows the receiving game's character and length
-  restrictions; it is not a synchronized editor for an existing field.
+  restrictions; existing-text context is not implemented for every engine.
 
 ## Release and historical test builds
 
-Read the [0.6.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.6.0.md)
+Read the [0.7.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.7.0.md)
 before replacing your existing executable. Keep the earlier ZIP for rollback.
 The [experimental build guide](backends/platform/sdl/wiiu/EXPERIMENTAL.md)
 documents the historical September 30 profile and dependency preparation.
@@ -295,10 +339,10 @@ The port uses the existing ScummVM build system with devkitPPC, WUT,
 devkitPro's Wii U SDL2 branch, target zlib and `wut-tools`. SDL is responsible
 for native video, audio, input and Wii U application lifecycle handling.
 
-For release 0.6.0, including MP3 and MT-32 but without lifecycle tracing, use
-the release script after
-preparing the dependencies described in the
-[experimental build guide](backends/platform/sdl/wiiu/EXPERIMENTAL.md):
+For release 0.7.0, including the expanded engines, MP3/Vorbis and MT-32 without
+diagnostic tracing, use the release script after preparing the dependencies
+and all six SDL patches listed in the
+[backend notes](backends/platform/sdl/wiiu/README.WIIU):
 
 ```sh
 bash backends/platform/sdl/wiiu/build-release.sh
@@ -327,9 +371,9 @@ The SD installation tree is generated in `wiiu_release/`. The filename is
 existing 128×128 ScummVM asset at `dists/psp2/icon0.png`.
 
 See [Wii U backend notes](backends/platform/sdl/wiiu/README.WIIU) for SDK
-requirements and all three accompanying SDL patches: keyboard input,
-keyboard lifecycle, and renderer lifecycle. Rebuild/install SDL after applying
-them in that order, then relink ScummVM. An arbitrary
+requirements and patch order, including keyboard lifecycle/controller routing,
+renderer cleanup, timer zero-timeout handling and RGBA conversion. Rebuild/install
+SDL after applying them, then relink ScummVM. An arbitrary
 unpatched SDL/WUT installation is not equivalent to the locally tested SDK.
 
 ## Credits and license
