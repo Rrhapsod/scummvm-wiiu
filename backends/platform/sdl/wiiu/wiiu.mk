@@ -37,6 +37,7 @@ wiiu_release: ScummVM.wuhb
 	cp $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.7.0.md wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
 	cp $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.7.0.md wiiu_release/scummvm/doc/
 	cp $(srcdir)/backends/platform/sdl/wiiu/sdl2-timer-zero-timeout.patch $(srcdir)/backends/platform/sdl/wiiu/sdl2-swkbd-controller.patch $(srcdir)/backends/platform/sdl/wiiu/sdl2-rgba565-blit.patch wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
+	cp $(srcdir)/backends/platform/sdl/wiiu/sdl2-wiimote-pointer.patch wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
 	cp $(srcdir)/backends/platform/sdl/wiiu/build-vorbis-sdk.sh $(srcdir)/backends/platform/sdl/wiiu/prepare-mm-data.py wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
 	mkdir -p wiiu_release/scummvm/doc/LICENSES
 	cp $(srcdir)/LICENSES/* $(srcdir)/backends/platform/sdl/wiiu/licenses/* wiiu_release/scummvm/doc/LICENSES/

@@ -10,10 +10,12 @@ if printf '%s\n' "${CXXFLAGS:-} ${CPPFLAGS:-} ${CFLAGS:-}" | grep -E 'WIIU_[A-Z_
     echo "Release builds must not enable Wii U diagnostics/test profiles" >&2
     exit 1
 fi
-if ! powerpc-eabi-nm "$DEVKITPRO/portlibs/wiiu/lib/libSDL2.a" | grep 'Blit_RGBA8888_RGB565' > /dev/null; then
-    echo "Rebuild SDL with the six patches listed in README.WIIU first" >&2
-    exit 1
-fi
+for symbol in Blit_RGBA8888_RGB565 WIIU_SuspendRemotePointers; do
+    if ! powerpc-eabi-nm "$DEVKITPRO/portlibs/wiiu/lib/libSDL2.a" | grep "$symbol" > /dev/null; then
+        echo "Rebuild SDL with the seven patches listed in README.WIIU first ($symbol missing)" >&2
+        exit 1
+    fi
+done
 mkdir -p "$WIIU_BUILD_DIR"
 cd "$WIIU_BUILD_DIR"
 "$wiiu_src/configure" --host=wiiu --disable-all-engines \

@@ -7,15 +7,19 @@ renderer fix, fixes SDL zero-timeout waits, speeds up Curse/QFG4 IO and Groovie
 RGBA conversion, and improves existing-text editing/controller keyboard input.
 See RELEASE-0.7.0.md for hardware results and remaining limitations.
 
-Apply these incremental patches to devkitPro/SDL wiiu-sdl2-2.32 in order:
+For current source (including the Wii Remote candidate), apply these incremental
+patches to devkitPro/SDL wiiu-sdl2-2.32 in order:
   1. sdl2-swkbd-input.patch
   2. sdl2-swkbd-lifecycle.patch
   3. sdl2-renderer-lifecycle.patch
   4. sdl2-timer-zero-timeout.patch
   5. sdl2-swkbd-controller.patch
   6. sdl2-rgba565-blit.patch
+  7. sdl2-wiimote-pointer.patch
 Then rebuild/install SDL and relink ScummVM. Do not apply a patch twice.
 The local SDK compatibility adjustments listed below are also retained.
+The prepared 0.7.0 binaries use patches 1-6. Do not replace those packages when
+building this candidate. See REMOTE-TEST-20261020.md and build-remote-test.sh.
 
 Requires devkitPPC, WUT, the devkitPro Wii U SDL2 port, target zlib and
 wut-tools (elf2rpl and wuhbtool). DEVKITPRO must identify the same SDK used
@@ -69,12 +73,20 @@ Start ScummVM from the Wii U Menu under Aroma. The backend creates:
 
 Games are not included; browse the SD using Add Game.
 WUT paths are /vol/external01/... (not sd:/... in configuration files).
-The GamePad is joystick 0. Touch uses ScummVM's existing SDL finger
-handling, with direct positioning by default. GameController mappings
-and ScummVM keymaps supply buttons and the virtual mouse. Use launcher
+Current source keeps the GamePad and all detected WPAD channels open together,
+including hotplugged devices. The GamePad need not enumerate first. Touch uses
+ScummVM's existing SDL finger handling, with direct positioning by default.
+The Wii U adapter normalizes raw SDL buttons/sticks for ScummVM's keymapper;
+the Remote's A/B are real SDL mouse clicks to avoid duplicate input. Use launcher
 Quit or HOME to exit; verify HOME/return before testing long sessions.
 Negative joystick indices are overridden because opening the GamePad is
 also required for touchscreen events.
+
+Wii Remote candidate: IR moves the mouse absolutely; A/B left/right-click,
+and holding A drags. The SDL driver enables IR and requests the external
+console-powered Sensor Bar. Calibration and actual bar power require hardware
+testing. Touch/sticks temporarily take cursor ownership from idle IR. See
+REMOTE-TEST-20261020.md for controls, diagnostic logs and console test cases.
 
 Native keyboard:
 - Fields requesting ScummVM's virtual keyboard feature open the Wii U

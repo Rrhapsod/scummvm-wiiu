@@ -16,6 +16,12 @@ The port version is separate from the upstream ScummVM version shown in the
 launcher. See the [0.7.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.7.0.md)
 for downloads, changes since 0.6.0, controls and validation details.
 
+Current development source also includes a separate
+[Wii Remote IR candidate](backends/platform/sdl/wiiu/REMOTE-TEST-20261020.md),
+with pointing, A/B mouse clicks and simultaneous GamePad input. I still need
+console validation of this addition; it is not included in the prepared 0.7.0
+packages.
+
 [Downloads](https://github.com/Rrhapsod/scummvm-wiiu/releases) ·
 [Report a Wii U issue](https://github.com/Rrhapsod/scummvm-wiiu/issues) ·
 [Upstream ScummVM README](README.scummvm.md)

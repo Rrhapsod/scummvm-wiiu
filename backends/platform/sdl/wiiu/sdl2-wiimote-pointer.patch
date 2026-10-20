@@ -1,0 +1,325 @@
+--- a/src/joystick/wiiu/SDL_wiiujoystick.c
++++ b/src/joystick/wiiu/SDL_wiiujoystick.c
+@@ -33,6 +33,9 @@
+ #include "../SDL_sysjoystick.h"
+ #include "../SDL_joystick_c.h"
+ #include "../../events/SDL_touch_c.h"
++#include "../../events/SDL_mouse_c.h"
++#include "SDL_hints.h"
++#include "SDL_timer.h"
+ 
+ #include "SDL_log.h"
+ #include "SDL_assert.h"
+@@ -42,6 +45,16 @@
+ #include "SDL_wiiujoystick.h"
+ #include "../../video/SDL_sysvideo.h"
+ #include "../../video/wiiu/SDL_wiiuswkbd.h"
++#include "SDL_wiiupointer.h"
++
++/* Called before ProcUI releases foreground resources. */
++void WIIU_SuspendRemotePointers(void)
++{
++	for (int i = 0; i < WIIU_NUM_WPADS; ++i) {
++		remotePointers[i].suppressed |= remotePointers[i].buttons;
++		WIIU_ReleaseRemotePointer(i);
++	}
++}
+ 
+ //index with device_index, get WIIU_DEVICE*
+ static int deviceMap[MAX_CONTROLLERS];
+@@ -149,7 +162,9 @@
+ /* Function to return the number of joystick devices plugged in right now */
+ static int WIIU_JoystickGetCount(void)
+ {
+-	return WIIU_GetNextDeviceIndex();
++	int count = WIIU_GetNextDeviceIndex();
++	/* No free slot means all five devices are present, not a negative count. */
++	return count < 0 ? MAX_CONTROLLERS : count;
+ }
+ 
+ /* Function to cause any queued joystick insertions to be processed */
+@@ -223,6 +238,7 @@
+ 				disconnect and reconnect it. */
+ 				SDL_JoystickID instance = WIIU_GetInstForDevice(wiiu_device);
+ 				/* Yes! We should disconnect it. */
++				WIIU_DisableRemotePointer(i);
+ 				SDL_PrivateJoystickRemoved(instance);
+ 				/* Unlink device_index, instance_id */
+ 				WIIU_RemoveDevice(wiiu_device);
+@@ -232,6 +248,7 @@
+ 			if (WIIU_GetIndexForDevice(wiiu_device) != -1) {
+ 				SDL_JoystickID instance = WIIU_GetInstForDevice(wiiu_device);
+ 				/* Yes! We should disconnect it. */
++				WIIU_DisableRemotePointer(i);
+ 				SDL_PrivateJoystickRemoved(instance);
+ 				/* Unlink device_index, instance_id */
+ 				WIIU_RemoveDevice(wiiu_device);
+@@ -551,6 +568,10 @@
+ 		}
+ 
+ 		/* axys */
++		if (vpad.tpNormal.touched || vpad.trigger ||
++			SDL_fabsf(vpad.leftStick.x) > 0.2f || SDL_fabsf(vpad.leftStick.y) > 0.2f ||
++			SDL_fabsf(vpad.rightStick.x) > 0.2f || SDL_fabsf(vpad.rightStick.y) > 0.2f)
++			WIIU_YieldRemotePointer();
+ 		x1 = (int16_t) ((vpad.leftStick.x) * 0x7ff0);
+ 		y1 = (int16_t) -((vpad.leftStick.y) * 0x7ff0);
+ 		x2 = (int16_t) ((vpad.rightStick.x) * 0x7ff0);
+@@ -597,6 +618,7 @@
+ 			return;
+ 		}
+ 
++		WIIU_ConfigureRemotePointer(channel, ext);
+ 		read = KPADReadEx(WIIU_WPAD_CHAN(wiiu_device), &kpad, 1, &err);
+ 		if (read != 1 || err != KPAD_ERROR_OK)
+ 			return;
+@@ -615,6 +637,7 @@
+ 		default: break;
+ 		}
+ 		if (SDL_WiiUSetSWKBDKPAD(WIIU_WPAD_CHAN(wiiu_device), &kpad)) {
++			WIIU_ReleaseRemotePointer(channel);
+ 			/* Local ScummVM fix: reconcile Pro/Classic/Remote just like VPAD.
+ 			 * Do not leave a held application click or leak keyboard OK/Cancel. */
+ 			for (int i = 0; i < joystick->nbuttons; ++i)
+@@ -631,6 +654,7 @@
+ 		}
+ 		swkbd_buttons[channel] &= held;
+ 		held &= ~swkbd_buttons[channel];
++		WIIU_UpdateRemotePointer(channel, &kpad, held);
+ 		for (int i = 0; i < joystick->nbuttons; ++i)
+ 			SDL_PrivateJoystickButton(joystick, (Uint8)i,
+ 				(held & button_map[i]) ? SDL_PRESSED : SDL_RELEASED);
+@@ -652,6 +676,10 @@
+ 		}
+ 		case WPAD_EXT_CLASSIC:
+ 		case WPAD_EXT_MPLUS_CLASSIC: {
++			if (kpad.classic.trigger || SDL_fabsf(kpad.classic.leftStick.x) > 0.2f ||
++				SDL_fabsf(kpad.classic.leftStick.y) > 0.2f || SDL_fabsf(kpad.classic.rightStick.x) > 0.2f ||
++				SDL_fabsf(kpad.classic.rightStick.y) > 0.2f)
++				WIIU_YieldRemotePointer();
+ 
+ 			x1 = (int16_t) ((kpad.classic.leftStick.x) * 0x7ff0);
+ 			y1 = (int16_t) -((kpad.classic.leftStick.y) * 0x7ff0);
+@@ -664,6 +692,10 @@
+ 			break;
+ 		}
+ 		case WPAD_EXT_PRO_CONTROLLER: {
++			if (kpad.pro.trigger || SDL_fabsf(kpad.pro.leftStick.x) > 0.2f ||
++				SDL_fabsf(kpad.pro.leftStick.y) > 0.2f || SDL_fabsf(kpad.pro.rightStick.x) > 0.2f ||
++				SDL_fabsf(kpad.pro.rightStick.y) > 0.2f)
++				WIIU_YieldRemotePointer();
+ 
+ 			x1 = (int16_t) ((kpad.pro.leftStick.x) * 0x7ff0);
+ 			y1 = (int16_t) -((kpad.pro.leftStick.y) * 0x7ff0);
+@@ -682,11 +714,16 @@
+ /* Function to close a joystick after use */
+ static void WIIU_JoystickClose(SDL_Joystick *joystick)
+ {
++	int device = WIIU_GetDeviceForInst(joystick->instance_id);
++	if (device >= WIIU_DEVICE_WPAD(0))
++		WIIU_DisableRemotePointer(WIIU_WPAD_CHAN(device));
+ }
+ 
+ /* Function to perform any system-specific joystick related cleanup */
+ static void WIIU_JoystickQuit(void)
+ {
++	for (int i = 0; i < WIIU_NUM_WPADS; ++i)
++		WIIU_DisableRemotePointer(i);
+ }
+ 
+ /* Function to get the autodetected controller mapping; returns false if there isn't any. */
+--- a/src/joystick/SDL_gamecontrollerdb.h
++++ b/src/joystick/SDL_gamecontrollerdb.h
+@@ -1008,7 +1008,7 @@
+     "0000000057696920436c617373696300,Wii Classic Controller,crc:f05e,a:b0,b:b1,back:b11,dpdown:b15,dpleft:b12,dpright:b14,dpup:b13,leftshoulder:b6,leftstick:b4,lefttrigger:b8,leftx:a0,lefty:a1,rightshoulder:b7,rightstick:b5,righttrigger:b9,rightx:a2,righty:a3,start:b10,x:b2,y:b3,hint:SDL_GAMECONTROLLER_USE_BUTTON_LABELS:=1,",
+     "0000000057696920436c617373696300,Wii Classic Controller,crc:f05e,a:b1,b:b0,back:b11,dpdown:b15,dpleft:b12,dpright:b14,dpup:b13,leftshoulder:b6,leftstick:b4,lefttrigger:b8,leftx:a0,lefty:a1,rightshoulder:b7,rightstick:b5,righttrigger:b9,rightx:a2,righty:a3,start:b10,x:b3,y:b2,hint:!SDL_GAMECONTROLLER_USE_BUTTON_LABELS:=1,",
+     "00000000576969204e756e6368756b00,Wii Remote + Nunchuk,crc:e1bc,a:b0,b:b1,back:b11,dpdown:b15,dpleft:b12,dpright:b14,dpup:b13,leftshoulder:b6,leftstick:b4,lefttrigger:b8,leftx:a0,lefty:a1,rightshoulder:b7,rightstick:b5,righttrigger:b9,rightx:a2,righty:a3,start:b10,x:b2,y:b3,",
+-    "000000005769692052656d6f74650000,Wii Remote,crc:691d,a:b7,b:b6,back:b11,dpdown:b12,dpleft:b13,dpright:b15,dpup:b14,start:b10,x:b1,y:b0,",
++    "000000005769692052656d6f74650000,Wii Remote,crc:691d,a:b0,b:b1,back:b11,dpdown:b15,dpleft:b12,dpright:b14,dpup:b13,start:b10,leftshoulder:b6,rightshoulder:b7,",
+ #endif
+     "hidapi,*,a:b0,b:b1,back:b4,dpdown:b12,dpleft:b13,dpright:b14,dpup:b11,guide:b5,leftshoulder:b9,leftstick:b7,lefttrigger:a4,leftx:a0,lefty:a1,rightshoulder:b10,rightstick:b8,righttrigger:a5,rightx:a2,righty:a3,start:b6,x:b2,y:b3,",
+     NULL
+--- a/src/video/wiiu/SDL_wiiuvideo.c
++++ b/src/video/wiiu/SDL_wiiuvideo.c
+@@ -148,6 +148,13 @@
+ 	GX2DrawDone();
+ 	/* Cancel native input before its foreground rendering resources vanish. */
+ 	WIIU_SWKBD_Suspend();
++#if SDL_JOYSTICK_WIIU
++	/* Release IR drags before ProcUI drops the foreground. */
++	{
++		extern void WIIU_SuspendRemotePointers(void);
++		WIIU_SuspendRemotePointers();
++	}
++#endif
+ 
+ 	if (videodata->tvScanBuffer) {
+ 		WIIU_GfxHeap_ForegroundFree(videodata->tvScanBuffer);
+--- /dev/null
++++ b/src/joystick/wiiu/SDL_wiiupointer.h
+@@ -0,0 +1,165 @@
++/* Local ScummVM Wii U extension. zlib license; see SDL_wiiujoystick.c.
++ * Opt in with SDL_WIIU_REMOTE_POINTER=1. Reuse the driver's KPAD samples.
++ * Mouse IDs 0x57494900..03 identify the four Remote channels.
++ */
++#ifndef SDL_wiiupointer_h_
++#define SDL_wiiupointer_h_
++
++/* WUT 1.9.1 imports this Cafe OS function but omits its declaration. The
++ * signature matches current WUT's padscore/wpad.h; no dynamic lookup needed. */
++extern void WPADSetSensorBar(BOOL enable);
++
++typedef struct WIIU_RemotePointer {
++    SDL_bool configured;
++    SDL_bool valid;
++    SDL_bool reported;
++    int x, y;
++    Uint32 buttons;
++    Uint32 suppressed;
++} WIIU_RemotePointer;
++
++static WIIU_RemotePointer remotePointers[WIIU_NUM_WPADS];
++static int remotePointerOwner = -1;
++static Uint32 remotePointerYieldUntil;
++
++static SDL_bool WIIU_IsPointingRemote(WPADExtensionType ext)
++{
++    return ext == WPAD_EXT_CORE || ext == WPAD_EXT_MPLUS ||
++           ext == WPAD_EXT_NUNCHUK || ext == WPAD_EXT_MPLUS_NUNCHUK;
++}
++
++static SDL_Window *WIIU_GetPointerWindow(void)
++{
++    SDL_VideoDevice *dev = SDL_GetVideoDevice();
++    SDL_Window *win;
++    if (!dev)
++        return NULL;
++    for (win = dev->windows; win; win = win->next) {
++        if ((win->flags & SDL_WINDOW_SHOWN) && !(win->flags & SDL_WINDOW_WIIU_GAMEPAD_ONLY))
++            return win;
++    }
++    return NULL;
++}
++
++static void WIIU_ReleaseRemotePointer(int channel)
++{
++    WIIU_RemotePointer *p = &remotePointers[channel];
++    const SDL_MouseID id = 0x57494900u + channel;
++    SDL_Window *win = WIIU_GetPointerWindow();
++    if (p->buttons & WPAD_BUTTON_A)
++        SDL_SendMouseButton(win, id, SDL_RELEASED, SDL_BUTTON_LEFT);
++    if (p->buttons & WPAD_BUTTON_B)
++        SDL_SendMouseButton(win, id, SDL_RELEASED, SDL_BUTTON_RIGHT);
++    p->buttons = 0;
++    p->valid = SDL_FALSE;
++    if (remotePointerOwner == channel)
++        remotePointerOwner = -1;
++}
++
++static void WIIU_DisableRemotePointer(int channel)
++{
++    int i;
++    WIIU_RemotePointer *p = &remotePointers[channel];
++    WIIU_ReleaseRemotePointer(channel);
++    if (!p->configured)
++        return;
++    KPADDisableDPD((KPADChan)channel);
++    SDL_zero(*p);
++    for (i = 0; i < WIIU_NUM_WPADS; ++i) {
++        if (remotePointers[i].configured)
++            return;
++    }
++    WPADSetSensorBar(FALSE);
++}
++
++static void WIIU_ConfigureRemotePointer(int channel, WPADExtensionType ext)
++{
++    if (WIIU_IsPointingRemote(ext) && SDL_GetHintBoolean("SDL_WIIU_REMOTE_POINTER", SDL_FALSE)) {
++        if (!remotePointers[channel].configured) {
++            WPADSetSensorBar(TRUE);
++            KPADEnableDPD((KPADChan)channel);
++            remotePointers[channel].configured = SDL_TRUE;
++            SDL_Log("WiiU pointer: enabled IR and external Sensor Bar for channel %d", channel);
++        }
++    } else {
++        WIIU_DisableRemotePointer(channel);
++    }
++}
++
++/* Touch/sticks temporarily own the cursor. Anchor subsequent IR samples while
++ * yielded so an idle Remote cannot snap the pointer back after a touch. */
++static void WIIU_YieldRemotePointer(void)
++{
++    if (remotePointerOwner >= 0 && remotePointers[remotePointerOwner].buttons)
++        return; /* Do not interrupt an IR drag. */
++    remotePointerOwner = -1;
++    remotePointerYieldUntil = SDL_GetTicks() + 350;
++}
++
++static void WIIU_UpdateRemotePointer(int channel, const KPADStatus *kpad, Uint32 held)
++{
++    WIIU_RemotePointer *p = &remotePointers[channel];
++    SDL_Window *win = WIIU_GetPointerWindow();
++    const SDL_MouseID id = 0x57494900u + channel;
++    Uint32 buttons = held & (WPAD_BUTTON_A | WPAD_BUTTON_B);
++    Uint32 pressed;
++    SDL_bool valid, moved = SDL_FALSE, claim;
++    int x = p->x, y = p->y;
++    int threshold;
++    if (!p->configured)
++        return;
++    if (!win || win->w <= 0 || win->h <= 0) {
++        p->suppressed |= buttons;
++        WIIU_ReleaseRemotePointer(channel);
++        return;
++    }
++    p->suppressed &= buttons;
++    buttons &= ~p->suppressed;
++    pressed = buttons & ~p->buttons;
++    /* Positive y is DOWN in KPAD, unlike the Nunchuk stick. Comparisons also
++     * reject NaN/Inf. The [-1,+1] mapping follows libgui's Wii U pointer. */
++    valid = (kpad->posValid == 1 || kpad->posValid == 2) &&
++            kpad->pos.x >= -1.0f && kpad->pos.x <= 1.0f &&
++            kpad->pos.y >= -1.0f && kpad->pos.y <= 1.0f;
++    if (!p->reported || valid != p->valid) {
++        /* Opted-in application diagnostics: code encodes channel and tracking
++         * validity, without pointers to temporary KPAD/window data. */
++        SDL_Event event;
++        SDL_zero(event);
++        event.type = SDL_USEREVENT;
++        event.user.code = 0x57495200 + channel * 2 + (valid ? 1 : 0);
++        SDL_PushEvent(&event);
++        p->reported = SDL_TRUE;
++    }
++    threshold = SDL_max(2, win->w / (remotePointerOwner == channel ? 320 : 100));
++    if (valid) {
++        x = (int)((kpad->pos.x + 1.0f) * 0.5f * (win->w - 1));
++        y = (int)((kpad->pos.y + 1.0f) * 0.5f * (win->h - 1));
++        moved = !p->valid || SDL_abs(x - p->x) >= threshold || SDL_abs(y - p->y) >= threshold;
++    }
++    claim = pressed || (valid && moved && SDL_TICKS_PASSED(SDL_GetTicks(), remotePointerYieldUntil));
++    if (remotePointerOwner >= 0 && remotePointerOwner != channel && remotePointers[remotePointerOwner].buttons)
++        claim = SDL_FALSE;
++    if (claim)
++        remotePointerOwner = channel;
++    if (valid && remotePointerOwner == channel && (moved || pressed)) {
++        /* Position before button-down, including a stationary Remote after a
++         * GamePad touch. Send actual SDL mouse state for drag/clipping logic. */
++        SDL_SendMouseMotion(win, id, 0, x, y);
++        p->x = x;
++        p->y = y;
++    } else if (valid && !SDL_TICKS_PASSED(SDL_GetTicks(), remotePointerYieldUntil)) {
++        p->x = x;
++        p->y = y;
++    }
++    p->valid = valid;
++    if (remotePointerOwner != channel)
++        return;
++    if ((buttons ^ p->buttons) & WPAD_BUTTON_A)
++        SDL_SendMouseButton(win, id, (buttons & WPAD_BUTTON_A) ? SDL_PRESSED : SDL_RELEASED, SDL_BUTTON_LEFT);
++    if ((buttons ^ p->buttons) & WPAD_BUTTON_B)
++        SDL_SendMouseButton(win, id, (buttons & WPAD_BUTTON_B) ? SDL_PRESSED : SDL_RELEASED, SDL_BUTTON_RIGHT);
++    p->buttons = buttons;
++}
++
++#endif

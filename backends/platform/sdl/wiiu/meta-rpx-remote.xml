@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<app version="1">
+  <name>ScummVM (RPX test)</name>
+  <coder>ScummVM Team; Wii U port by Rrhapsod</coder>
+  <version>0.7.0-remote-20261020</version>
+  <short_description>Wii Remote IR diagnostic candidate</short_description>
+  <long_description>Native Wii U SDL2 port with Wii Remote IR mouse input and simultaneous GamePad controls. Experimental RPX package: startup through non-Aroma loaders remains unverified. I have not yet tested this Wii Remote candidate on my console. See TESTING.md for controls and requested hardware checks. No games, saves, configuration or MT-32 ROMs are included.</long_description>
+</app>

@@ -24,10 +24,12 @@
 
 #include "backends/events/sdl/sdl-events.h"
 #include "common/ustr.h"
+#include "common/queue.h"
 
 class WiiUEventSource : public SdlEventSource {
 public:
 	WiiUEventSource();
+	~WiiUEventSource() override;
 	bool pollEvent(Common::Event &event) override;
 	bool allowMapping() const override { return !_nativeKeyEvent; }
 	void setKeyboardVisible(bool visible);
@@ -38,6 +40,30 @@ protected:
 	bool dispatchSDLEvent(SDL_Event &ev, Common::Event &event) override;
 
 private:
+	// SDL's Wii U driver exposes one GamePad and four WPAD channels. Keep all
+	// open: closing the GamePad also stops its touchscreen samples.
+	struct Controller {
+		SDL_Joystick *joystick = nullptr;
+		SDL_JoystickID id = -1;
+		bool remote = false;
+		uint32 buttons = 0;
+		int16 axes[6] = {};
+	};
+	Controller _controllers[5];
+	uint32 _controllerButtons = 0;
+	int16 _controllerAxes[6] = {};
+	Common::Queue<Common::Event> _controllerEvents;
+	void openController(int index);
+	void removeController(SDL_JoystickID id);
+	void refreshPrimaryJoystick();
+	Controller *findController(SDL_JoystickID id);
+	void updateControllerState();
+	bool dispatchControllerEvent(const SDL_Event &ev, Common::Event &event);
+	bool popControllerEvent(Common::Event &event);
+#ifdef WIIU_REMOTE_TEST
+	uint32 _pointerReports = 0;
+	uint32 _trackingReports = 0;
+#endif
 	bool pollKeyboardEvent(Common::Event &event);
 	void closeKeyboard();
 	bool _keyboardActive = false;

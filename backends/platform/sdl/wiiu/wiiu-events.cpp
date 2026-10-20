@@ -30,6 +30,167 @@
 WiiUEventSource::WiiUEventSource() {
 	// SDL's Wii U keyboard brackets its UTF-8 submission with SYSWM events.
 	SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
+	SDL_SetHint("SDL_WIIU_REMOTE_POINTER", "1");
+	// A Remote is a mouse, not a synthetic touchscreen contact.
+	SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
+	closeJoystick();
+	for (int i = 0; i < SDL_NumJoysticks(); ++i)
+		openController(i);
+	refreshPrimaryJoystick();
+}
+
+WiiUEventSource::~WiiUEventSource() {
+	closeKeyboard();
+	closeJoystick();
+	for (auto &controller : _controllers) {
+		if (controller.joystick)
+			SDL_JoystickClose(controller.joystick);
+	}
+	SDL_SetHint("SDL_WIIU_REMOTE_POINTER", "0");
+}
+
+WiiUEventSource::Controller *WiiUEventSource::findController(SDL_JoystickID id) {
+	for (auto &controller : _controllers) {
+		if (controller.joystick && controller.id == id)
+			return &controller;
+	}
+	return nullptr;
+}
+
+void WiiUEventSource::openController(int index) {
+	const SDL_JoystickID id = SDL_JoystickGetDeviceInstanceID(index);
+	if (id < 0 || findController(id))
+		return;
+	for (auto &controller : _controllers) {
+		if (controller.joystick)
+			continue;
+		controller.joystick = SDL_JoystickOpen(index);
+		if (!controller.joystick) {
+			warning("Wii U: could not open controller %d: %s", index, SDL_GetError());
+			return;
+		}
+		controller.id = id;
+		const char *name = SDL_JoystickName(controller.joystick);
+		controller.remote = name && !strncmp(name, "Wii Remote #", 12);
+		debug(0, "Wii U input: opened instance %d: %s%s", (int)id,
+			name ? name : "unknown", controller.remote ? " (IR mouse A/B)" : "");
+		return;
+	}
+}
+
+void WiiUEventSource::refreshPrimaryJoystick() {
+	// The base class uses this handle to advertise joystick/keymapper support.
+	// Raw events from all five devices are normalized below, with no duplicate
+	// GameController events and no dependency on device-index ordering.
+	if (_joystick)
+		return;
+	for (int i = 0; i < SDL_NumJoysticks(); ++i) {
+		if (findController(SDL_JoystickGetDeviceInstanceID(i))) {
+			_joystick = SDL_JoystickOpen(i);
+			return;
+		}
+	}
+}
+
+void WiiUEventSource::removeController(SDL_JoystickID id) {
+	Controller *controller = findController(id);
+	if (!controller)
+		return;
+	if (_joystick && SDL_JoystickInstanceID(_joystick) == id)
+		closeJoystick();
+	SDL_JoystickClose(controller->joystick);
+	*controller = Controller();
+	updateControllerState(); // Release held keys/sticks before selecting another device.
+	refreshPrimaryJoystick();
+	debug(0, "Wii U input: removed instance %d", (int)id);
+}
+
+void WiiUEventSource::updateControllerState() {
+	// These raw indices are the Wii U SDL driver's common button layout, NOT
+	// the desktop SDL joystick fallback layout. 8/9 are digital triggers.
+	static const Common::JoystickButton buttons[16] = {
+		Common::JOYSTICK_BUTTON_A, Common::JOYSTICK_BUTTON_B,
+		Common::JOYSTICK_BUTTON_X, Common::JOYSTICK_BUTTON_Y,
+		Common::JOYSTICK_BUTTON_LEFT_STICK, Common::JOYSTICK_BUTTON_RIGHT_STICK,
+		Common::JOYSTICK_BUTTON_LEFT_SHOULDER, Common::JOYSTICK_BUTTON_RIGHT_SHOULDER,
+		Common::JOYSTICK_BUTTON_INVALID, Common::JOYSTICK_BUTTON_INVALID,
+		Common::JOYSTICK_BUTTON_START, Common::JOYSTICK_BUTTON_BACK,
+		Common::JOYSTICK_BUTTON_DPAD_LEFT, Common::JOYSTICK_BUTTON_DPAD_UP,
+		Common::JOYSTICK_BUTTON_DPAD_RIGHT, Common::JOYSTICK_BUTTON_DPAD_DOWN
+	};
+	uint32 held = 0;
+	int16 axes[6] = {};
+	for (const auto &controller : _controllers) {
+		held |= controller.buttons;
+		for (int i = 0; i < 6; ++i) {
+			// An idle device must not cancel another device's deflected stick.
+			const int candidate = controller.axes[i], current = axes[i];
+			if ((candidate < 0 ? -candidate : candidate) > (current < 0 ? -current : current))
+				axes[i] = controller.axes[i];
+		}
+	}
+	for (int i = 0; i < 16; ++i) {
+		if (buttons[i] == Common::JOYSTICK_BUTTON_INVALID || !((held ^ _controllerButtons) & (1u << i)))
+			continue;
+		Common::Event event;
+		event.type = (held & (1u << i)) ? Common::EVENT_JOYBUTTON_DOWN : Common::EVENT_JOYBUTTON_UP;
+		event.joystick.button = buttons[i];
+		_controllerEvents.push(event);
+	}
+	_controllerButtons = held;
+	for (int i = 0; i < 6; ++i) {
+		if (axes[i] == _controllerAxes[i])
+			continue;
+		Common::Event event;
+		event.type = Common::EVENT_JOYAXIS_MOTION;
+		event.joystick.axis = i;
+		event.joystick.position = axes[i];
+		_controllerEvents.push(event);
+		_controllerAxes[i] = axes[i];
+	}
+}
+
+bool WiiUEventSource::popControllerEvent(Common::Event &event) {
+	if (_controllerEvents.empty())
+		return false;
+	event = _controllerEvents.pop();
+	return true;
+}
+
+bool WiiUEventSource::dispatchControllerEvent(const SDL_Event &ev, Common::Event &event) {
+	if (ev.type == SDL_JOYDEVICEADDED || ev.type == SDL_JOYDEVICEREMOVED) {
+		if (ev.type == SDL_JOYDEVICEADDED) {
+			openController(ev.jdevice.which);
+			refreshPrimaryJoystick();
+		} else {
+			removeController(ev.jdevice.which);
+		}
+		Common::Event changed;
+		changed.type = Common::EVENT_INPUT_CHANGED;
+		_controllerEvents.push(changed);
+		return popControllerEvent(event);
+	}
+	const bool button = ev.type == SDL_JOYBUTTONDOWN || ev.type == SDL_JOYBUTTONUP;
+	Controller *controller = findController(button ? ev.jbutton.which : ev.jaxis.which);
+	if (!controller)
+		return false;
+	if (button) {
+		const unsigned int index = ev.jbutton.button;
+		// The opted-in SDL driver emits real mouse buttons for Remote A/B.
+		if (index >= 16 || (controller->remote && index < 2))
+			return false;
+		const bool down = ev.type == SDL_JOYBUTTONDOWN;
+		if (down)
+			controller->buttons |= 1u << index;
+		else
+			controller->buttons &= ~(1u << index);
+		if (index == 8 || index == 9)
+			controller->axes[index - 4] = down ? 32767 : 0;
+	} else if (ev.jaxis.axis < 4) {
+		controller->axes[ev.jaxis.axis] = ev.jaxis.value;
+	}
+	updateControllerState();
+	return popControllerEvent(event);
 }
 
 void WiiUEventSource::closeKeyboard() {
@@ -86,6 +247,8 @@ void WiiUEventSource::setKeyboardVisible(bool visible) {
 
 bool WiiUEventSource::pollEvent(Common::Event &event) {
 	_nativeKeyEvent = false;
+	if (popControllerEvent(event))
+		return true;
 	if (_graphicsManager) {
 		SDL_Window *window = _graphicsManager->getWindow()->getSDLWindow();
 		bool shown = SDL_IsScreenKeyboardShown(window) == SDL_TRUE;
@@ -97,7 +260,9 @@ bool WiiUEventSource::pollEvent(Common::Event &event) {
 	}
 	if (pollKeyboardEvent(event))
 		return true;
-	return SdlEventSource::pollEvent(event);
+	if (SdlEventSource::pollEvent(event))
+		return true;
+	return popControllerEvent(event);
 }
 
 bool WiiUEventSource::pollKeyboardEvent(Common::Event &event) {
@@ -162,6 +327,42 @@ bool WiiUEventSource::pollKeyboardEvent(Common::Event &event) {
 }
 
 bool WiiUEventSource::dispatchSDLEvent(SDL_Event &ev, Common::Event &event) {
+	if (ev.type == SDL_USEREVENT && ev.user.code >= 0x57495200 && ev.user.code < 0x57495208) {
+#ifdef WIIU_REMOTE_TEST
+		if (_trackingReports++ < 64)
+			debug(0, "Wii U IR: channel=%u tracking=%s", (unsigned int)((ev.user.code - 0x57495200) / 2),
+				(ev.user.code & 1) ? "valid" : "lost");
+#endif
+		return false;
+	}
+	switch (ev.type) {
+	case SDL_JOYDEVICEADDED:
+	case SDL_JOYDEVICEREMOVED:
+	case SDL_JOYBUTTONDOWN:
+	case SDL_JOYBUTTONUP:
+	case SDL_JOYAXISMOTION:
+		return dispatchControllerEvent(ev, event);
+	case SDL_CONTROLLERBUTTONDOWN:
+	case SDL_CONTROLLERBUTTONUP:
+	case SDL_CONTROLLERAXISMOTION:
+	case SDL_CONTROLLERDEVICEADDED:
+	case SDL_CONTROLLERDEVICEREMOVED:
+	case SDL_CONTROLLERDEVICEREMAPPED:
+		return false; // Each physical input is delivered once, through SDL_JOY*.
+	default:
+		break;
+	}
+#ifdef WIIU_REMOTE_TEST
+	if ((ev.type == SDL_MOUSEMOTION || ev.type == SDL_MOUSEBUTTONDOWN || ev.type == SDL_MOUSEBUTTONUP) &&
+		(ev.motion.which & 0xfffffffcU) == 0x57494900U && _pointerReports < 32) {
+		++_pointerReports;
+		debug(0, "Wii U IR event: channel=%u type=%u x=%d y=%d button=%u",
+			(unsigned int)(ev.motion.which & 3), (unsigned int)ev.type,
+			(int)(ev.type == SDL_MOUSEMOTION ? ev.motion.x : ev.button.x),
+			(int)(ev.type == SDL_MOUSEMOTION ? ev.motion.y : ev.button.y),
+			ev.type == SDL_MOUSEMOTION ? 0 : ev.button.button);
+	}
+#endif
 	if (ev.type == SDL_SYSWMEVENT && ev.syswm.msg && ev.syswm.msg->subsystem == SDL_SYSWM_WIIU) {
 		switch (ev.syswm.msg->msg.wiiu.event) {
 		case SDL_WIIU_SYSWM_SWKBD_OK_START_EVENT:

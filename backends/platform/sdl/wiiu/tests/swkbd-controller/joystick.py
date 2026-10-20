@@ -29,6 +29,8 @@ bool SDL_WiiUSetSWKBDKPAD(int, const void *) { return keyboard; }
 int WIIU_WPAD_CHAN(int d) { return d; }
 void SDL_PrivateJoystickButton(SDL_Joystick *j, Uint8 i, int s) { j->buttons[i] = s; }
 void SDL_PrivateJoystickAxis(SDL_Joystick *j, Uint8 i, int s) { j->axes[i] = s; }
+void WIIU_ReleaseRemotePointer(int) {}
+void WIIU_UpdateRemotePointer(int, const KPADStatus *, uint32_t) {}
 void update(SDL_Joystick *joystick, KPADStatus kpad, int ext, int channel) {
     static uint32_t swkbd_buttons[4] = {};
     static SDL_bool swkbd_was_open[4] = {};
