@@ -6,7 +6,7 @@ before acting; the current user request takes precedence over old next steps.
 
 ## Workspace and reading map
 
-The local workspace is now `/home/renan/Documentos/scummvm`, with the Git
+The local workspace is now `/home/renan/Documentos/wiiu-dev/scummvm`, with the Git
 checkout at `work/scummvm`. The former path below `VisualStudio` no longer
 exists. Paths in historical build logs and publication guides may still refer
 to that location; do not blindly execute them or rewrite preserved evidence.
@@ -23,7 +23,7 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 | Binary provenance/packages/checksums | `work/releases/0.7.0/BUILD-INFO.txt`, `SHA256SUMS.txt`, `PUBLISH.md` |
 | Detailed history/evidence | `docs/WIIU_PORT_PLAN.md`, relevant complete sections |
 | Native input and regression tests | checkout `backends/platform/sdl/wiiu/tests/` |
-| SDK source/install and archived logs | `work/SDL-devkitpro/`, `work/sdk/`, `work/logs/` |
+| SDK source/install and archived logs | `work/SDL-devkitpro/`, shared `../sdk/current/`, `work/logs/`; `work/sdk/` is a compatibility link |
 
 Plan sections: 26–27 renderer freeze; 28 Xeen/data/compatibility; 29–32 Curse
 audio and QFG4 loading; 33 text editing/Vorbis; 34 controller keyboard;
@@ -32,6 +32,25 @@ when explicitly requested, not by default for every small follow-up.
 `WIIU_IMPLEMENTATION_STATUS.md` describes the historical first integration,
 not the current release. Missing outer files in a standalone clone mean local
 evidence is unavailable; they do not imply the source port is absent.
+
+## Shared SDK migration — 2026-10-20
+
+- I now activate `/home/renan/Documentos/wiiu-dev/sdk/env.sh` for all projects.
+  Shared default: `sdk/current` -> `versions/r50-wut1.9.1-sdl2.32.7-local`.
+  `DEVKITPRO`, `DEVKITPPC`, WUT and portlibs resolve to that same profile.
+- The old outer-workspace `work/sdk` is a compatibility symlink. The profile
+  includes a byte-verified compiler copy; `/opt/devkitpro` was left intact.
+  Library/tool bytes and all seven SDL patches are preserved. Only activation
+  scripts and dependency metadata were relocated; no SDK library rebuild.
+- Fresh NeptuneGX, CMake SDL smoke and minimal SCUMM + JPEG/MP3/Ogg/Vorbis
+  builds produced ELF/RPX/WUHB. This is cross-build/package verification only,
+  not console testing or a new full 0.7.0 release build.
+- Migration logs and report: `../sdk/validation/20261020/REPORT.md` relative to
+  this outer workspace. 0.6.0, 0.7.0 and Remote packages still pass checksums.
+  Existing build caches/releases were not rewritten; use fresh build dirs.
+- Migration retains devkitPPC r50. Any r51 upgrade must use another profile,
+  preserve r50 and validate before switching the shared default. Do not
+  install SDK changes directly into a profile used by running builds.
 
 ## Current recorded state
 
@@ -108,8 +127,8 @@ Still pending in the recorded evidence:
   Myst/MystME/Riven, Blade Runner and Groovie/Groovie2; MP3/Vorbis/MT-32/JPEG.
   The desktop compatibility list is not a Wii U support guarantee.
 - Release helper: checkout `backends/platform/sdl/wiiu/build-release.sh`.
-  Read SDK notes before building. Inspect `work/sdk/env.sh` and actual tool
-  paths after the workspace move; existing build caches may have stale paths.
+  Read SDK notes before building. Activate shared `../sdk/env.sh`; legacy
+  `work/sdk/env.sh` forwards to it. Existing build caches may have stale paths.
   Fresh SDL (`build-wiiu-remote-20261020`) and ScummVM Remote builds now pass
   at the new location. WUT/codecs themselves were not rebuilt in this task.
 - Current source requires all **seven** incremental SDL patches in README.WIIU
