@@ -17,7 +17,8 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 | --- | --- |
 | Durable architecture/work rules | `AGENTS.md` and checkout `AGENTS.md` |
 | Current user features/controls/audio | checkout `README.md` |
-| Build/SDK and all six SDL patches | checkout `backends/platform/sdl/wiiu/README.WIIU` |
+| Build/SDK and all seven SDL patches | checkout `backends/platform/sdl/wiiu/README.WIIU` |
+| New Wii Remote candidate/controls/tests | checkout `backends/platform/sdl/wiiu/REMOTE-TEST-20261020.md` |
 | Current prepared release changes | checkout `backends/platform/sdl/wiiu/RELEASE-0.7.0.md` |
 | Binary provenance/packages/checksums | `work/releases/0.7.0/BUILD-INFO.txt`, `SHA256SUMS.txt`, `PUBLISH.md` |
 | Detailed history/evidence | `docs/WIIU_PORT_PLAN.md`, relevant complete sections |
@@ -26,7 +27,7 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 
 Plan sections: 26–27 renderer freeze; 28 Xeen/data/compatibility; 29–32 Curse
 audio and QFG4 loading; 33 text editing/Vorbis; 34 controller keyboard;
-35–36 Groovie FMV and 0.7.0. Read the whole plan for an architectural audit or
+35–36 Groovie FMV and 0.7.0; 38 Wii Remote IR candidate. Read the whole plan for an architectural audit or
 when explicitly requested, not by default for every small follow-up.
 `WIIU_IMPLEMENTATION_STATUS.md` describes the historical first integration,
 not the current release. Missing outer files in a standalone clone mean local
@@ -48,6 +49,32 @@ evidence is unavailable; they do not imply the source port is absent.
   a request to regenerate the release.
 - Pre-existing untracked `dists/android/.gradle/` and `dists/android/build/`
   belong to other work. Do not stage, remove or include them in packages.
+
+## Wii Remote IR candidate — 2026-10-20
+
+- Source/binary revision **`180f0769abc95e5ed1b13520a82a6805acaa25b5`**.
+  Later handoff-only commits do not change it. Runtime identifies
+  `2026.3.1git180f0769`, port `0.7.0 + Wii Remote IR candidate 20261020`.
+- SDL reads IR from its existing KPAD samples, requests the external Sensor
+  Bar and emits absolute mouse movement plus A/B clicks/drags. The Wii U
+  adapter keeps all devices open, including a late GamePad, aggregates shared
+  joystick buttons and selects the strongest axis. Touch/sticks yield idle IR.
+  Disconnect/native keyboard/foreground paths release IR clicks. See the test
+  guide for fixed A/B mouse behavior, Nunchuk and remaining keymapper buttons.
+- **Cross-compiled and host-mock-tested only; no console test yet.** IR accuracy,
+  actual console-powered Sensor Bar behavior, Remote/Plus/Nunchuk models and
+  coexistence/HOME/keyboard need hardware feedback. Non-Aroma RPX is unverified.
+- Artifacts: `work/build-scummvm-wiiu-remote-20261020/`, with
+  `ScummVM-wiiu-remote-20261020-aroma.zip` (SHA256
+  `0b5974bdc708f8339f791f2b02ad1c16c862f87656becd1d9762f8e8b74372ba`),
+  separate RPX ZIP, ELF/RPX/WUHB, `BUILD-INFO.txt` and `SHA256SUMS.txt`.
+  Packaging verifier: `work/package-remote-20261020.py`.
+- All seven SDL patches reconstruct the current modified files, retaining
+  the documented KPADError adjustment. Host ASan/UBSan checks cover actual
+  pointer/adapter code, hotplug/held release, native keyboard input/suspend,
+  renderer lifetime and timer behavior. RPX/imports/undefineds, embedded RPX,
+  unchanged icon/data, ZIP layout/licenses and Xeen 1.3 passed local checks.
+- Prepared 0.7.0 packages retain their original hashes. No tag/push/publication.
 
 ## What has actually been tested
 
@@ -83,10 +110,16 @@ Still pending in the recorded evidence:
 - Release helper: checkout `backends/platform/sdl/wiiu/build-release.sh`.
   Read SDK notes before building. Inspect `work/sdk/env.sh` and actual tool
   paths after the workspace move; existing build caches may have stale paths.
-  No toolchain rebuild has been validated at the new location by this handoff.
-- Keep all six incremental SDL patches in README.WIIU order. Installed
-  `work/sdk/portlibs/wiiu/lib/libSDL2.a` SHA256, rechecked 2026-10-20:
-  `52f44bdc56f7d9d760050fad10ef7b60c34edda145b3e9f6fd0e42f8f687982d`.
+  Fresh SDL (`build-wiiu-remote-20261020`) and ScummVM Remote builds now pass
+  at the new location. WUT/codecs themselves were not rebuilt in this task.
+- Current source requires all **seven** incremental SDL patches in README.WIIU
+  order; the prepared 0.7.0 binaries used six. Installed
+  `work/sdk/portlibs/wiiu/lib/libSDL2.a` SHA256 after the Remote candidate build:
+  `d29ce16f335358b0327412a14faa993e7718736225f0afc6d9db1bf4c291113c`.
+  The previous library (SHA256 `52f44bdc...982d`) and input source backups are
+  in `work/sdk-backups/wiimote-before-20261020/`. Seventh patch:
+  `sdl2-wiimote-pointer.patch`; it includes the Sensor Bar declaration already
+  supported by WUT 1.9.1's imports. Do not rebuild WUT just to add that declaration.
 - Xeen requires generated **mm.dat 1.3**, not bundled upstream 1.2. The release
   helper restores the generated file to both stages; a plain staging make can
   overwrite it. Expected generated SHA256:
@@ -115,4 +148,5 @@ When an authorized task changes the project or a handoff is requested, update
 this short document with verified state, evidence and pending tests. Append
 substantial history to the outer plan when available. A read-only question is
 not an instruction to edit files. Do not auto-start old tests/builds/publication
-from this document. No next feature has been selected by this handoff.
+from this document. The current Wii Remote candidate is awaiting hardware
+feedback; do not infer a new feature, release or publication from that status.
