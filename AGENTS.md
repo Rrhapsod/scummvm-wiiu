@@ -3,6 +3,7 @@
 For Wii U/Aroma work, first read
 `backends/platform/sdl/wiiu/SESSION_CONTEXT.md` completely.
 In the local nested workspace, also read `../../AGENTS.md` when present;
+workspace-wide SDK/validation rules are in `../../../AGENTS.md` when present;
 `../../docs/WIIU_PORT_PLAN.md` holds the detailed historical evidence.
 For a standalone clone without those outer files, use the context document,
 README.md and backend README.WIIU, and identify missing local evidence.
@@ -11,6 +12,10 @@ Use `$scummvm-wiiu-context` if available; these file routes also work without
 the skill. Inspect Git status/branch/HEAD before edits. Treat the current user
 request as the task, not the historical plan's "first task" or "next step."
 Do not assume a new chat knows previous messages.
+
+Use the shared `../../../sdk/env.sh` environment in this workspace; SDK sources,
+backups and references live under that SDK hub. Standalone clones may use their
+own explicit SDK, with the same provenance/validation requirements.
 
 Preserve the native SDL2/WUT architecture; no RetroArch dependency. Keep public
 Wii U documentation in English and first person for Rrhapsod's own authorship

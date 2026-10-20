@@ -23,7 +23,7 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 | Binary provenance/packages/checksums | `work/releases/0.7.0/BUILD-INFO.txt`, `SHA256SUMS.txt`, `PUBLISH.md` |
 | Detailed history/evidence | `docs/WIIU_PORT_PLAN.md`, relevant complete sections |
 | Native input and regression tests | checkout `backends/platform/sdl/wiiu/tests/` |
-| SDK source/install and archived logs | `work/SDL-devkitpro/`, shared `../sdk/current/`, `work/logs/`; `work/sdk/` is a compatibility link |
+| SDK source/install and archived logs | shared `../sdk/sources/`, `../sdk/current/`, `../sdk/backups/`; project `work/logs/`; old SDK/source paths are compatibility links |
 
 Plan sections: 26–27 renderer freeze; 28 Xeen/data/compatibility; 29–32 Curse
 audio and QFG4 loading; 33 text editing/Vorbis; 34 controller keyboard;
@@ -51,6 +51,25 @@ evidence is unavailable; they do not imply the source port is absent.
 - Migration retains devkitPPC r50. Any r51 upgrade must use another profile,
   preserve r50 and validate before switching the shared default. Do not
   install SDK changes directly into a profile used by running builds.
+
+## Shared instructions and SDK source cleanup — 2026-10-20
+
+- Shared SDK/validation/provenance/cleanup rules are in the enclosing
+  `wiiu-dev/AGENTS.md`; SDK maintenance has `sdk/AGENTS.md`. ScummVM's outer
+  instructions now focus on SDL2 architecture and project build/release rules;
+  the original bootstrap-heavy text is preserved as an audit snapshot.
+- SDK sources/archives were moved to `../sdk/sources/`, platform smoke source
+  to `../sdk/tests/sdl-smoke`, backups to `../sdk/backups/scummvm-sdk`, and
+  old reference checkouts to `../sdk/references/`. All earlier `work/` paths
+  remain compatibility links. The old SDK bootstrap is archived under SDK
+  `legacy/`; do not run it against the active profile.
+- Source/Git local modifications and files were preserved byte-for-byte;
+  active SDK manifest and prepared release packages remain unchanged.
+  SDK imports used by host mocks and the seven portable SDL patches in this
+  checkout remain useful project files, not redundant SDK installations.
+- Audit: `../sdk/audits/20261020-repository-cleanup/REPORT.md`. No emulator or
+  console test was performed by this cleanup. Existing source build caches
+  moved as historical data; use a new directory before rebuilding dependencies.
 
 ## Current recorded state
 

@@ -30,7 +30,10 @@ In my local multi-project workspace I now use the shared SDK at
   source /home/renan/Documentos/wiiu-dev/sdk/env.sh
 Or run a command through its with-sdk.sh wrapper. SDK profiles live under
 sdk/versions/ and sdk/current selects the common default for all projects.
-The former outer-workspace work/sdk path is a compatibility symlink.
+The former outer-workspace work/sdk path is a compatibility symlink. SDK
+source trees and archives also moved to sdk/sources, platform tests to sdk/tests,
+backups to sdk/backups and study-only checkouts to sdk/references. Former work/
+paths remain compatibility links; they are not extra SDK installations.
 The active r50 profile includes its own compiler copy and the existing seven
 SDL patches; migrating it did not update the compiler to r51. Keep release
 artifacts unchanged and use a fresh build directory when changing profiles.
