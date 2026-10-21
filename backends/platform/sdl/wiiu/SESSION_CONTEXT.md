@@ -18,7 +18,7 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 | Durable architecture/work rules | `AGENTS.md` and checkout `AGENTS.md` |
 | Current user features/controls/audio | checkout `README.md` |
 | Build/SDK and all seven SDL patches | checkout `backends/platform/sdl/wiiu/README.WIIU` |
-| New Wii Remote candidate/controls/tests | checkout `backends/platform/sdl/wiiu/REMOTE-TEST-20261020.md` |
+| Current Wii Remote candidate/controls/tests | checkout `backends/platform/sdl/wiiu/REMOTE-TEST-20261021.md` |
 | Current prepared release changes | checkout `backends/platform/sdl/wiiu/RELEASE-0.7.0.md` |
 | Binary provenance/packages/checksums | `work/releases/0.7.0/BUILD-INFO.txt`, `SHA256SUMS.txt`, `PUBLISH.md` |
 | Detailed history/evidence | `docs/WIIU_PORT_PLAN.md`, relevant complete sections |
@@ -27,7 +27,8 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 
 Plan sections: 26–27 renderer freeze; 28 Xeen/data/compatibility; 29–32 Curse
 audio and QFG4 loading; 33 text editing/Vorbis; 34 controller keyboard;
-35–36 Groovie FMV and 0.7.0; 38 Wii Remote IR candidate. Read the whole plan for an architectural audit or
+35–36 Groovie FMV and 0.7.0; 38 original Wii Remote IR candidate; 42 button 2/C
+swap and hardware feedback. Read the whole plan for an architectural audit or
 when explicitly requested, not by default for every small follow-up.
 `WIIU_IMPLEMENTATION_STATUS.md` describes the historical first integration,
 not the current release. Missing outer files in a standalone clone mean local
@@ -88,7 +89,29 @@ evidence is unavailable; they do not imply the source port is absent.
 - Pre-existing untracked `dists/android/.gradle/` and `dists/android/build/`
   belong to other work. Do not stage, remove or include them in packages.
 
-## Wii Remote IR candidate — 2026-10-20
+## Wii Remote 2 / Nunchuk C update — 2026-10-21
+
+- Runtime source/binary revision **`d37ee3f4bc2184b70f80b30d6caac3f84cb69da1`**.
+  Remote **2 -> GamePad Y** (Escape/back through the keymap), **Nunchuk C ->
+  GamePad R** (slow analog pointer). GamePad/Pro/Classic retain their mappings.
+  Aggregation preserves shared held states across equivalent buttons.
+- I authorized the new r51 SDK. A fresh full build uses the existing shared
+  `r51-wut1.9.1-sdl2.32.7-local` profile, without modifying SDK files/defaults.
+  Host ASan/UBSan input/IR and native keyboard regressions, full cross-build,
+  revision relink and package checks passed. **This updated binary is not
+  console-tested yet**; earlier hardware success belongs to `180f0769` below.
+- Artifacts: `work/build-scummvm-wiiu-remote-20261021-escape/`, including
+  `ScummVM-wiiu-remote-20261021-escape-aroma.zip` (SHA256
+  `0549cf88ef01486386e5802e4514f48d61ec96c43877ad71fdb02807203483a1`),
+  separate RPX ZIP, ELF/RPX/WUHB, BUILD-INFO and SHA256SUMS.
+  Verifier: `work/package-remote-escape-20261021.py` (pass runtime revision).
+  Runtime: `2026.3.1gitd37ee3f4`, port candidate `20261021 (2 = Escape)`.
+- Pre-existing uncommitted r51 SDK documentation edits in README.WIIU and this
+  handoff were preserved separately from this task's commits. The package build
+  records the documentation-only diff against its runtime revision. Android
+  caches, SDK profiles and previous release/candidate packages remain untouched.
+
+## Original Wii Remote IR candidate — 2026-10-20
 
 - Source/binary revision **`180f0769abc95e5ed1b13520a82a6805acaa25b5`**.
   Later handoff-only commits do not change it. Runtime identifies
@@ -99,9 +122,13 @@ evidence is unavailable; they do not imply the source port is absent.
   joystick buttons and selects the strongest axis. Touch/sticks yield idle IR.
   Disconnect/native keyboard/foreground paths release IR clicks. See the test
   guide for fixed A/B mouse behavior, Nunchuk and remaining keymapper buttons.
-- **Cross-compiled and host-mock-tested only; no console test yet.** IR accuracy,
-  actual console-powered Sensor Bar behavior, Remote/Plus/Nunchuk models and
-  coexistence/HOME/keyboard need hardware feedback. Non-Aroma RPX is unverified.
+- On October 21 I reported that this build worked beautifully on my Wii U.
+  My supplied log identifies `180f0769`, October 20 20:53:13–20:55:40, with
+  Remote #1 IR movement, two keyboard cancellations and clean shutdown. It
+  does not identify a game, Remote model or Sensor Bar type. Preserve this as
+  a user hardware report, not a complete model/scenario matrix or r51 test.
+  Evidence: `work/logs/remote-success-180f0769-20261021.log`. Non-Aroma remains
+  unverified, as do specific combinations not identified by that report.
 - Artifacts: `work/build-scummvm-wiiu-remote-20261020/`, with
   `ScummVM-wiiu-remote-20261020-aroma.zip` (SHA256
   `0b5974bdc708f8339f791f2b02ad1c16c862f87656becd1d9762f8e8b74372ba`),
@@ -151,8 +178,9 @@ Still pending in the recorded evidence:
   Fresh SDL (`build-wiiu-remote-20261020`) and ScummVM Remote builds now pass
   at the new location. WUT/codecs themselves were not rebuilt in this task.
 - Current source requires all **seven** incremental SDL patches in README.WIIU
-  order; the prepared 0.7.0 binaries used six. Installed
-  `work/sdk/portlibs/wiiu/lib/libSDL2.a` SHA256 after the Remote candidate build:
+  order; the prepared 0.7.0 binaries used six. Current shared r51 SDL SHA256:
+  `81db9275bbd57dd5fb7bd95d62a4c8da2f22f44db9c3ce3d6b30e00077c08d34`.
+  The original October 20 Remote binary used the preserved r50 archive SHA256
   `d29ce16f335358b0327412a14faa993e7718736225f0afc6d9db1bf4c291113c`.
   The previous library (SHA256 `52f44bdc...982d`) and input source backups are
   in `work/sdk-backups/wiimote-before-20261020/`. Seventh patch:
@@ -186,5 +214,6 @@ When an authorized task changes the project or a handoff is requested, update
 this short document with verified state, evidence and pending tests. Append
 substantial history to the outer plan when available. A read-only question is
 not an instruction to edit files. Do not auto-start old tests/builds/publication
-from this document. The current Wii Remote candidate is awaiting hardware
-feedback; do not infer a new feature, release or publication from that status.
+from this document. The new button 2/C mapping and r51 binary await hardware
+feedback; the preceding Remote candidate has a user success report. Do not
+infer a new feature, release or publication from those statuses.
