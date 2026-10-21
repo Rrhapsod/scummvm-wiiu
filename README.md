@@ -16,12 +16,17 @@ The port version is separate from the upstream ScummVM version shown in the
 launcher. See the [0.7.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.7.0.md)
 for downloads, changes since 0.6.0, controls and validation details.
 
-Current development source also includes a separate
-[Wii Remote IR candidate](backends/platform/sdl/wiiu/REMOTE-TEST-20261021.md),
-with pointing, A/B mouse clicks and simultaneous GamePad input. I reported
-success with the first Remote candidate. The new button 2 mapping shares
-GamePad Y (Escape/back); this update still needs my console check. These
-additions are not included in the prepared 0.7.0 packages.
+Current development source is based on **upstream ScummVM 2026.4.0**
+([official release](https://github.com/scummvm/scummvm/releases/tag/v2026.4.0)).
+See the [2026.4.0 update notes](backends/platform/sdl/wiiu/UPSTREAM-2026.4.0.md)
+for the new packages and validation status. The community port version remains
+0.7.0; the older prepared 0.7.0 ZIPs retain their original upstream base.
+
+Wii Remote pointing, A/B mouse clicks and simultaneous GamePad input are
+included. **Remote 2 = Escape/back; Nunchuk C = slow analog pointer** through
+the existing keymap. I reported success with the October 21 remapping/r51
+candidate. The newly updated 2026.4.0 binary still needs my console check.
+These additions are not included in the older prepared 0.7.0 packages.
 
 [Downloads](https://github.com/Rrhapsod/scummvm-wiiu/releases) ·
 [Report a Wii U issue](https://github.com/Rrhapsod/scummvm-wiiu/issues) ·
@@ -54,8 +59,9 @@ additions are not included in the prepared 0.7.0 packages.
 - A Wii U GamePad and an SD card accessible to the selected environment.
 - Your own game data files for a game supported by an included engine.
 
-Other controller types have not been validated for this port. Keep backups of
-your saves when testing an experimental build.
+I reported successful Wii Remote pointing and button-remapping tests with the
+preceding candidates. Other controller combinations still need targeted tests.
+Keep backups of your saves when testing an experimental build.
 
 ## Choose a download
 

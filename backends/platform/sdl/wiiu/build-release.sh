@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Wii U port 0.7.0: compatibility/media profile without diagnostic instrumentation.
+# ScummVM 2026.4.0 / Wii U port 0.7.0: existing engine profile, diagnostics off.
 set -euo pipefail
 : "${DEVKITPRO:?Activate the Wii U SDK first}"
 : "${DEVKITPPC:?Activate the Wii U SDK first}"
 wiiu_script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 wiiu_src="$(cd "$wiiu_script_dir/../../../.." && pwd)"
-export WIIU_BUILD_DIR="${WIIU_BUILD_DIR:-$wiiu_src/../build-scummvm-wiiu-0.7.0}"
+export WIIU_BUILD_DIR="${WIIU_BUILD_DIR:-$wiiu_src/../build-scummvm-wiiu-2026.4.0}"
 if printf '%s\n' "${CXXFLAGS:-} ${CPPFLAGS:-} ${CFLAGS:-}" | grep -E 'WIIU_[A-Z_]*(DIAGNOSTICS|TEST)' > /dev/null; then
     echo "Release builds must not enable Wii U diagnostics/test profiles" >&2
     exit 1

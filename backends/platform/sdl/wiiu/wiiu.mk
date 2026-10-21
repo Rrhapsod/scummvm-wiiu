@@ -3,8 +3,8 @@ WIIU_ELF2RPL := $(DEVKITPRO)/tools/bin/elf2rpl
 WIIU_WUHBTOOL := $(DEVKITPRO)/tools/bin/wuhbtool
 # Reuse the upstream ScummVM icon, already at WUHB's required 128x128 size.
 WIIU_ICON := $(srcdir)/dists/psp2/icon0.png
-WIIU_RELEASE_NOTES ?= $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.7.0.md
-WIIU_RPX_META ?= $(srcdir)/backends/platform/sdl/wiiu/meta-rpx.xml
+WIIU_RELEASE_NOTES ?= $(srcdir)/backends/platform/sdl/wiiu/UPSTREAM-2026.4.0.md
+WIIU_RPX_META ?= $(srcdir)/backends/platform/sdl/wiiu/meta-rpx-2026.4.0.xml
 
 scummvm.rpx: $(EXECUTABLE)
 	$(WIIU_ELF2RPL) $< $@
@@ -32,6 +32,7 @@ wiiu_release: ScummVM.wuhb
 	cp $(srcdir)/backends/platform/sdl/wiiu/EXPERIMENTAL.md wiiu_release/scummvm/doc/
 	cp $(srcdir)/backends/platform/sdl/wiiu/sdl2-renderer-lifecycle.patch $(srcdir)/backends/platform/sdl/wiiu/RENDERER_FIX.md wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
 	cp $(srcdir)/backends/platform/sdl/wiiu/build-release.sh wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
+	cp $(srcdir)/backends/platform/sdl/wiiu/UPSTREAM-2026.4.0.md wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
 	cp $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.6.0.md wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
 	cp $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.6.0.md wiiu_release/scummvm/doc/
 	cp $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.7.0.md wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
