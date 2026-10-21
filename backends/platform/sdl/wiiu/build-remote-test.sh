@@ -5,7 +5,7 @@ set -euo pipefail
 : "${DEVKITPPC:?Activate the Wii U SDK first}"
 wiiu_script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 wiiu_src="$(cd "$wiiu_script_dir/../../../.." && pwd)"
-export WIIU_BUILD_DIR="${WIIU_BUILD_DIR:-$wiiu_src/../build-scummvm-wiiu-remote-20261020}"
+export WIIU_BUILD_DIR="${WIIU_BUILD_DIR:-$wiiu_src/../build-scummvm-wiiu-remote-20261021-escape}"
 export CXXFLAGS="${CXXFLAGS:-} -DWIIU_REMOTE_TEST"
 for symbol in WIIU_SuspendRemotePointers Blit_RGBA8888_RGB565; do
     if ! powerpc-eabi-nm "$DEVKITPRO/portlibs/wiiu/lib/libSDL2.a" | grep "$symbol" > /dev/null; then
@@ -26,12 +26,12 @@ for flag in ENABLE_SCUMM ENABLE_SCUMM_7_8 ENABLE_MM ENABLE_XEEN ENABLE_SCI ENABL
 done
 python3 "$wiiu_script_dir/prepare-mm-data.py" "$WIIU_BUILD_DIR/engine-data/mm.dat"
 make -j"${JOBS:-2}" wiiu_release_all \
-    WIIU_RELEASE_NOTES="$wiiu_script_dir/REMOTE-TEST-20261020.md" \
+    WIIU_RELEASE_NOTES="$wiiu_script_dir/REMOTE-TEST-20261021.md" \
     WIIU_RPX_META="$wiiu_script_dir/meta-rpx-remote.xml"
 for stage in wiiu_release wiiu_rpx_release; do
     cp engine-data/mm.dat "$stage/scummvm/data/mm.dat"
     cmp engine-data/mm.dat "$stage/scummvm/data/mm.dat"
-    cp "$wiiu_script_dir/REMOTE-TEST-20261020.md" "$stage/TESTING.md"
-    cp "$wiiu_script_dir/REMOTE-TEST-20261020.md" "$wiiu_script_dir/build-remote-test.sh" \
+    cp "$wiiu_script_dir/REMOTE-TEST-20261021.md" "$stage/TESTING.md"
+    cp "$wiiu_script_dir/REMOTE-TEST-20261021.md" "$wiiu_script_dir/build-remote-test.sh" \
         "$wiiu_script_dir/meta-rpx-remote.xml" "$stage/scummvm/doc/backends/platform/sdl/wiiu/"
 done

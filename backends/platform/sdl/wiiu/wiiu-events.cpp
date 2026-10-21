@@ -121,7 +121,16 @@ void WiiUEventSource::updateControllerState() {
 	uint32 held = 0;
 	int16 axes[6] = {};
 	for (const auto &controller : _controllers) {
-		held |= controller.buttons;
+		uint32 buttons = controller.buttons;
+		if (controller.remote) {
+			// Swap Remote 2 (raw 7/R) with Nunchuk C (raw 3/Y). Remote 2
+			// shares GamePad Y/Escape; C shares GamePad R/slow analog mouse.
+			// Retain physical state until aggregation across all controllers.
+			const uint32 swap = (1u << 3) | (1u << 7);
+			buttons = (buttons & ~swap) | ((buttons & (1u << 7)) >> 4) |
+				((buttons & (1u << 3)) << 4);
+		}
+		held |= buttons;
 		for (int i = 0; i < 6; ++i) {
 			// An idle device must not cancel another device's deflected stick.
 			const int candidate = controller.axes[i], current = axes[i];

@@ -19,7 +19,7 @@ patches to devkitPro/SDL wiiu-sdl2-2.32 in order:
 Then rebuild/install SDL and relink ScummVM. Do not apply a patch twice.
 The local SDK compatibility adjustments listed below are also retained.
 The prepared 0.7.0 binaries use patches 1-6. Do not replace those packages when
-building this candidate. See REMOTE-TEST-20261020.md and build-remote-test.sh.
+building this candidate. See REMOTE-TEST-20261021.md and build-remote-test.sh.
 
 Requires devkitPPC, WUT, the devkitPro Wii U SDL2 port, target zlib and
 wut-tools (elf2rpl and wuhbtool). DEVKITPRO must identify the same SDK used
@@ -96,10 +96,14 @@ Negative joystick indices are overridden because opening the GamePad is
 also required for touchscreen events.
 
 Wii Remote candidate: IR moves the mouse absolutely; A/B left/right-click,
-and holding A drags. The SDL driver enables IR and requests the external
+and holding A drags. Button 2 shares GamePad Y (Escape/back through the current
+keymap); Nunchuk C now shares GamePad R/slow analog pointer, swapping those
+two Remote/Nunchuk controls. Button 1 keeps the left shoulder binding. I reported
+success with the first Remote candidate; the new mapping still needs my console
+check. The SDL driver enables IR and requests the external
 console-powered Sensor Bar. Calibration and actual bar power require hardware
 testing. Touch/sticks temporarily take cursor ownership from idle IR. See
-REMOTE-TEST-20261020.md for controls, diagnostic logs and console test cases.
+REMOTE-TEST-20261021.md for controls, diagnostic logs and console test cases.
 
 Native keyboard:
 - Fields requesting ScummVM's virtual keyboard feature open the Wii U

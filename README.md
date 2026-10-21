@@ -17,10 +17,11 @@ launcher. See the [0.7.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.7.0
 for downloads, changes since 0.6.0, controls and validation details.
 
 Current development source also includes a separate
-[Wii Remote IR candidate](backends/platform/sdl/wiiu/REMOTE-TEST-20261020.md),
-with pointing, A/B mouse clicks and simultaneous GamePad input. I still need
-console validation of this addition; it is not included in the prepared 0.7.0
-packages.
+[Wii Remote IR candidate](backends/platform/sdl/wiiu/REMOTE-TEST-20261021.md),
+with pointing, A/B mouse clicks and simultaneous GamePad input. I reported
+success with the first Remote candidate. The new button 2 mapping shares
+GamePad Y (Escape/back); this update still needs my console check. These
+additions are not included in the prepared 0.7.0 packages.
 
 [Downloads](https://github.com/Rrhapsod/scummvm-wiiu/releases) ·
 [Report a Wii U issue](https://github.com/Rrhapsod/scummvm-wiiu/issues) ·

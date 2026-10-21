@@ -48,7 +48,7 @@ int main() {
                          std::make_pair(14, Common::JOYSTICK_BUTTON_DPAD_RIGHT),
                          std::make_pair(15, Common::JOYSTICK_BUTTON_DPAD_DOWN),
                          std::make_pair(6, Common::JOYSTICK_BUTTON_LEFT_SHOULDER),
-                         std::make_pair(7, Common::JOYSTICK_BUTTON_RIGHT_SHOULDER)}) {
+                         std::make_pair(7, Common::JOYSTICK_BUTTON_Y)}) {
             button(41, pair.first, true); expect(s, Common::EVENT_JOYBUTTON_DOWN, pair.second);
             button(41, pair.first, false); expect(s, Common::EVENT_JOYBUTTON_UP, pair.second);
         }
@@ -56,6 +56,13 @@ int main() {
         expect(s, Common::EVENT_INPUT_CHANGED, 0); assert(mockDevices()[1].refs == 1);
         button(99, 0, true); expect(s, Common::EVENT_JOYBUTTON_DOWN, Common::JOYSTICK_BUTTON_A);
         button(99, 0, false); expect(s, Common::EVENT_JOYBUTTON_UP, Common::JOYSTICK_BUTTON_A);
+        // Remote 2 shares GamePad Y/Escape, without changing GamePad R.
+        button(41, 7, true); expect(s, Common::EVENT_JOYBUTTON_DOWN, Common::JOYSTICK_BUTTON_Y);
+        button(99, 3, true); none(s);
+        button(41, 7, false); none(s);
+        button(99, 3, false); expect(s, Common::EVENT_JOYBUTTON_UP, Common::JOYSTICK_BUTTON_Y);
+        button(99, 7, true); expect(s, Common::EVENT_JOYBUTTON_DOWN, Common::JOYSTICK_BUTTON_RIGHT_SHOULDER);
+        button(99, 7, false); expect(s, Common::EVENT_JOYBUTTON_UP, Common::JOYSTICK_BUTTON_RIGHT_SHOULDER);
         // Shared buttons stay held until all devices release them.
         button(41, 13, true); expect(s, Common::EVENT_JOYBUTTON_DOWN, Common::JOYSTICK_BUTTON_DPAD_UP);
         button(99, 13, true); none(s);
@@ -87,6 +94,16 @@ int main() {
         button(210, 0, true); none(s);
         button(210, 2, true); expect(s, Common::EVENT_JOYBUTTON_DOWN, Common::JOYSTICK_BUTTON_X);
         button(210, 2, false); expect(s, Common::EVENT_JOYBUTTON_UP, Common::JOYSTICK_BUTTON_X);
+        // C and 2 are swapped: C is R/slow mouse, 2 is Y/Escape.
+        button(210, 3, true); expect(s, Common::EVENT_JOYBUTTON_DOWN, Common::JOYSTICK_BUTTON_RIGHT_SHOULDER);
+        button(210, 7, true); expect(s, Common::EVENT_JOYBUTTON_DOWN, Common::JOYSTICK_BUTTON_Y);
+        button(210, 3, false); expect(s, Common::EVENT_JOYBUTTON_UP, Common::JOYSTICK_BUTTON_RIGHT_SHOULDER);
+        button(210, 7, false); expect(s, Common::EVENT_JOYBUTTON_UP, Common::JOYSTICK_BUTTON_Y);
+        // C and GamePad R share the slow action until both are released.
+        button(99, 7, true); expect(s, Common::EVENT_JOYBUTTON_DOWN, Common::JOYSTICK_BUTTON_RIGHT_SHOULDER);
+        button(210, 3, true); none(s);
+        button(99, 7, false); none(s);
+        button(210, 3, false); expect(s, Common::EVENT_JOYBUTTON_UP, Common::JOYSTICK_BUTTON_RIGHT_SHOULDER);
         axis(210, 0, -32768); expect(s, Common::EVENT_JOYAXIS_MOTION, 0, -32768);
         axis(210, 0, 0); expect(s, Common::EVENT_JOYAXIS_MOTION, 0, 0);
         // USB/text/other SDL traffic still follows the existing fallback.
