@@ -35,6 +35,8 @@ namespace Harvester {
 
 class ResourceManager;
 
+uint32 getRuntimeClockTicks();
+
 enum RuntimeEntityClass {
 	kRuntimeEntityClassObject = 0,
 	kRuntimeEntityClassAnimation = 1,
@@ -134,12 +136,13 @@ private:
 	void advanceAnimationFrame(int directive);
 	void updateBoundsFromCurrentFrame();
 	void updateScreenBaseFromCurrentFrame();
-	void rebuildScaledFrames();
+	void scaleCurrentFrame();
 
 	Common::String _name;
 	Common::String _resourcePath;
 	Common::Array<AbmFrame> _frames;
 	Common::Array<AbmFrame> _baseFrames;
+	Common::Array<float> _frameDepthScales;
 	int _classId = 0;
 	int _x = 0;
 	int _y = 0;

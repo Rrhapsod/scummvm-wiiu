@@ -61,9 +61,8 @@ class Sound;
 // with the high byte == 0xFF as direct ARGB (R=bits 16-23, G=8-15, B=0-7) and
 // values with high byte 0 as palette indices. The PixelFormat below matches
 // that direct-ARGB layout exactly so we can build colors via ARGBToColor.
-inline const Graphics::PixelFormat &renderColorFormat() {
-	static const Graphics::PixelFormat fmt(4, 8, 8, 8, 8, 16, 8, 0, 24);
-	return fmt;
+inline Graphics::PixelFormat renderColorFormat() {
+	return Graphics::PixelFormat(4, 8, 8, 8, 8, 16, 8, 0, 24);
 }
 
 inline uint32 packRGB(byte r, byte g, byte b) {
@@ -155,7 +154,7 @@ enum RobotType {
 // Capped at 112 so the robot keeps at least 32 units of movement freedom
 // within a 256-unit cell (256 - 2*112 = 32).
 inline int robotWallPad(int robotType) {
-	static const int kMaxPad = 112;
+	const int kMaxPad = 112;
 	switch (robotType) {
 	case kRobEye:      return 66;
 	case kRobPyramid:
@@ -338,8 +337,8 @@ enum MenuIndex {
 uint8 objWorldAng(uint8 objectAng);
 uint8 objAngFromPlayer(uint8 playerAng);
 
-static const int kBaseObject = 20;
-static const int kMeNum = 101;
+const int kBaseObject = 20;
+const int kMeNum = 101;
 
 struct Locate {
 	uint8 ang = 0;
@@ -390,7 +389,7 @@ struct PassPatch {
 	uint8 ang;
 };
 
-// Per-level persistence: wall state changes (airlock locks) and visit flags.
+// Per-level persistence: door and airlock states, and visit flags.
 struct LevelData {
 	uint8 visit;
 	uint8 queen;
@@ -399,6 +398,7 @@ struct LevelData {
 	uint8 size;            // number of saved wall changes (max 10)
 	uint8 location[10][3]; // [x, y, direction] of each changed wall
 	uint8 data[10][5];     // saved wall feature bytes (5 per location)
+	uint8 openDoors[31][31]; // direction bits for open ordinary doors
 };
 
 struct MacColor {
@@ -629,6 +629,7 @@ private:
 	int _mountains[256];          // mountain height profile
 	int _battledx = 0;            // mountain parallax divisor (Width/59)
 	int _battleRound = 0;         // AI round-robin counter
+	bool _battleSendFarX = false; // alternate robot respawn axis
 	Locate *_battlePwh[100] = {};  // visible object pointers (for hit detection)
 	int _battleMaxP = 0;          // count of visible objects
 	Locate _pyramids[4][4][15];   // pyramid obstacles: 4x4 quadrants, 15 each
@@ -729,10 +730,11 @@ private:
 	void initRobots();
 	void renderCorridor3D();
 	void drawWallFeatures3D();
+	bool isWallFeatureFacingCamera(int cellX, int cellY, int direction) const;
 	void drawWallFeature3D(int cellX, int cellY, int direction);
 	void drawCellFeature3D(int cellX, int cellY);
 	void getWallFace3D(int cellX, int cellY, int direction, float corners[4][3]);
-	bool isRecessFeature(int x, int y, int direction) const;
+	bool isVisibleRecessFeature(int x, int y, int direction) const;
 	bool wallSegmentIsOpenWell(int x, int y, uint8 bit) const;
 	void getWallRecess3D(const float corners[4][3], float farC[4][3]) const;
 	void recessPoint(const float nearC[4][3], const float farC[4][3], float u, float v, float depth, float out[3]) const;
@@ -787,6 +789,7 @@ private:
 	void resetObjectSlot(int slot, int type, int xloc, int yloc, uint8 ang);
 	bool createObject(int type, int xloc, int yloc, uint8 ang);
 	void saveLevelState();
+	void saveOpenDoors();
 	void doPatch();
 	void saveWall(int x, int y, int direction);
 	void getWall();
@@ -811,7 +814,6 @@ private:
 	void drawDashboardMac();
 	void drawDOSBarGraph(int x, int y, int height);
 	void updateDOSPowerBars();
-	static int qlog(int32 x);
 	void drawMiniMapMarker(int x, int y, int halfSize, uint32 color, bool isMac, const Common::Rect *clip = nullptr);
 	bool hasRobotAt(int x, int y) const;
 	bool hasFoodAt(int x, int y) const;
@@ -911,6 +913,8 @@ private:
 	bool makeStars(const Common::Rect &r, int btn);
 	bool makeBlackHole();
 	bool makePlanet();
+	bool leavePlanet();
+	bool explodePlanet();
 	bool timeSquare(const Common::String &str, const Graphics::Font *macFont = nullptr, bool gameOver = false);
 	bool drawPict(int resID);
 	bool loadAnimation(const Common::String &name);

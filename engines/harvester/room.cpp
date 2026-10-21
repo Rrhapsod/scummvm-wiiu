@@ -630,6 +630,7 @@ Common::Error RoomSystem::runRoomLoop(Flow &flow, const Common::String &targetNa
 			}
 		};
 		auto captureCurrentSaveState = [&]() {
+			Player::syncAnimationPlacement(playerState);
 			syncCurrentRoomRuntimeState();
 			const int facing = playerState.facing >= 0 ? playerState.facing : scene.state.playerFacing;
 			_engine.captureCurrentSaveRoomState(scene.state.entranceName, scene.state.roomName,
@@ -1382,6 +1383,7 @@ Common::Error RoomSystem::runRoomLoop(Flow &flow, const Common::String &targetNa
 			playerState.turnTargetFacing = -1;
 			if (playerState.entity && playerState.facing >= 0)
 				(void)Player::setIdleAnimation(playerState, playerState.facing);
+			Player::syncAnimationPlacement(playerState);
 		};
 		auto refreshCurrentScene = [&](bool preservePlayerPlacement) {
 			Common::Array<AudioCommand> entryAudioCommands = scene.state.audioCommands;
@@ -1451,10 +1453,7 @@ Common::Error RoomSystem::runRoomLoop(Flow &flow, const Common::String &targetNa
 			return _inventory.refresh();
 		};
 		auto syncAnimatedRoomActorPlacement = [&]() {
-			if (playerState.entity) {
-				(void)applyRoomActorPlacement(scene.state, *playerState.entity,
-					playerState.centerX, playerState.bottomY, playerState.z);
-			}
+			Player::syncAnimationPlacement(playerState);
 			if (!entityManager)
 				return;
 
@@ -3424,7 +3423,7 @@ Common::Error RoomSystem::runRoomLoop(Flow &flow, const Common::String &targetNa
 				playerRect.left, playerRect.top, playerRect.right, playerRect.bottom,
 				playerOverlapsRegion, region.actionTag.c_str());
 		}
-		if (playerOverlapsRegion)
+		if (playerOverlapsRegion && doesPlayerFacingMatchRegion(playerState.facing, region))
 			return;
 
 		Player::setRegionMoveTarget(scene.state, playerState,
@@ -4035,7 +4034,8 @@ Common::Error RoomSystem::runRoomLoop(Flow &flow, const Common::String &targetNa
 					needsRedraw = true;
 					break;
 				}
-				if (hoverState.region && playerState.entity) {
+				// select one target in reverse render order; a selected object prevents exit-region selection.
+				if (hoverState.region && !hoverState.object && playerState.entity) {
 					if (isFastExitClick &&
 						hoverState.region->startEnabled &&
 						roomAllowsImmediateExitClick(scene.state.roomName)) {
@@ -4372,6 +4372,12 @@ Common::Error RoomSystem::runRoomLoop(Flow &flow, const Common::String &targetNa
 			}
 		}
 
+		// At 60 Hz, consume animation advances before the next screen update so
+		// a walk frame and its movement step are presented together.
+		if (flow.tickRuntimeEntities())
+			needsRedraw = true;
+		syncAnimatedRoomActorPlacement();
+
 		Common::Error combatError = Common::kNoError;
 		if (!playerControlPaused) {
 			combatError = resolvePlayerAttackContact();
@@ -4427,19 +4433,17 @@ Common::Error RoomSystem::runRoomLoop(Flow &flow, const Common::String &targetNa
 		if (playerCanAct &&
 				!playerState.attackActive && !playerState.hitActive &&
 				!keyboardAttackRequested && !idleState.active && !idleState.exiting) {
+			const RegionRecord *pendingRegion = findSceneRegionByName(scene.sceneRegions, pendingRegionName);
+			const int regionFacing = pendingRegion && pendingRegion->startEnabled
+				? pendingRegion->desiredFacing : -1;
 			if (Player::stepKeyboardMovement(_engine, scene.state, scene.sceneObjects, scene.sceneAnimations,
 					playerState, moveLeft, moveRight, moveUp, moveDown)) {
 				notePlayerActivity();
 				needsRedraw = true;
 			} else if (Player::stepMoveTarget(
 					_engine, scene.state, scene.sceneObjects, scene.sceneAnimations,
-					playerState)) {
+					playerState, regionFacing)) {
 				notePlayerActivity();
-				needsRedraw = true;
-			} else if (!moveLeft && !moveRight && !moveUp && !moveDown && !playerState.hasMoveTarget &&
-					!playerState.turnActive && !playerState.hitActive &&
-					playerState.entity && playerState.facing >= 0 &&
-					Player::setIdleAnimation(playerState, playerState.facing)) {
 				needsRedraw = true;
 			}
 
@@ -4465,9 +4469,6 @@ Common::Error RoomSystem::runRoomLoop(Flow &flow, const Common::String &targetNa
 				return Common::kReadingFailed;
 			break;
 		}
-		if (flow.tickRuntimeEntities())
-			needsRedraw = true;
-		syncAnimatedRoomActorPlacement();
 		if (Player::updateDeathAnimationState(playerState)) {
 			requestPlayerGameOver("combat_player_death_complete", Common::String());
 			needsRedraw = true;
@@ -4491,7 +4492,7 @@ Common::Error RoomSystem::runRoomLoop(Flow &flow, const Common::String &targetNa
 					bool didTransition = false;
 					Common::Error interactionError =
 						interactionProcessor.handleInteractionResult(
-							timerInteraction, didTransition, Common::String());
+							timerInteraction, didTransition, Common::String(), false);
 					if (interactionError.getCode() != Common::kNoError)
 						return interactionError;
 					if (flow.hasPendingMainMenuReturn())

@@ -235,7 +235,12 @@ void FrameTextBox::execute() {
 }
 
 void ControlUIItems::readData(Common::SeekableReadStream &stream) {
-	_uiButton = stream.readUint16LE();
+	if (g_nancy->getGameType() >= kGameTypeNancy15) {
+		_uiButton = stream.readByte();
+		_characterIndex = stream.readByte();
+	} else {
+		_uiButton = stream.readUint16LE();
+	}
 	_autoOpenOrBadgeSound = stream.readByte();
 	_flagB  = stream.readByte();
 	_startScene = stream.readSint16LE();
@@ -287,8 +292,12 @@ void ControlUIItems::execute() {
 		// (kNoScene). _flagB != 0 also sets the disabled button's rejection-sound
 		// mode from _autoOpenOrBadgeSound (which clickSoundName line plays when
 		// the button is clicked while its popup is unavailable).
+		// Nancy15 keeps separate overrides per player character. Only the
+		// active character's taskbar is modeled, so skip the others'.
+		uint characterIndex = _characterIndex == kPlayerCharacterActive ?
+			g_nancy->getPlayerCharacter() : _characterIndex;
 		UI::Taskbar *taskbar = NancySceneState.getTaskbar();
-		if (taskbar) {
+		if (taskbar && characterIndex == g_nancy->getPlayerCharacter()) {
 			if (_flagB != 0) {
 				int16 start = _startScene;
 				int16 end = _endScene;
@@ -1044,12 +1053,17 @@ void ResourceUse::init() {
 	}
 
 	if (haveItem && _drawResourceValue) {
+		// Unlike the taskbar coin purse, the overlay prints the bare number:
+		// no currency symbol and no decimal point, whatever the record says
 		const UIRC::ItemRecord &item = uirc->items[_resourceIndex];
 		const Font *font = g_nancy->_graphics->getFont(item.fontID);
-		if (font && item.numDecimals >= 0) {
+		if (font) {
 			const Common::String text =
-				formatUIResourceValue(item, NancySceneState.getUIResource(_resourceIndex, getCharacterIndex()));
-			font->drawString(&_drawSurface, text, _valueDest.x, _valueDest.y, screenBounds.width() - _valueDest.x, 0);
+				Common::String::format("%d", NancySceneState.getUIResource(_resourceIndex, getCharacterIndex()));
+
+			// The record's y is the bottom row the glyphs are aligned on
+			const int y = _valueDest.y - font->getFontHeight() + 1;
+			font->drawString(&_drawSurface, text, _valueDest.x, y, screenBounds.width() - _valueDest.x, 0);
 		}
 	}
 

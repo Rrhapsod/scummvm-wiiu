@@ -42,6 +42,15 @@ static Uint32 timer_handler(Uint32 interval, void *param) {
 	WIIU_AUDIO_HIT(kWiiUTimerLeave);
 	return interval;
 }
+
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
+static DefaultTimerManager *s_singleTimerManager = nullptr;
+
+static Uint32 single_timer_handler(Uint32 interval) {
+	s_singleTimerManager->handler();
+	return interval;
+}
+#endif
 #endif
 
 SdlTimerManager::SdlTimerManager() {
@@ -55,11 +64,27 @@ SdlTimerManager::SdlTimerManager() {
 	// Creates the timer callback
 	_timerID = SDL_AddTimer(10, &timer_handler, this);
 	WIIU_TRACE("TIMER registered ok=%d", (int)(_timerID != 0));
+
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
+	// SDL 1.2 built without thread support cannot create multiple
+	// timers but still provides the single legacy timer.
+	if (!_timerID) {
+		s_singleTimerManager = this;
+		if (SDL_SetTimer(10, &single_timer_handler) == -1)
+			error("Could not create SDL timer: %s", SDL_GetError());
+	}
+#endif
 }
 
 SdlTimerManager::~SdlTimerManager() {
 	// Removes the timer callback
 	WIIU_TRACE("TIMER before SDL_RemoveTimer");
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
+	if (!_timerID) {
+		SDL_SetTimer(0, nullptr);
+		s_singleTimerManager = nullptr;
+	} else
+#endif
 	SDL_RemoveTimer(_timerID);
 	WIIU_TRACE("TIMER after SDL_RemoveTimer");
 

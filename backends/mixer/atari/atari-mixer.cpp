@@ -26,10 +26,7 @@
 #include <mint/falcon.h>
 #include <mint/osbind.h>
 #include <mint/ostruct.h>
-// https://github.com/mikrosk/usound
-// Use usound_compat.h until SDL 1.2 + uSound have been upgraded in the build image.
-// Replace with #include <usound.h> once ihe image ships usound.h >= 2; it will #error in such case.
-#include "usound_compat.h"
+#include <usound.h>
 
 #include "common/config-manager.h"
 #include "common/debug.h"
@@ -200,7 +197,10 @@ bool AtariMixerManager::notifyEvent(const Common::Event &event) {
 	case Common::EVENT_RETURN_TO_LAUNCHER:
 		if (s_playbackState != kPlaybackStopped) {
 			debug("silencing the mixer");
-			suspendAudio();
+			// Stop the DMA but don't suspend the mixer: nothing would
+			// resume it, update() restarts the playback when needed.
+			Buffoper(0x00);
+			s_playbackState = kPlaybackStopped;
 		}
 		return false;
 	default:

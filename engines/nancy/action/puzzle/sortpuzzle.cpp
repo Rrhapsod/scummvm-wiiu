@@ -103,16 +103,16 @@ void SortPuzzle::readData(Common::SeekableReadStream &stream) {
 	_pickupSound.readNormal(stream);
 	_dropSound.readNormal(stream);
 
-	_winScene.readData(stream);
+	_solveScene._sceneChange.readData(stream);
 	stream.skip(2);
-	_winFlag.label = stream.readSint16LE();
-	_winFlag.flag  = stream.readByte();
-	_winSound.readNormal(stream);
+	_solveScene._flag.label = stream.readSint16LE();
+	_solveScene._flag.flag  = stream.readByte();
+	_solveSound.readNormal(stream);
 
-	_cancelScene.readData(stream);
+	_exitScene._sceneChange.readData(stream);
 	stream.skip(2);
-	_cancelFlag.label = stream.readSint16LE();
-	_cancelFlag.flag  = stream.readByte();
+	_exitScene._flag.label = stream.readSint16LE();
+	_exitScene._flag.flag  = stream.readByte();
 
 	readRect(stream, _exitHotspot);
 	stream.skip(2); // exit cursor type id
@@ -164,16 +164,16 @@ void SortPuzzle::readDataNancy12(Common::SeekableReadStream &stream) {
 	_pickupSound.readNormal(stream);          // 0x842
 	_dropSound.readNormal(stream);            // 0x873
 
-	_winScene.readData(stream);               // 0x8a4
+	_solveScene._sceneChange.readData(stream);               // 0x8a4
 	stream.skip(2);
-	_winFlag.label = stream.readSint16LE();
-	_winFlag.flag  = stream.readByte();
-	_winSound.readNormal(stream);             // 0x8bd
+	_solveScene._flag.label = stream.readSint16LE();
+	_solveScene._flag.flag  = stream.readByte();
+	_solveSound.readNormal(stream);             // 0x8bd
 
-	_cancelScene.readData(stream);            // 0x8ee
+	_exitScene._sceneChange.readData(stream);            // 0x8ee
 	stream.skip(2);
-	_cancelFlag.label = stream.readSint16LE();
-	_cancelFlag.flag  = stream.readByte();
+	_exitScene._flag.label = stream.readSint16LE();
+	_exitScene._flag.flag  = stream.readByte();
 
 	readRect(stream, _exitHotspot);           // 0x907
 	stream.skip(2); // exit cursor type id
@@ -323,6 +323,7 @@ void SortPuzzle::execute() {
 		init();
 		registerGraphics();
 		_heldObject.registerGraphics();
+		NancySceneState.setNoHeldItem();
 		_state = kRun;
 		// fall through
 
@@ -331,17 +332,16 @@ void SortPuzzle::execute() {
 		case kPlaying:
 			break;
 		case kPlayWinSound:
-			if (_winSound.name != "NO SOUND") {
-				g_nancy->_sound->loadSound(_winSound);
-				g_nancy->_sound->playSound(_winSound);
+			if (hasSolveSound()) {
+				playSolveSound();
 				_subState = kWaitWinSound;
 			} else {
 				_subState = kExitToWin;
 			}
 			break;
 		case kWaitWinSound:
-			if (!g_nancy->_sound->isSoundPlaying(_winSound)) {
-				g_nancy->_sound->stopSound(_winSound);
+			if (!isSolveSoundPlaying()) {
+				g_nancy->_sound->stopSound(_solveSound);
 				_subState = kExitToWin;
 			}
 			break;
@@ -355,18 +355,16 @@ void SortPuzzle::execute() {
 	case kActionTrigger:
 		g_nancy->_sound->stopSound(_pickupSound);
 		g_nancy->_sound->stopSound(_dropSound);
-		g_nancy->_sound->stopSound(_winSound);
+		g_nancy->_sound->stopSound(_solveSound);
 		if (_subState == kExitToWin) {
 			SortPuzzleData *spd = (SortPuzzleData *)NancySceneState.getPuzzleData(SortPuzzleData::getTag());
 			if (spd) {
 				spd->currentState.clear();
 				spd->solvedState.clear();
 			}
-			NancySceneState.setEventFlag(_winFlag);
-			NancySceneState.changeScene(_winScene);
+			_solveScene.execute();
 		} else {
-			NancySceneState.setEventFlag(_cancelFlag);
-			NancySceneState.changeScene(_cancelScene);
+			_exitScene.execute();
 		}
 		finishExecution();
 		break;
@@ -440,8 +438,7 @@ void SortPuzzle::handleInput(NancyInput &input) {
 	}
 
 	if (!hitCell) {
-		if (!_exitHotspot.isEmpty() && _exitHotspot.contains(mouseVP)) {
-			g_nancy->_cursor->setCursorType(g_nancy->_cursor->_puzzleExitCursor);
+		if (hoverExitHotspot(input)) {
 			if (input.input & NancyInput::kLeftMouseButtonUp)
 				_subState = kExitToCancel;
 		} else if (_hasHeld && useNewCursors) {

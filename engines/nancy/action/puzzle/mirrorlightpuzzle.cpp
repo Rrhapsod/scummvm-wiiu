@@ -358,27 +358,6 @@ void MirrorLightPuzzle::saveMirrorAngles() {
 	}
 }
 
-void MirrorLightPuzzle::playSoundBlock(const RandomSoundBlock &block) {
-	if (block.names.empty()) {
-		return;
-	}
-
-	uint idx = block.names.size() == 1 ? 0 : g_nancy->_randomSource->getRandomNumber(block.names.size() - 1);
-	const Common::String &name = block.names[idx];
-	if (name.empty() || name == "NO SOUND") {
-		return;
-	}
-
-	SoundDescription desc;
-	desc.name = name;
-	desc.channelID = block.channel;
-	desc.numLoops = block.numLoops > 0 ? block.numLoops : 1;
-	desc.volume = block.volume;
-
-	g_nancy->_sound->loadSound(desc);
-	g_nancy->_sound->playSound(desc);
-}
-
 void MirrorLightPuzzle::init() {
 	Common::Rect vpBounds = NancySceneState.getViewport().getBounds();
 	_drawSurface.create(vpBounds.width(), vpBounds.height(),
@@ -388,8 +367,7 @@ void MirrorLightPuzzle::init() {
 	setVisible(true);
 	moveTo(vpBounds);
 
-	g_nancy->_resource->loadImage(_imageName, _image);
-	_image.setTransparentColor(_drawSurface.getTransparentColor());
+	loadImage();
 
 	// Mirrors keep the angle the player last left them at.
 	MirrorLightData *data = (MirrorLightData *)NancySceneState.getPuzzleData(MirrorLightData::getTag());

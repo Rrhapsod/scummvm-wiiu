@@ -53,7 +53,7 @@
 #include "engines/nancy/action/puzzle/dotconnectpuzzle.h"
 #include "engines/nancy/action/puzzle/drivingpuzzle.h"
 #include "engines/nancy/action/puzzle/dropsortpuzzle.h"
-//#include "engines/nancy/action/puzzle/escapegridpuzzle.h"
+#include "engines/nancy/action/puzzle/escapegridpuzzle.h"
 #include "engines/nancy/action/puzzle/gridmappuzzle.h"
 #include "engines/nancy/action/puzzle/magicboxpuzzle.h"
 #include "engines/nancy/action/puzzle/matchpuzzle.h"
@@ -100,7 +100,7 @@
 #include "engines/nancy/action/puzzle/turningpuzzle.h"
 #include "engines/nancy/action/puzzle/twodialpuzzle.h"
 #include "engines/nancy/action/puzzle/typingquizpuzzle.h"
-//#include "engines/nancy/action/puzzle/weightsortpuzzle.h"
+#include "engines/nancy/action/puzzle/weightsortpuzzle.h"
 #include "engines/nancy/action/puzzle/whalesurvivorpuzzle.h"
 #include "engines/nancy/action/puzzle/wordfindpuzzle.h"
 
@@ -539,11 +539,9 @@ ActionRecord *ActionManager::createActionRecord(uint16 type, Common::SeekableRea
 	case 183:
 		return new MagicBoxPuzzle();
 	case 184:
-		//return new EscapeGridPuzzle();
-		return nullptr;	// TODO
+		return new EscapeGridPuzzle();
 	case 185:
-		// return new WeightSortPuzzle();
-		return nullptr;	// TODO
+		return new WeightSortPuzzle();
 	case 200:
 		return new SoundEqualizerPuzzle();
 	case 201:

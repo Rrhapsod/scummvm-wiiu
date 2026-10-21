@@ -35,12 +35,7 @@ namespace Nancy {
 namespace Action {
 
 void Telephone::init() {
-	Common::Rect screenBounds = NancySceneState.getViewport().getBounds();
-	_drawSurface.create(screenBounds.width(), screenBounds.height(), g_nancy->_graphics->getInputPixelFormat());
-	_drawSurface.clear(g_nancy->_graphics->getTransColor());
-	setTransparent(true);
-	setVisible(true);
-	moveTo(screenBounds);
+	initViewportSurface();
 
 	g_nancy->_resource->loadImage(_imageName, _image);
 	g_nancy->_resource->loadImage(_displayAnimName, _animImage);
@@ -436,9 +431,7 @@ void Telephone::handleInput(NancyInput &input) {
 	// The exit hotspot stays active for as long as the record is running, even
 	// while ringing, talking, or playing the bad number message. Only the
 	// buttons are limited to the states where the phone accepts input.
-	if (NancySceneState.getViewport().convertViewportToScreen(_exitHotspot).contains(input.mousePos)) {
-		g_nancy->_cursor->setCursorType(g_nancy->_cursor->_puzzleExitCursor);
-
+	if (hoverExitHotspot(input)) {
 		if (input.input & NancyInput::kLeftMouseButtonUp) {
 			if (_phoneType == kTelephone) {
 				g_nancy->_sound->loadSound(_hangUpSound);

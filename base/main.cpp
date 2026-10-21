@@ -343,6 +343,10 @@ static Common::Error runGame(const Plugin *enginePlugin, OSystem &system, const 
 	system.engineDone();
 	WIIU_TRACE("ENGINE after engineDone hook; instance still alive");
 
+	// Purge queued input events that may remain from the engine (such as key-up)
+	system.getEventManager()->purgeKeyboardEvents();
+	system.getEventManager()->purgeMouseEvents();
+
 	// Clean up any game-specific keymaps
 	WIIU_TRACE("ENGINE before cleanupGameKeymaps");
 	keymapper->cleanupGameKeymaps();

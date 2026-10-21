@@ -37,12 +37,7 @@ namespace Nancy {
 namespace Action {
 
 void TurningPuzzle::init() {
-	Common::Rect screenBounds = NancySceneState.getViewport().getBounds();
-	_drawSurface.create(screenBounds.width(), screenBounds.height(), g_nancy->_graphics->getInputPixelFormat());
-	_drawSurface.clear(g_nancy->_graphics->getTransColor());
-	setTransparent(true);
-	setVisible(true);
-	moveTo(screenBounds);
+	initViewportSurface();
 
 	g_nancy->_resource->loadImage(_imageName, _image);
 
@@ -216,7 +211,7 @@ void TurningPuzzle::readDataNancy13(Common::SeekableReadStream &stream) {
 
 	// A count-prefixed array of 23-byte hotspot records (as in PegsPuzzle);
 	// the first one is the "give up" hotspot.
-	readExitHotspot(stream, _exitHotspot, _exitCursorType, _exitScene._sceneChange, _exitScene._flag);
+	readExitHotspot(stream);
 
 	uint16 numTypes = stream.readUint16LE();
 	_pieceTypes.resize(numTypes);
@@ -335,28 +330,6 @@ void TurningPuzzle::drawAllObjects() {
 	for (uint i = 0; i < _currentOrder.size(); ++i) {
 		drawObject(i, _currentOrder[i], 0);
 	}
-}
-
-SoundDescription TurningPuzzle::playSoundBlock(const RandomSoundBlock &block) {
-	SoundDescription desc;
-	if (block.names.empty()) {
-		return desc;
-	}
-
-	uint idx = block.names.size() == 1 ? 0 : g_nancy->_randomSource->getRandomNumber(block.names.size() - 1);
-	const Common::String &name = block.names[idx];
-	if (name.empty() || name == "NO SOUND") {
-		return desc;
-	}
-
-	desc.name = name;
-	desc.channelID = block.channel;
-	desc.numLoops = block.numLoops > 0 ? block.numLoops : 1;
-	desc.volume = block.volume;
-
-	g_nancy->_sound->loadSound(desc);
-	g_nancy->_sound->playSound(desc);
-	return desc;
 }
 
 void TurningPuzzle::readData(Common::SeekableReadStream &stream) {
@@ -496,15 +469,14 @@ void TurningPuzzle::execute() {
 			if (_solveSoundDelayTime == 0) {
 				_solveSoundDelayTime = g_nancy->getTotalPlayTime() + (_solveSoundDelay * 1000);
 			} else if (g_nancy->getTotalPlayTime() > _solveSoundDelayTime) {
-				g_nancy->_sound->loadSound(_solveSound);
-				g_nancy->_sound->playSound(_solveSound);
+				playSolveSound();
 				_shouldSetSolveFlag = true;
 				_solveState = kWaitForSound;
 			}
 
 			return;
 		case kWaitForSound :
-			if (g_nancy->_sound->isSoundPlaying(_solveSound)) {
+			if (isSolveSoundPlaying()) {
 				return;
 			}
 
@@ -538,13 +510,7 @@ void TurningPuzzle::execute() {
 void TurningPuzzle::handleInput(NancyInput &input) {
 	const bool isNancy13 = g_nancy->getGameType() >= kGameTypeNancy13;
 
-	if (NancySceneState.getViewport().convertViewportToScreen(_exitHotspot).contains(input.mousePos)) {
-		if (isNancy13)
-			// Zone cursors use the idle sprite of their type, unlike the hover cursor below.
-			g_nancy->_cursor->setCursorType((CursorManager::CursorType)_exitCursorType, true, false);
-		else
-			g_nancy->_cursor->setCursorType(g_nancy->_cursor->_puzzleExitCursor);
-
+	if (hoverExitHotspot(input)) {
 		if (input.input & NancyInput::kLeftMouseButtonUp)
 			_state = kActionTrigger;
 

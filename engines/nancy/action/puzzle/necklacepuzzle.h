@@ -23,8 +23,8 @@
 #define NANCY_ACTION_NECKLACEPUZZLE_H
 
 #include "engines/nancy/commontypes.h"
-#include "engines/nancy/action/actionrecord.h"
-#include "engines/nancy/misc/mousefollow.h"
+#include "engines/nancy/action/puzzlerecord.h"
+#include "engines/nancy/action/mousefollow.h"
 
 namespace Nancy {
 namespace Action {
@@ -38,9 +38,9 @@ namespace Action {
 // How many of each shell are left is not kept in the record; it lives in the
 // shared table values, so the box counts survive leaving and re-entering. Shells
 // left on a strand are handed back when the puzzle is abandoned unsolved.
-class NecklacePuzzle : public RenderActionRecord {
+class NecklacePuzzle : public PuzzleRecord {
 public:
-	NecklacePuzzle() : RenderActionRecord(7) {}
+	NecklacePuzzle() : PuzzleRecord(7) {}
 	virtual ~NecklacePuzzle();
 
 	void init() override;
@@ -120,7 +120,6 @@ protected:
 	void checkSolved();
 	void refundBeads();
 
-	void playSoundBlock(const RandomSoundBlock &block);
 	void redraw();
 	void drawBeadCount(const Bead &bead);
 
@@ -148,7 +147,6 @@ protected:
 	RandomSoundBlock _putDownSound;
 	RandomSoundBlock _unknownSound;	// no known trigger; "NO SOUND" in the shipped record
 
-	SceneChangeDescription _solvedScene;
 	RandomSoundBlock _solvedSound;
 
 	// Played when the puzzle is left unfinished. Its scene is 9999 in the shipped
@@ -156,16 +154,11 @@ protected:
 	SceneChangeDescription _unsolvedScene;
 	RandomSoundBlock _unsolvedSound;
 
-	Common::Rect _exitHotspot;
-	uint16 _exitCursorType = 0;
-	SceneChangeDescription _exitScene;
-	FlagDescription _exitFlag;
-
 	// -- Runtime state --
 	Common::Array<Graphics::ManagedSurface> _images;
 
 	int16 _heldBead = kNoBead;
-	Misc::MouseFollowObject _heldBeadObject;
+	MouseFollowObject _heldBeadObject;
 
 	int _fallingStrand = -1;
 	int _fallingStartY = 0;

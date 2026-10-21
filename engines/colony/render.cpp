@@ -143,14 +143,14 @@ const DOSColorEntry g_dosColors[79] = {
 
 // Look up the DOS lsColor entry for a given ObjColor index.
 // Returns a fallback entry for out-of-range indices.
-const DOSColorEntry &lookupDOSColor(int colorIdx, int level) {
+DOSColorEntry lookupDOSColor(int colorIdx, int level) {
 	// DOS pcycle for animated reactor/suit: WHITE,LTGRAY,GRAY,DKGRAY,BLACK (bounce)
-	static const DOSColorEntry kHCore1 = {0, 0, 15, 15, 15, 1}; // WHITE
-	static const DOSColorEntry kHCore2 = {1, 8,  8, 15,  8, 3}; // LTGRAY
-	static const DOSColorEntry kHCore3 = {2, 8,  8,  7,  8, 3}; // GRAY
-	static const DOSColorEntry kHCore4 = {3, 0,  8,  8,  8, 1}; // DKGRAY
-	static const DOSColorEntry kCCoreEntry = {0, 0, 15, 15, 15, 1}; // WHITE (cold core)
-	static const DOSColorEntry fallback = {2, 0, 0, 0, 0, 1}; // GRAY monochrome
+	const DOSColorEntry kHCore1 = {0, 0, 15, 15, 15, 1}; // WHITE
+	const DOSColorEntry kHCore2 = {1, 8,  8, 15,  8, 3}; // LTGRAY
+	const DOSColorEntry kHCore3 = {2, 8,  8,  7,  8, 3}; // GRAY
+	const DOSColorEntry kHCore4 = {3, 0,  8,  8,  8, 1}; // DKGRAY
+	const DOSColorEntry kCCoreEntry = {0, 0, 15, 15, 15, 1}; // WHITE (cold core)
+	const DOSColorEntry fallback = {2, 0, 0, 0, 0, 1}; // GRAY monochrome
 
 	if (colorIdx >= 0 && colorIdx < 79)
 		return g_dosColors[colorIdx];
@@ -209,7 +209,7 @@ void setupDOSFill(Renderer *gfx, uint32 fillColor, uint32 backColor, int pattern
 }
 
 uint32 setupDOSMaterial(Renderer *gfx, int colorIdx, int level) {
-	const DOSColorEntry &color = lookupDOSColor(colorIdx, level);
+	const DOSColorEntry color = lookupDOSColor(colorIdx, level);
 	setupDOSFill(gfx, color.fillColor, color.backColor, color.pattern);
 	return color.lineFillColor;
 }
@@ -436,19 +436,23 @@ uint8 ColonyEngine::wallAt(int x, int y) const {
 	return _wall[x][y];
 }
 
-bool ColonyEngine::isRecessFeature(int x, int y, int direction) const {
+bool ColonyEngine::isVisibleRecessFeature(int x, int y, int direction) const {
 	const uint8 *map = mapFeatureAt(x, y, direction);
 	if (!map)
 		return false;
-	return map[0] == kWallFeatureUpStairs || map[0] == kWallFeatureDnStairs;
+	return (map[0] == kWallFeatureUpStairs || map[0] == kWallFeatureDnStairs)
+		&& _visibleCell[x][y] && isWallFeatureFacingCamera(x, y, direction);
 }
 
-// Bit 0x01 spans (x,y-1)/(x,y); bit 0x02 spans (x-1,y)/(x,y). Either side may
-// record the well.
+// Only remove a wall when drawWallFeatures3D() will replace it with a well.
+// Bit 0x01 spans (x,y-1)/(x,y); bit 0x02 spans (x-1,y)/(x,y).
 bool ColonyEngine::wallSegmentIsOpenWell(int x, int y, uint8 bit) const {
+	if (!isMacColorMode() && _corePower[_coreIndex] == 0)
+		return false;
+
 	if (bit == 0x01)
-		return isRecessFeature(x, y, kDirSouth) || isRecessFeature(x, y - 1, kDirNorth);
-	return isRecessFeature(x, y, kDirWest) || isRecessFeature(x - 1, y, kDirEast);
+		return isVisibleRecessFeature(x, y, kDirSouth) || isVisibleRecessFeature(x, y - 1, kDirNorth);
+	return isVisibleRecessFeature(x, y, kDirWest) || isVisibleRecessFeature(x - 1, y, kDirEast);
 }
 
 const uint8 *ColonyEngine::mapFeatureAt(int x, int y, int direction) const {
@@ -647,7 +651,7 @@ void ColonyEngine::draw3DPrism(Thing &obj, const PrismPartDef &def, bool useLook
 					// EGA: per-surface materials from the DOS lsColor table.
 					// polyfill ON  → FILLCOLOR/BACKCOLOR/PATTERN fill, LINEFILLCOLOR outline.
 					// polyfill OFF → outline only with LINECOLOR.
-					const DOSColorEntry &dc = lookupDOSColor(colorIdx, _level);
+					const DOSColorEntry dc = lookupDOSColor(colorIdx, _level);
 					if (!_wireframe) {
 						const uint32 outlineColor = setupDOSMaterial(_gfx, colorIdx, _level);
 						_gfx->draw3DPolygon(px, py, pz, count, outlineColor);
@@ -843,8 +847,8 @@ void ColonyEngine::draw3DSphere(Thing &obj, int pt0x, int pt0y, int pt0z,
 	} else if (!isMacRenderMode()) {
 		// DOS eye ovals are independent of the polygon-fill toggle. FillOval()
 		// uses the selected material while FrameOval() uses the caller's pen.
-		const DOSColorEntry &fill = lookupDOSColor((int)fillColor, _level);
-		const DOSColorEntry &outline = lookupDOSColor((int)outlineColor, _level);
+		const DOSColorEntry fill = lookupDOSColor((int)fillColor, _level);
+		const DOSColorEntry outline = lookupDOSColor((int)outlineColor, _level);
 		if (dosFill)
 			setupDOSFill(_gfx, fill.fillColor, fill.backColor, fill.pattern);
 		else {

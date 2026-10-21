@@ -22,17 +22,17 @@
 #ifndef NANCY_ACTION_ROTATINGLOCKPUZZLE_H
 #define NANCY_ACTION_ROTATINGLOCKPUZZLE_H
 
-#include "engines/nancy/action/actionrecord.h"
+#include "engines/nancy/action/puzzlerecord.h"
 #include "engines/nancy/cursor.h"
 
 namespace Nancy {
 namespace Action {
 
-class RotatingLockPuzzle : public RenderActionRecord {
+class RotatingLockPuzzle : public PuzzleRecord {
 public:
 	enum SolveState { kNotSolved, kPlaySound, kWaitForSound };
 	static const byte kRandomStart = 99;
-	RotatingLockPuzzle() : RenderActionRecord(7) {}
+	RotatingLockPuzzle() : PuzzleRecord(7) {}
 	virtual ~RotatingLockPuzzle() {}
 
 	void init() override;
@@ -41,7 +41,6 @@ public:
 	void execute() override;
 	void handleInput(NancyInput &input) override;
 
-	Common::Path _imageName;
 	Common::Array<Common::Rect> _srcRects;
 	Common::Array<Common::Rect> _destRects;
 	Common::Array<Common::Rect> _upHotspots;
@@ -57,14 +56,8 @@ public:
 	CursorManager::CursorType _upCursorType = CursorManager::kMoveUp;
 	CursorManager::CursorType _downCursorType = CursorManager::kMoveDown;
 	SoundDescription _clickSound;
-	SceneChangeWithFlag _solveExitScene;
-	uint16 _solveSoundDelay = 0;
-	SoundDescription _solveSound;
-	SceneChangeWithFlag _exitScene;
-	Common::Rect _exitHotspot;
 
 	SolveState _solveState = kNotSolved;
-	Graphics::ManagedSurface _image;
 	Common::Array<byte> _currentSequence;
 	Time _solveSoundPlayTime;
 

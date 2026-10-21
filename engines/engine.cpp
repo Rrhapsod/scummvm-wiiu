@@ -221,12 +221,6 @@ Engine::~Engine() {
 	_mixer->stopAll();
 	WIIU_TRACE("ENGINE base destructor after mixer.stopAll");
 
-	// Flush any pending remaining events
-	Common::Event evt;
-	WIIU_TRACE("ENGINE before draining pending events");
-	while (g_system->getEventManager()->pollEvent(evt)) {}
-	WIIU_TRACE("ENGINE after draining pending events");
-
 	delete _debugger;
 	delete _mainMenuDialog;
 	g_engine = NULL;
@@ -836,7 +830,13 @@ void Engine::openMainMenuDialog() {
 	if (hasVKeyb)
 		g_system->setFeatureState(OSystem::kFeatureVirtualKeyboard, false);
 
+#ifdef ENABLE_EVENTRECORDER
+	g_eventRec.setRecordModalDialog(true);
+#endif
 	runDialog(*_mainMenuDialog);
+#ifdef ENABLE_EVENTRECORDER
+	g_eventRec.setRecordModalDialog(false);
+#endif
 
 	if (hasVKeyb)
 		g_system->setFeatureState(OSystem::kFeatureVirtualKeyboard, true);

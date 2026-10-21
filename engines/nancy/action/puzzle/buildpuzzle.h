@@ -22,7 +22,7 @@
 #ifndef NANCY_ACTION_BUILDPUZZLE_H
 #define NANCY_ACTION_BUILDPUZZLE_H
 
-#include "engines/nancy/action/actionrecord.h"
+#include "engines/nancy/action/puzzlerecord.h"
 #include "engines/nancy/renderobject.h"
 
 namespace Nancy {
@@ -35,9 +35,9 @@ namespace Action {
 // clothes design). Pieces are dragged into zones, and a zone is satisfied once
 // it holds the quantities its ingredient list asks for; a piece is placed by
 // being assigned a zone index rather than by matching a rect.
-class BuildPuzzle : public RenderActionRecord {
+class BuildPuzzle : public PuzzleRecord {
 public:
-	BuildPuzzle() : RenderActionRecord(7), _doneOverlay(0), _counter(97), _buttonPress(98), _cursorItem(99) {}
+	BuildPuzzle() : PuzzleRecord(7), _doneOverlay(0), _counter(97), _buttonPress(98), _cursorItem(99) {}
 	virtual ~BuildPuzzle() {}
 
 	void init() override;
@@ -126,7 +126,6 @@ protected:
 		bool locked = false;		// kept by a zone that marks its pieces placed
 	};
 
-	Common::Path _imageName;
 	Common::Path _altImageName;		// empty means the main image is used for both
 
 	// Selects where a piece that is not in a zone, and any close-up, is drawn
@@ -189,16 +188,12 @@ protected:
 	byte _usePlacedGate = 0;
 	uint16 _stateItemID = 255;			// shared item state tracking the placed count
 
-	SceneChangeDescription _solveScene;
-	FlagDescription _solveFlag;
-
 	// Used instead of _solveScene when the player leaves the zones unfinished.
 	SceneChangeDescription _failScene;
 	FlagDescription _failFlag;
 
 	// --- Runtime ---
 
-	Graphics::ManagedSurface _image;
 	Graphics::ManagedSurface _altImage;
 	Graphics::ManagedSurface _pieceImage;	// a kind 3 piece's own close-up art
 	Common::Path _pieceImageName;
