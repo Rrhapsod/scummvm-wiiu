@@ -17,6 +17,7 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 | --- | --- |
 | Durable architecture/work rules | `AGENTS.md` and checkout `AGENTS.md` |
 | Current user features/controls/audio | checkout `README.md` |
+| Current 2026.4.0 package/base update | checkout `backends/platform/sdl/wiiu/UPSTREAM-2026.4.0.md` |
 | Build/SDK and all seven SDL patches | checkout `backends/platform/sdl/wiiu/README.WIIU` |
 | Current Wii Remote candidate/controls/tests | checkout `backends/platform/sdl/wiiu/REMOTE-TEST-20261021.md` |
 | Current prepared release changes | checkout `backends/platform/sdl/wiiu/RELEASE-0.7.0.md` |
@@ -28,11 +29,44 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 Plan sections: 26–27 renderer freeze; 28 Xeen/data/compatibility; 29–32 Curse
 audio and QFG4 loading; 33 text editing/Vorbis; 34 controller keyboard;
 35–36 Groovie FMV and 0.7.0; 38 original Wii Remote IR candidate; 42 button 2/C
-swap and hardware feedback. Read the whole plan for an architectural audit or
+swap and hardware feedback; 43 upstream 2026.4.0 update. Read the whole plan for an architectural audit or
 when explicitly requested, not by default for every small follow-up.
 `WIIU_IMPLEMENTATION_STATUS.md` describes the historical first integration,
 not the current release. Missing outer files in a standalone clone mean local
 evidence is unavailable; they do not imply the source port is absent.
+
+## Current upstream update — 2026-10-21
+
+- Official ScummVM **2026.4.0** tag merged, upstream commit
+  `7d2709da5136866589f7602f5f5a7b17de03420e`; merge milestone `c3a4d080`.
+  Runtime/package source: **`90b6e6461bff438c80d25af97e0560234711731f`**.
+  Community Wii U version remains 0.7.0, independent of the upstream base.
+- Fresh full profile built with shared r51/GCC 16.2.0, all seven existing SDL
+  patches and diagnostic/test macros disabled. Wii Remote adapter is byte-for-
+  byte identical to confirmed `d37ee3f4`: 2 = Escape/back, Nunchuk C = slow
+  analog pointer. Native keyboard/touch/audio/rendering/IO changes remain.
+- Two merge conflicts resolved: preserve upstream event-manager purge instead
+  of polling in Engine destruction; retain upstream SDL 1.x timer fallback
+  alongside optional Wii U probes. Other touched port files merged cleanly.
+- Input/IR/native keyboard ASan/UBSan host mocks, renderer/timer, SCI/BUN IO,
+  MM keymaps, Groovie buffering and actual SDL pixel-conversion checks passed.
+  Full cross-build/revision relink, ELF/PPC/imports/no strong undefineds,
+  embedded RPX equality, unchanged icon, ZIP integrity/data/licenses passed.
+  Generated Xeen mm.dat 1.3 restored to both stages; official translations used.
+- Artifacts: `work/build-scummvm-wiiu-2026.4.0/`:
+  `ScummVM-wiiu-2026.4.0-aroma.zip` (SHA256
+  `10e09be18d6f31731dce9659241f4948276229f5efb5aac8730eb269c7d08d0c`),
+  separate experimental RPX ZIP, ELF/RPX/WUHB, BUILD-INFO and SHA256SUMS.
+  Verifier: `work/package-upstream-2026.4.0.py` (pass full runtime revision).
+  Notes: checkout `backends/platform/sdl/wiiu/UPSTREAM-2026.4.0.md`.
+- **This exact 2026.4.0 binary has no console/Cemu result yet.** My latest
+  “Tudo certo” report confirmed the preceding mapping/r51 candidate d37ee3f4;
+  no additional log/scenarios were supplied. Next: new package input/launcher,
+  game/audio, save editing, return/reopen and HOME/exit. RPX remains unverified.
+- SDK files/default, previous packages and unrelated Android caches untouched.
+  Existing r51 documentation edits remain separate. No push/publication or Wii U
+  release tag; the official upstream tag was fetched locally for integration.
+  Detailed evidence: plan section 43 and `work/logs/upstream-2026.4.0-*`.
 
 ## Shared SDK migration — 2026-10-20
 
@@ -98,8 +132,9 @@ evidence is unavailable; they do not imply the source port is absent.
 - I authorized the new r51 SDK. A fresh full build uses the existing shared
   `r51-wut1.9.1-sdl2.32.7-local` profile, without modifying SDK files/defaults.
   Host ASan/UBSan input/IR and native keyboard regressions, full cross-build,
-  revision relink and package checks passed. **This updated binary is not
-  console-tested yet**; earlier hardware success belongs to `180f0769` below.
+  revision relink and package checks passed. I subsequently reported “Tudo certo”
+  for this mapping/r51 candidate before requesting 2026.4.0; no additional
+  log or scenarios were supplied. This report does not cover the new base.
 - Artifacts: `work/build-scummvm-wiiu-remote-20261021-escape/`, including
   `ScummVM-wiiu-remote-20261021-escape-aroma.zip` (SHA256
   `0549cf88ef01486386e5802e4514f48d61ec96c43877ad71fdb02807203483a1`),
@@ -214,6 +249,6 @@ When an authorized task changes the project or a handoff is requested, update
 this short document with verified state, evidence and pending tests. Append
 substantial history to the outer plan when available. A read-only question is
 not an instruction to edit files. Do not auto-start old tests/builds/publication
-from this document. The new button 2/C mapping and r51 binary await hardware
-feedback; the preceding Remote candidate has a user success report. Do not
-infer a new feature, release or publication from those statuses.
+from this document. The mapping/r51 candidate now has my success report; the
+new 2026.4.0 package awaits console feedback. Do not infer a publication or
+untested scenarios from those statuses.

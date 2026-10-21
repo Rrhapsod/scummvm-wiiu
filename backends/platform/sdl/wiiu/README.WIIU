@@ -38,6 +38,13 @@ The active r50 profile includes its own compiler copy and the existing seven
 SDL patches; migrating it did not update the compiler to r51. Keep release
 artifacts unchanged and use a fresh build directory when changing profiles.
 
+Current source merges the official ScummVM v2026.4.0 tag. The community port
+version remains 0.7.0; older prepared ZIPs retain their original base. The
+release helper now defaults to a new build-scummvm-wiiu-2026.4.0 directory and
+stages UPSTREAM-2026.4.0.md plus the matching RPX metadata. All prior engines,
+codecs and Wii Remote controls are retained, with diagnostic/test macros off.
+See UPSTREAM-2026.4.0.md for installation and hardware-validation status.
+
 Build outside the source tree, after activating the SDK:
   /path/to/scummvm/configure --host=wiiu --disable-all-engines \
     --enable-engine=scumm --disable-detection-full --disable-mt32emu
