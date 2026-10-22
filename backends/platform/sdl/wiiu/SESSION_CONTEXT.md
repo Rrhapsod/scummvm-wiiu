@@ -1,6 +1,6 @@
 # Wii U port — start here in a new chat
 
-Last verified locally: **2026-10-20**. This is a compact handoff, not the full
+Last verified locally: **2026-10-22**. This is a compact handoff, not the full
 conversation or proof that every earlier test still applies. Recheck Git/files
 before acting; the current user request takes precedence over old next steps.
 
@@ -17,11 +17,11 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 | --- | --- |
 | Durable architecture/work rules | `AGENTS.md` and checkout `AGENTS.md` |
 | Current user features/controls/audio | checkout `README.md` |
-| Current 2026.4.0 package/base update | checkout `backends/platform/sdl/wiiu/UPSTREAM-2026.4.0.md` |
+| Current 0.7.1 release/base update | checkout `backends/platform/sdl/wiiu/RELEASE-0.7.1.md` |
 | Build/SDK and all seven SDL patches | checkout `backends/platform/sdl/wiiu/README.WIIU` |
-| Current Wii Remote candidate/controls/tests | checkout `backends/platform/sdl/wiiu/REMOTE-TEST-20261021.md` |
-| Current prepared release changes | checkout `backends/platform/sdl/wiiu/RELEASE-0.7.0.md` |
-| Binary provenance/packages/checksums | `work/releases/0.7.0/BUILD-INFO.txt`, `SHA256SUMS.txt`, `PUBLISH.md` |
+| Full GamePad / Remote + Nunchuk controls | checkout `README.md`, Controls |
+| Current prepared release changes | checkout `backends/platform/sdl/wiiu/RELEASE-0.7.1.md` |
+| Binary provenance/packages/checksums | `work/releases/0.7.1/BUILD-INFO.txt`, `SHA256SUMS.txt`, `PUBLISH.md` |
 | Detailed history/evidence | `docs/WIIU_PORT_PLAN.md`, relevant complete sections |
 | Native input and regression tests | checkout `backends/platform/sdl/wiiu/tests/` |
 | SDK source/install and archived logs | shared `../sdk/sources/`, `../sdk/current/`, `../sdk/backups/`; project `work/logs/`; old SDK/source paths are compatibility links |
@@ -29,18 +29,59 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 Plan sections: 26–27 renderer freeze; 28 Xeen/data/compatibility; 29–32 Curse
 audio and QFG4 loading; 33 text editing/Vorbis; 34 controller keyboard;
 35–36 Groovie FMV and 0.7.0; 38 original Wii Remote IR candidate; 42 button 2/C
-swap and hardware feedback; 43 upstream 2026.4.0 update. Read the whole plan for an architectural audit or
+swap and hardware feedback; 43 upstream 2026.4.0; 44 release 0.7.1.
+Read the whole plan for an architectural audit or
 when explicitly requested, not by default for every small follow-up.
 `WIIU_IMPLEMENTATION_STATUS.md` describes the historical first integration,
 not the current release. Missing outer files in a standalone clone mean local
 evidence is unavailable; they do not imply the source port is absent.
 
-## Current upstream update — 2026-10-21
+## Prepared release 0.7.1 — 2026-10-22
+
+- I reported “O teste foi um sucesso” for the delivered upstream 2026.4.0
+  predecessor **90b6e646**, Aroma ZIP SHA256
+  `10e09be18d6f31731dce9659241f4948276229f5efb5aac8730eb269c7d08d0c`.
+  No new log/game/scenario/model details supplied; preserve this as a user
+  success report, not a comprehensive regression matrix.
+- I requested preparing **0.7.1 for GitHub** and all physical GamePad and
+  Wii Remote + Nunchuk buttons in README. Complete tables now cover sticks,
+  D-pad, face/shoulder/trigger/stick-click/system buttons, equivalent inputs,
+  IR vs analog precision, native keyboard, remapping and Xeen exceptions.
+- Exact runtime/release source: **56bbe22e8c7350aa15bf25f7a030fdc633c130af**.
+  Intended future tag: v0.7.1 at that commit, not later handoff HEAD.
+  Upstream remains 2026.4.0; community version now 0.7.1. Runtime identifier:
+  `2026.4.0-wiiu-56bbe22e`. Only port version metadata, build/staging defaults
+  and docs differ from the tested predecessor; runtime implementations match.
+- Fresh build: `work/build-scummvm-wiiu-0.7.1/`, same pinned r51 SDK, engine/
+  codec flags and seven patches, diagnostics off. SDK doctor verified all
+  2602 files and 6 symlinks. Config.h, compiler/linker flags and all packaged
+  engine/theme/translation data match the tested predecessor exactly.
+  Cross-build, ELF/PPC/imports/no strong undefineds, embedded RPX equality,
+  unchanged icon, committed docs, ZIP CRC/layout/XML/licenses passed.
+- Assets: `work/releases/0.7.1/`:
+  Aroma ZIP SHA256 `fc706fbc5cea130f4263f8a253d3b27a4a901fce019787da16aa130e3879beb3`;
+  experimental RPX ZIP SHA256
+  `00d1e79a0fc3af84745b82329d488a0c88d8cb7544d43353a392bd9be4879488`.
+  Also BUILD-INFO, SHA256SUMS and RELEASE-NOTES. Local PUBLISH.md and
+  RELEASE-BODY.md prepare the exact source/tag/assets and GitHub text.
+  Verifier: `work/package-0.7.1.py FULL_RUNTIME_COMMIT`.
+- No separate hardware/Cemu run of the newly versioned 0.7.1 binary. Non-Aroma
+  RPX, specific older pending scenarios and broader compatibility remain
+  unverified. The reported predecessor success is recorded in public notes.
+- **Prepared locally; no push, v0.7.1 tag or GitHub Release created.** Read-only
+  fork check found default wiiu-aroma-port and v0.7.0 both at bc0452e7;
+  v0.7.1 absent at check. Recheck before future publication. Older packages,
+  SDK/default and Android caches preserved. Install ZIPs use committed
+  README.WIIU, keeping unrelated local SDK-validation edits out of assets.
+- Notes: checkout `backends/platform/sdl/wiiu/RELEASE-0.7.1.md`; detailed
+  evidence in plan section 44 and `work/logs/release-0.7.1-*`.
+
+## Upstream 2026.4.0 predecessor — 2026-10-21
 
 - Official ScummVM **2026.4.0** tag merged, upstream commit
   `7d2709da5136866589f7602f5f5a7b17de03420e`; merge milestone `c3a4d080`.
   Runtime/package source: **`90b6e6461bff438c80d25af97e0560234711731f`**.
-  Community Wii U version remains 0.7.0, independent of the upstream base.
+  That candidate used community Wii U version 0.7.0, independently of its base.
 - Fresh full profile built with shared r51/GCC 16.2.0, all seven existing SDL
   patches and diagnostic/test macros disabled. Wii Remote adapter is byte-for-
   byte identical to confirmed `d37ee3f4`: 2 = Escape/back, Nunchuk C = slow
@@ -59,10 +100,9 @@ evidence is unavailable; they do not imply the source port is absent.
   separate experimental RPX ZIP, ELF/RPX/WUHB, BUILD-INFO and SHA256SUMS.
   Verifier: `work/package-upstream-2026.4.0.py` (pass full runtime revision).
   Notes: checkout `backends/platform/sdl/wiiu/UPSTREAM-2026.4.0.md`.
-- **This exact 2026.4.0 binary has no console/Cemu result yet.** My latest
-  “Tudo certo” report confirmed the preceding mapping/r51 candidate d37ee3f4;
-  no additional log/scenarios were supplied. Next: new package input/launcher,
-  game/audio, save editing, return/reopen and HOME/exit. RPX remains unverified.
+- On October 22 I reported a successful console test of this exact delivered
+  candidate before requesting 0.7.1. No new log/scenario details were supplied.
+  Earlier “Tudo certo” feedback belongs to d37ee3f4. RPX remains unverified.
 - SDK files/default, previous packages and unrelated Android caches untouched.
   Existing r51 documentation edits remain separate. No push/publication or Wii U
   release tag; the official upstream tag was fetched locally for integration.
@@ -106,7 +146,7 @@ evidence is unavailable; they do not imply the source port is absent.
   console test was performed by this cleanup. Existing source build caches
   moved as historical data; use a new directory before rebuilding dependencies.
 
-## Current recorded state
+## Historical prepared 0.7.0 state
 
 - Branch at verification: `wiiu-aroma-port`. Release binaries were built from
   **`bc0452e70e33061948e48cd5f7c6292f52639f44`**. Later documentation commits
@@ -192,8 +232,8 @@ Groovie fixes or constant 30 fps.
 
 Still pending in the recorded evidence:
 
-- A brief hardware test of the exact **diagnostics-disabled 0.7.0 ZIP**:
-  movie/audio, return/reopen, save-name editing and Quit.
+- Separate console execution of the versioned **0.7.1 ZIP**; the matching
+  2026.4.0 predecessor has a success report with no scenario breakdown.
 - Pro-only keyboard, late GamePad and HOME scenario.
 - Console decoding with specifically identified Vorbis assets (host tests pass).
 - Non-Aroma RPX compatibility and representative Myst/7th Guest reports.
@@ -204,7 +244,7 @@ Still pending in the recorded evidence:
 
 - Native ScummVM -> existing SDL2 backend -> WUT. No RetroArch/custom replacement
   backend. Preserve the ScummVM name and existing upstream icon.
-- 0.7.0 includes SCUMM v0–v8 (no HE), MM/Xeen (no MM1), SCI/SCI32, Mohawk
+- 0.7.1 includes SCUMM v0–v8 (no HE), MM/Xeen (no MM1), SCI/SCI32, Mohawk
   Myst/MystME/Riven, Blade Runner and Groovie/Groovie2; MP3/Vorbis/MT-32/JPEG.
   The desktop compatibility list is not a Wii U support guarantee.
 - Release helper: checkout `backends/platform/sdl/wiiu/build-release.sh`.
@@ -221,18 +261,18 @@ Still pending in the recorded evidence:
   in `work/sdk-backups/wiimote-before-20261020/`. Seventh patch:
   `sdl2-wiimote-pointer.patch`; it includes the Sensor Bar declaration already
   supported by WUT 1.9.1's imports. Do not rebuild WUT just to add that declaration.
-- Xeen requires generated **mm.dat 1.3**, not bundled upstream 1.2. The release
-  helper restores the generated file to both stages; a plain staging make can
-  overwrite it. Expected generated SHA256:
+- Xeen requires **mm.dat 1.3**. The 2026.4.0 bundled data also reports 1.3;
+  older pre-upgrade bundles reported 1.2. Keep the source-generated archive
+  restored by the helper in both stages; a plain staging make can replace it.
+  Expected generated SHA256:
   `dae04efe8ce7032b12ba96539cbc0e8e49361edce4f6f66628225377d6286178`.
 - Use one build process per build directory. Do not edit a shell build helper
   while it is running. Keep diagnostic candidates separate from final releases.
 - Record exact source revision, SDK provenance, enabled features, checksums
   and hardware status. Check embedded RPX equality, ZIP integrity/data/licenses.
   Never bundle games, ROMs, saves, configuration or user logs.
-- Existing ZIPs are under `work/releases/0.7.0/`, named
-  `ScummVM-wiiu-0.7.0-aroma.zip` and
-  `ScummVM-wiiu-0.7.0-rpx-experimental.zip`.
+- Current release ZIPs are in `work/releases/0.7.1/`. Older 0.7.0, Remote
+  candidates and the user-confirmed upstream-update packages remain separate.
 
 ## Communication and next handoff
 
@@ -249,6 +289,6 @@ When an authorized task changes the project or a handoff is requested, update
 this short document with verified state, evidence and pending tests. Append
 substantial history to the outer plan when available. A read-only question is
 not an instruction to edit files. Do not auto-start old tests/builds/publication
-from this document. The mapping/r51 candidate now has my success report; the
-new 2026.4.0 package awaits console feedback. Do not infer a publication or
-untested scenarios from those statuses.
+from this document. The 2026.4.0 predecessor has my success report; 0.7.1 is
+prepared locally with full controls documentation. Follow its exact runtime
+commit for any future authorized publication, not the newest handoff HEAD.
