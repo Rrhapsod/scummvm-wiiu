@@ -1,5 +1,8 @@
 # ScummVM Wii U — upstream 2026.4.0 update
 
+Historical build notes. For the current release and subsequent success report,
+see [0.7.1](RELEASE-0.7.1.md); complete controls are in the root README.
+
 I updated the native Wii U/Aroma port to the official ScummVM **2026.4.0** tag,
 commit `7d2709da5136866589f7602f5f5a7b17de03420e`, released October 11, 2026.
 This merges the release source, translations and engine data. My community

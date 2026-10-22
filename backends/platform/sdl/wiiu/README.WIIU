@@ -1,13 +1,13 @@
 ScummVM Wii U / Aroma — experimental SDL2 port
 =============================================
 
-Version 0.7.0 includes SCUMM v0-v8, MM/Xeen, SCI/SCI32, Mohawk/Myst/Riven,
+Version 0.7.1 includes SCUMM v0-v8, MM/Xeen, SCI/SCI32, Mohawk/Myst/Riven,
 Blade Runner and Groovie/Groovie2, with MP3, Vorbis and MT-32. It retains the
 renderer fix, fixes SDL zero-timeout waits, speeds up Curse/QFG4 IO and Groovie
 RGBA conversion, and improves existing-text editing/controller keyboard input.
-See RELEASE-0.7.0.md for hardware results and remaining limitations.
+See RELEASE-0.7.1.md for changes and README.md for both complete button tables.
 
-For current source (including the Wii Remote candidate), apply these incremental
+For release 0.7.1 (including Wii Remote IR), apply these incremental
 patches to devkitPro/SDL wiiu-sdl2-2.32 in order:
   1. sdl2-swkbd-input.patch
   2. sdl2-swkbd-lifecycle.patch
@@ -18,8 +18,9 @@ patches to devkitPro/SDL wiiu-sdl2-2.32 in order:
   7. sdl2-wiimote-pointer.patch
 Then rebuild/install SDL and relink ScummVM. Do not apply a patch twice.
 The local SDK compatibility adjustments listed below are also retained.
-The prepared 0.7.0 binaries use patches 1-6. Do not replace those packages when
-building this candidate. See REMOTE-TEST-20261021.md and build-remote-test.sh.
+The older 0.7.0 binaries use patches 1-6; preserve those archives. The current
+0.7.1 release uses all seven. REMOTE-TEST-20261021.md describes a historical
+diagnostic candidate, not the release build.
 
 Requires devkitPPC, WUT, the devkitPro Wii U SDL2 port, target zlib and
 wut-tools (elf2rpl and wuhbtool). DEVKITPRO must identify the same SDK used
@@ -39,18 +40,21 @@ SDL patches; migrating it did not update the compiler to r51. Keep release
 artifacts unchanged and use a fresh build directory when changing profiles.
 
 Current source merges the official ScummVM v2026.4.0 tag. The community port
-version remains 0.7.0; older prepared ZIPs retain their original base. The
-release helper now defaults to a new build-scummvm-wiiu-2026.4.0 directory and
-stages UPSTREAM-2026.4.0.md plus the matching RPX metadata. All prior engines,
+version is now 0.7.1; older prepared ZIPs retain their original base. The
+release helper defaults to a new build-scummvm-wiiu-0.7.1 directory and
+stages RELEASE-0.7.1.md plus matching RPX metadata. Release 0.7.1 uses the
+shared r51 profile; the earlier r50 migration notes above are historical. All prior engines,
 codecs and Wii Remote controls are retained, with diagnostic/test macros off.
-See UPSTREAM-2026.4.0.md for installation and hardware-validation status.
+I reported a successful console test of the 2026.4.0 predecessor (90b6e646)
+on October 22. The new 0.7.1 binary has version/documentation changes and has
+not had a separate console run. See RELEASE-0.7.1.md for current status.
 
 Build outside the source tree, after activating the SDK:
   /path/to/scummvm/configure --host=wiiu --disable-all-engines \
     --enable-engine=scumm --disable-detection-full --disable-mt32emu
   make -j2 wiiu_release
 
-The above is the historical minimal build, not the 0.7.0 release profile.
+The above is the historical minimal build, not the 0.7.1 release profile.
 For all release engines and MP3/Vorbis/MT-32, with diagnostics disabled:
   bash backends/platform/sdl/wiiu/build-release.sh
 See EXPERIMENTAL.md for historical JPEG/MP3 dependency preparation. For pinned
@@ -102,12 +106,12 @@ Quit or HOME to exit; verify HOME/return before testing long sessions.
 Negative joystick indices are overridden because opening the GamePad is
 also required for touchscreen events.
 
-Wii Remote candidate: IR moves the mouse absolutely; A/B left/right-click,
+Wii Remote: IR moves the mouse absolutely; A/B left/right-click,
 and holding A drags. Button 2 shares GamePad Y (Escape/back through the current
 keymap); Nunchuk C now shares GamePad R/slow analog pointer, swapping those
 two Remote/Nunchuk controls. Button 1 keeps the left shoulder binding. I reported
-success with the first Remote candidate; the new mapping still needs my console
-check. The SDL driver enables IR and requests the external
+success with the Remote, remapping and 2026.4.0 predecessors. The SDL driver
+enables IR and requests the external
 console-powered Sensor Bar. Calibration and actual bar power require hardware
 testing. Touch/sticks temporarily take cursor ownership from idle IR. See
 REMOTE-TEST-20261021.md for controls, diagnostic logs and console test cases.

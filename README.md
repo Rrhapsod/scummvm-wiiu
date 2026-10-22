@@ -1,4 +1,4 @@
-# ScummVM for Wii U / Aroma — v0.7.0
+# ScummVM for Wii U / Aroma — v0.7.1
 
 ![ScummVM icon](dists/psp2/icon0.png)
 
@@ -7,26 +7,19 @@ Launch **ScummVM** directly from the Wii U Menu and play using the GamePad
 touchscreen or the analog stick and buttons. **No RetroArch required.**
 
 This is an **unofficial, experimental port**, not an official ScummVM release.
-Version **0.7.0** includes **SCUMM v0–v8, MM/Xeen, SCI/SCI32, Mohawk,
+Version **0.7.1** includes **SCUMM v0–v8, MM/Xeen, SCI/SCI32, Mohawk,
 Blade Runner and Groovie/Groovie2**, not every engine supported by desktop
 ScummVM. Humongous Entertainment and MM1 remain disabled. Games and MT-32 ROMs
 are not included.
 
-The port version is separate from the upstream ScummVM version shown in the
-launcher. See the [0.7.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.7.0.md)
-for downloads, changes since 0.6.0, controls and validation details.
+The community port version is **0.7.1**, based on **ScummVM 2026.4.0**.
+See the [0.7.1 release notes](backends/platform/sdl/wiiu/RELEASE-0.7.1.md)
+for the changes, packages and validation details.
 
-Current development source is based on **upstream ScummVM 2026.4.0**
-([official release](https://github.com/scummvm/scummvm/releases/tag/v2026.4.0)).
-See the [2026.4.0 update notes](backends/platform/sdl/wiiu/UPSTREAM-2026.4.0.md)
-for the new packages and validation status. The community port version remains
-0.7.0; the older prepared 0.7.0 ZIPs retain their original upstream base.
-
-Wii Remote pointing, A/B mouse clicks and simultaneous GamePad input are
-included. **Remote 2 = Escape/back; Nunchuk C = slow analog pointer** through
-the existing keymap. I reported success with the October 21 remapping/r51
-candidate. The newly updated 2026.4.0 binary still needs my console check.
-These additions are not included in the older prepared 0.7.0 packages.
+This release adds **Wii Remote IR pointing and Nunchuk support**, including
+simultaneous GamePad input. **Remote 2 = Escape/back; Nunchuk C = slow analog
+pointer.** I reported a successful console test of the 2026.4.0 predecessor
+before preparing 0.7.1. The complete control guide is below.
 
 [Downloads](https://github.com/Rrhapsod/scummvm-wiiu/releases) ·
 [Report a Wii U issue](https://github.com/Rrhapsod/scummvm-wiiu/issues) ·
@@ -39,6 +32,8 @@ These additions are not included in the older prepared 0.7.0 packages.
 - Standard ScummVM launcher, with video output on the TV and GamePad.
 - **Touchscreen pointer control**, including tap-to-click.
 - **Analog-stick pointer control** with physical left/right mouse buttons.
+- **Wii Remote IR pointer**, A/B mouse clicks, Nunchuk movement and precision mode.
+- Simultaneous GamePad/Remote input and controller hotplug.
 - **Native Wii U on-screen keyboard** for text entry and save descriptions.
 - Audio playback through the existing SDL mixer backend.
 - MP3 decoding (libmad) and integrated MT-32 emulation, both tested on my Wii U.
@@ -56,18 +51,21 @@ These additions are not included in the older prepared 0.7.0 packages.
 - For the WUHB package: a Wii U with Aroma already configured.
 - For RPX testing: an existing Wii U Homebrew Launcher/loader with RPX support
   (see the experimental package instructions below).
-- A Wii U GamePad and an SD card accessible to the selected environment.
+- A Wii U GamePad, or a paired Wii Remote with a powered Sensor Bar for IR
+  pointing; a Nunchuk is optional for analog movement and extra buttons.
+- An SD card accessible to the selected environment.
 - Your own game data files for a game supported by an included engine.
 
-I reported successful Wii Remote pointing and button-remapping tests with the
-preceding candidates. Other controller combinations still need targeted tests.
+I reported successful Wii Remote pointing, button-remapping and upstream-update
+tests on Aroma. Pro-only native keyboard/HOME and other controller combinations
+still need targeted tests.
 Keep backups of your saves when testing an experimental build.
 
 ## Choose a download
 
 | Package | Intended use | Validation |
 | --- | --- | --- |
-| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | I tested the changes in diagnostic builds; the final 0.7.0 package still needs a short console smoke test |
+| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | The 2026.4.0 predecessor passed my console test; 0.7.1 changes version metadata and documentation |
 | RPX experimental ZIP (`ScummVM.rpx`) | Community testing with a non-Aroma Wii U Homebrew Launcher/loader that supports RPX | **Not yet tested outside Aroma** |
 
 Both packages include the same executable and required data in different
@@ -107,41 +105,86 @@ To update, back up your saves and merge the new package onto the SD card.
 Replace the existing `wiiu/apps/ScummVM.wuhb` rather than keeping multiple
 copies with different filenames.
 
-## GamePad controls
+## Controls
 
-These are the default physical GamePad button mappings for the tested SCUMM
-adventure games. Game-specific behavior and custom remapping may change them.
+These are the defaults for the launcher and the usual SCUMM adventure keymap.
+Other engines and saved custom mappings can change the in-game actions.
+Buttons are listed by their **physical Nintendo labels**. The native Wii U
+keyboard follows its own on-screen prompts while it is open.
 
-| Input | In-game action |
+### Wii U GamePad
+
+| Input | Default action |
 | --- | --- |
-| Touchscreen | Position or move the pointer directly |
+| Touchscreen | Position/move the pointer directly |
 | Short tap | Left mouse click |
 | Left analog stick | Move the pointer |
-| **A** | Left mouse click |
+| **A** | Left mouse click; hold while moving to drag |
 | **B** | Right mouse click |
+| **X** | Skip the current dialogue line (period key) where supported |
+| **Y** | Escape: skip/cancel/back where supported; close launcher dialogs |
+| **D-pad ↑ ↓ ← →** | Navigate launcher widgets; game-specific directional controls |
+| **L** | Game menu / F5 where supported |
 | Hold **R** | Slow the analog pointer for precise movement |
-| **L** | Game menu, equivalent to F5 where supported |
+| **ZL / ZR** | No general adventure default; available as left/right triggers for remapping or engine-specific bindings |
+| Right analog stick | No general adventure default; available for remapping or engine-specific bindings |
+| Left/right stick clicks (**L3 / R3**) | No general adventure default; available for remapping |
 | **+** | ScummVM global main menu |
 | **−** | Open the native on-screen keyboard |
-| **X** | Skip the current line of dialogue where supported |
-| **Y** | Skip or cancel, equivalent to Escape where supported |
+| **HOME** | Wii U system HOME interface / application lifecycle |
+| **TV / POWER** | Wii U system controls; no ScummVM action assigned |
 
-In the ScummVM launcher and dialogs, **A** clicks, **Y** closes or cancels,
-and the directional pad navigates supported widgets. **B is not a universal
-Back button.** The native Wii U keyboard uses its own on-screen controls.
+For a right-click while using touch, press **B**. In launcher dialogs, **A**
+clicks and **Y** closes/cancels. **B is not a universal Back button.** To exit
+ScummVM normally, choose the launcher's **Quit** button.
 
-For a right-click while using touch, use **B**; this guide does not assume
-multitouch support. To exit ScummVM, use the launcher's **Quit** button.
+### Wii Remote + Nunchuk
 
-World of Xeen uses game-specific mappings: the D-pad moves/turns, **X** sends
-Enter and **Y** sends Escape. Escape at its title screen can quit the game;
-use X or click **Start Game** with A/touch instead.
+Pair the Remote with the Wii U before launching. For IR pointing, use a powered
+Sensor Bar and keep the Remote aimed at it with a clear line of sight. A Remote
+without a Nunchuk can still point, click, open menus and use its own buttons.
+Attach a Nunchuk for analog movement, dialogue skip and precision mode.
+
+| Input | Default action | GamePad equivalent |
+| --- | --- | --- |
+| Aim Wii Remote at Sensor Bar | Position/move the IR pointer directly | Touchscreen positioning |
+| **A** | Left mouse click; hold while pointing/moving to drag | A |
+| **B** (rear trigger) | Right mouse click | B |
+| **D-pad ↑ ↓ ← →** | Navigate launcher widgets; game-specific directional controls | D-pad |
+| **1** | Game menu / F5 where supported | L |
+| **2** | Escape: skip/cancel/back where supported; close launcher dialogs | Y |
+| **+** | ScummVM global main menu | + |
+| **−** | Open the native on-screen keyboard | − |
+| Nunchuk analog stick | Move the pointer | Left analog stick |
+| Nunchuk **Z** | Skip the current dialogue line where supported | X |
+| Hold Nunchuk **C** | Slow the Nunchuk analog pointer for precise movement | Hold R |
+| **HOME** | Wii U system HOME interface / application lifecycle | HOME |
+| **POWER** | Wii U system control; no ScummVM action assigned | POWER |
+
+**C slows analog movement, not absolute IR pointing.** If you prefer the stick,
+point the Remote away from the Sensor Bar; touch/stick input can take over the
+pointer. Reacquiring IR resumes pointing. GamePad and Remote can remain
+connected together, and the Nunchuk is optional for IR mouse control.
+
+### Game-specific controls and remapping
+
+In **World of Xeen**, the D-pad moves/turns, **GamePad X / Nunchuk Z** sends
+Enter, and **GamePad Y / Remote 2** sends Escape. Escape at the title screen
+can quit; use X/Z or click **Start Game** with A/touch/IR instead.
+
+Use the **Keymaps** settings in Global Options or a game's options to inspect
+and change supported bindings. Remote **1**, **2**, and Nunchuk **Z/C** share
+the logical GamePad **L**, **Y**, **X/R** inputs respectively, so remapping one
+also affects its equivalent. Remote **A/B** are delivered as mouse clicks;
+changing joystick A/B bindings does not change those physical mouse buttons.
+Some engines reserve or override inputs. The GamePad-only inputs marked with
+no general default above can already have an action in a particular engine.
 
 ## Native on-screen keyboard
 
 The native Wii U keyboard opens when a supported field requests text input.
 If a game's own input field does not open it automatically, select that field
-and press **−**. GamePad touch input is supported. This version also improves
+and press **−** on the GamePad or Wii Remote. GamePad touch input is supported. This version also improves
 native input routing for Pro/Classic/Remote controllers and a GamePad connected
 later; I still need hardware confirmation of the reported Pro-only/HOME case.
 
@@ -161,7 +204,7 @@ later; I still need hardware confirmation of the reported Pro-only/HOME case.
 
 ## MP3 audio playback
 
-MP3 support remains included in 0.7.0. Earlier SCUMM-only packages did not
+MP3 support remains included in 0.7.1. Earlier SCUMM-only packages did not
 include the MP3 decoder.
 
 MP3 decoding is automatic when a supported game engine reads audio in a
@@ -191,7 +234,7 @@ not confirm MP3 playback. Keep the originals as a backup.
 
 ## Ogg Vorbis audio playback
 
-Version 0.7.0 also includes **Ogg Vorbis** decoding. It is automatic when an
+Version 0.7.1 includes **Ogg Vorbis** decoding. It is automatic when an
 included engine reads a supported Vorbis resource; there is no Ogg toggle.
 
 1. Keep the game's required filenames and directory layout. Some engines use
@@ -290,8 +333,13 @@ The diagnostic log shows roughly 29–31 ms drawing per frame instead of about
 and some empty audio-queue observations, so I do not claim constant 30 fps or
 perfect playback across all Groovie games.
 
-These tests used diagnostic candidates. The final 0.7.0 binaries retain their
-fixes with detailed tracing disabled and still need a short console smoke test.
+The game-specific results above refer to earlier builds. On October 22, 2026,
+I reported that the ScummVM 2026.4.0 update test was a success, after the earlier
+Remote and button-remapping tests. That report identifies the predecessor
+binary `90b6e646`; I supplied no new log or per-game/scenario breakdown.
+Release 0.7.1 retains that runtime implementation and SDK, changing the port
+version metadata and documentation. Its newly packaged binary has not had a
+separate console run. Detailed diagnostic tracing remains disabled.
 
 These are tests of specific scenarios, **not full-game completion reports or
 a guarantee that every game/version works**. Additional community testing is
@@ -314,7 +362,7 @@ not describe it as confirmed Tiramisu or legacy support yet.
   FLAC, MPEG-2, Opus and Theora are not included.
 - Clandestiny, Tender Loving Care and Uncle Henry's Playhouse community reports
   remain unresolved/unverified; the 11th Hour result does not validate them.
-- Version 0.7.0 retains the renderer memory fix validated for the reported
+- Version 0.7.1 retains the renderer memory fix validated for the reported
   repeated-exit freeze. This does not guarantee that every game/edition or
   possible freeze is resolved. Back up saves and report new failures.
 - Networking and OpenGL/shaders are not enabled.
@@ -325,7 +373,7 @@ not describe it as confirmed Tiramisu or legacy support yet.
 
 ## Release and historical test builds
 
-Read the [0.7.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.7.0.md)
+Read the [0.7.1 release notes](backends/platform/sdl/wiiu/RELEASE-0.7.1.md)
 before replacing your existing executable. Keep the earlier ZIP for rollback.
 The [experimental build guide](backends/platform/sdl/wiiu/EXPERIMENTAL.md)
 documents the historical September 30 profile and dependency preparation.
@@ -352,9 +400,9 @@ The port uses the existing ScummVM build system with devkitPPC, WUT,
 devkitPro's Wii U SDL2 branch, target zlib and `wut-tools`. SDL is responsible
 for native video, audio, input and Wii U application lifecycle handling.
 
-For release 0.7.0, including the expanded engines, MP3/Vorbis and MT-32 without
+For release 0.7.1, including the expanded engines, MP3/Vorbis and MT-32 without
 diagnostic tracing, use the release script after preparing the dependencies
-and all six SDL patches listed in the
+and all seven SDL patches listed in the
 [backend notes](backends/platform/sdl/wiiu/README.WIIU):
 
 ```sh
@@ -385,7 +433,8 @@ existing 128×128 ScummVM asset at `dists/psp2/icon0.png`.
 
 See [Wii U backend notes](backends/platform/sdl/wiiu/README.WIIU) for SDK
 requirements and patch order, including keyboard lifecycle/controller routing,
-renderer cleanup, timer zero-timeout handling and RGBA conversion. Rebuild/install
+renderer cleanup, timer zero-timeout handling, RGBA conversion and Wii Remote
+IR pointer input. Rebuild/install
 SDL after applying them, then relink ScummVM. An arbitrary
 unpatched SDL/WUT installation is not equivalent to the locally tested SDK.
 

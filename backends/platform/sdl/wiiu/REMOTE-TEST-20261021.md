@@ -1,5 +1,8 @@
 # Wii Remote button 2 / Escape update — October 21, 2026
 
+Historical build notes. For the current release and subsequent success report,
+see [0.7.1](RELEASE-0.7.1.md); complete controls are in the root README.
+
 I reported that the first Wii Remote IR candidate worked beautifully on my
 Wii U and requested Escape on Remote button 2. My supplied log identifies
 `2026.3.1git180f0769`, port `0.7.0 + Wii Remote IR candidate 20261020`, from
