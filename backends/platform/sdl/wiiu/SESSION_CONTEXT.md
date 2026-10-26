@@ -17,6 +17,7 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 | --- | --- |
 | Durable architecture/work rules | `AGENTS.md` and checkout `AGENTS.md` |
 | Current user features/controls/audio | checkout `README.md` |
+| Current development / joint engine tests | checkout `backends/platform/sdl/wiiu/ENGINES-TEST-0.8.0.md` |
 | Current 0.7.1 release/base update | checkout `backends/platform/sdl/wiiu/RELEASE-0.7.1.md` |
 | Build/SDK and all seven SDL patches | checkout `backends/platform/sdl/wiiu/README.WIIU` |
 | Full GamePad / Remote + Nunchuk controls | checkout `README.md`, Controls |
@@ -31,17 +32,51 @@ Plan sections: 26–27 renderer freeze; 28 Xeen/data/compatibility; 29–32 Curs
 audio and QFG4 loading; 33 text editing/Vorbis; 34 controller keyboard;
 35–36 Groovie FMV and 0.7.0; 38 original Wii Remote IR candidate; 42 button 2/C
 swap and hardware feedback; 43 upstream 2026.4.0; 44 release 0.7.1;
-45 storage cleanup and archival.
+45 storage cleanup and archival; 46 combined 0.8.0 engine candidate.
 Read the whole plan for an architectural audit or
 when explicitly requested, not by default for every small follow-up.
 `WIIU_IMPLEMENTATION_STATUS.md` describes the historical first integration,
 not the current release. Missing outer files in a standalone clone mean local
 evidence is unavailable; they do not imply the source port is absent.
 
+## Current development: combined 0.8.0 engine candidate — 2026-10-26
+
+- I requested all engines in one build for joint hardware tests. Source/binary
+  **67e2ae127bdf0101d25290e50908e3af97c398fd**, upstream 2026.4.0. Identity:
+  `0.8.0 candidate 20261026 (expanded engines)`, revision `-wiiu-67e2ae12`.
+- Added static Tinsel, Sword1, Sword2, AGOS, Gob, Kyra/EOB, Darkseed and
+  Sherlock. All previous engines/codecs/features remain. Rebel Assault I/II
+  already use SCUMM v7/v8; Sherlock covers Scalpel and Rose Tattoo.
+  EOB I/II enabled; **EOB III is not implemented by this base** and excluded.
+  AGOS2/LoL/Rebel2 PSX/HE/MM1/TinyGL remain off; original PC editions targeted.
+- Fresh candidate build with unchanged pinned r51 SDK/seven SDL patches. SDK
+  doctor, full cross-build, all linked engine/subengine symbols, required flags,
+  no strong undefineds, RPX imports, embedded RPX equality, name/icon and ZIP
+  data/licenses pass. No prior codec/component was disabled. Backend input,
+  keyboard, rendering and audio code are unchanged from 0.7.1.
+- Added bundled kyra.dat (INDEX 123/MD5 checked) and darkseed.dat (ZIP checked).
+  All other engine/theme/translation bytes equal 0.7.1; generated Xeen 1.3
+  remains in both stages. Sword SMK/DXA works at decoder/build level; old MP2
+  cutscenes need the still-disabled MPEG-2 codec. Runtime testing is pending.
+- Artifacts: `work/build-scummvm-wiiu-0.8.0-test-20261026/`:
+  `ScummVM-wiiu-0.8.0-candidate-20261026-aroma.zip`, SHA256
+  `76e2c6cc3a409756611e7fd6ae631f842ddb2468f6ff273c010bc58e6b1b2337`;
+  separate RPX ZIP, ELF/RPX/WUHB, BUILD-INFO, SHA256SUMS and test template.
+  Verifier: `work/package-0.8.0-test-20261026.py FULL_RUNTIME_COMMIT`.
+- Guide: checkout `backends/platform/sdl/wiiu/ENGINES-TEST-0.8.0.md`; 22 game
+  IDs/checklist and `TEST-RESULTS-0.8.0.md`. Bundled root TESTING.md and
+  TEST-RESULTS.md provide the same information. **All 22 games and this combined
+  binary await my Wii U tests**; no game data/logs were supplied in this task.
+  Non-Aroma RPX remains unverified. 0.8.0 is not a finished release yet.
+- Existing 0.7.1 and tested 2026.4.0 packages/builds are intact; a new third
+  build directory exists for this candidate. No SDK changes, push, tag or
+  publication. Pre-existing r51 docs and Android caches preserved. Detailed
+  evidence: plan section 46 and `work/logs/engines-0.8.0-20261026-*`.
+
 ## Storage cleanup — 2026-10-26
 
-- I authorized deleting obsolete builds to save disk space. Only two full
-  compilation trees remain: `work/build-scummvm-wiiu-0.7.1/` and the tested
+- I authorized deleting obsolete builds to save disk space. At that cleanup,
+  two full compilation trees were retained: `work/build-scummvm-wiiu-0.7.1/` and the tested
   `work/build-scummvm-wiiu-2026.4.0/`. All `work/releases/` files are unchanged.
 - 16 older build trees were removed after their 31 original ZIPs, RPX/WUHB,
   config/checksum/build records and otherwise-unique staging files were
