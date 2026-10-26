@@ -1,7 +1,9 @@
 // Version of the community Wii U port, independent of upstream ScummVM.
 #ifndef WIIU_RELEASE_VERSION_H
 #define WIIU_RELEASE_VERSION_H
-#ifdef WIIU_REMOTE_TEST
+#ifdef WIIU_ENGINES_TEST
+#define WIIU_PORT_VERSION "0.8.0 candidate 20261026 (expanded engines)"
+#elif defined(WIIU_REMOTE_TEST)
 #define WIIU_PORT_VERSION "0.7.0 + Wii Remote IR candidate 20261021 (2 = Escape)"
 #elif defined(WIIU_FMV_BLIT_TEST)
 #define WIIU_PORT_VERSION "0.6.0 + FMV blit candidate 20261018-r2 (RGBA conversion / stage timings)"

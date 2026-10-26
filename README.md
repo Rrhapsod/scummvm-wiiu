@@ -25,6 +25,17 @@ before preparing 0.7.1. The complete control guide is below.
 [Report a Wii U issue](https://github.com/Rrhapsod/scummvm-wiiu/issues) ·
 [Upstream ScummVM README](README.scummvm.md)
 
+## Next version: 0.8.0 engine candidate
+
+I am preparing a combined test build adding **Tinsel, Sword1, Sword2, AGOS,
+Gob, Kyra/EOB, Darkseed and Sherlock** to the existing profile. Rebel Assault
+I/II already use the included SCUMM v7/v8 engine. See the
+[0.8.0 candidate guide](backends/platform/sdl/wiiu/ENGINES-TEST-0.8.0.md) for all
+22 game IDs, installation/data requirements and the joint hardware checklist.
+These engines are pending Wii U tests; this is not a compatibility guarantee
+or a final 0.8.0 release. **Eye of the Beholder III is unsupported by the base;
+Kyra provides I and II.** The 0.7.1 packages and build helper remain available.
+
 ## Features
 
 - Native Wii U application packaged as `ScummVM.wuhb` for Aroma.
