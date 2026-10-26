@@ -1,6 +1,6 @@
 # Wii U port — start here in a new chat
 
-Last verified locally: **2026-10-22**. This is a compact handoff, not the full
+Last verified locally: **2026-10-26**. This is a compact handoff, not the full
 conversation or proof that every earlier test still applies. Recheck Git/files
 before acting; the current user request takes precedence over old next steps.
 
@@ -23,18 +23,42 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 | Current prepared release changes | checkout `backends/platform/sdl/wiiu/RELEASE-0.7.1.md` |
 | Binary provenance/packages/checksums | `work/releases/0.7.1/BUILD-INFO.txt`, `SHA256SUMS.txt`, `PUBLISH.md` |
 | Detailed history/evidence | `docs/WIIU_PORT_PLAN.md`, relevant complete sections |
+| Older build packages after cleanup | `work/archives/builds-pruned-20261026/` |
 | Native input and regression tests | checkout `backends/platform/sdl/wiiu/tests/` |
 | SDK source/install and archived logs | shared `../sdk/sources/`, `../sdk/current/`, `../sdk/backups/`; project `work/logs/`; old SDK/source paths are compatibility links |
 
 Plan sections: 26–27 renderer freeze; 28 Xeen/data/compatibility; 29–32 Curse
 audio and QFG4 loading; 33 text editing/Vorbis; 34 controller keyboard;
 35–36 Groovie FMV and 0.7.0; 38 original Wii Remote IR candidate; 42 button 2/C
-swap and hardware feedback; 43 upstream 2026.4.0; 44 release 0.7.1.
+swap and hardware feedback; 43 upstream 2026.4.0; 44 release 0.7.1;
+45 storage cleanup and archival.
 Read the whole plan for an architectural audit or
 when explicitly requested, not by default for every small follow-up.
 `WIIU_IMPLEMENTATION_STATUS.md` describes the historical first integration,
 not the current release. Missing outer files in a standalone clone mean local
 evidence is unavailable; they do not imply the source port is absent.
+
+## Storage cleanup — 2026-10-26
+
+- I authorized deleting obsolete builds to save disk space. Only two full
+  compilation trees remain: `work/build-scummvm-wiiu-0.7.1/` and the tested
+  `work/build-scummvm-wiiu-2026.4.0/`. All `work/releases/` files are unchanged.
+- 16 older build trees were removed after their 31 original ZIPs, RPX/WUHB,
+  config/checksum/build records and otherwise-unique staging files were
+  archived and verified. Archive: `work/archives/builds-pruned-20261026/`,
+  with the former build names as children. Old debug ELF/object/library/
+  dependency outputs were discarded. Net recovery: approximately **12.19 GiB**
+  after the 848 MiB archive; workspace work/ is now about 4.2 GiB.
+- SHA256 verification covers all 5002 files in the two retained trees and
+  releases. 0.7.1, retained 2026.4.0 and archived Remote SHA256SUMS pass.
+  Source/Git, SDK/default, existing logs and unrelated Android caches remain.
+- Old build paths below and in historical logs now refer to removed caches;
+  use the archive's same-named child for preserved packages/records. No
+  compatibility links recreate build paths. Old packaging helpers need a
+  fresh matching source/SDK build; never compile into the evidence archive.
+- Audit: `work/logs/build-cleanup-20261026/REPORT.md`, JSON inventories and
+  before/after hashes. Plan section 45. No binaries rebuilt or publication
+  performed; this cleanup does not update release-publication status.
 
 ## Prepared release 0.7.1 — 2026-10-22
 
