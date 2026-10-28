@@ -21,6 +21,7 @@
 
 
 #include "backends/platform/sdl/wiiu/wiiu.h"
+#include "backends/platform/sdl/wiiu/wiiu-usb.h"
 #include "backends/platform/sdl/wiiu/release-version.h"
 #include "backends/platform/sdl/wiiu/wiiu-diagnostics.h"
 #include "backends/platform/sdl/wiiu/wiiu-events.h"
@@ -56,6 +57,8 @@ void OSystem_WiiU::quit() {
 void OSystem_WiiU::init() {
 	DrivesPOSIXFilesystemFactory *factory = new DrivesPOSIXFilesystemFactory();
 	factory->addDrive("/vol/external01");
+	if (_usb.root())
+		factory->addDrive(_usb.root());
 	_fsFactory = factory;
 
 	// Do not depend on Aroma's current working directory or HOME.
@@ -88,7 +91,8 @@ void OSystem_WiiU::initBackend() {
 	OSystem_SDL::initBackend();
 	logMessage(LogMessageType::kInfo, "ScummVM Wii U port " WIIU_PORT_VERSION "\n");
 	WIIU_TRACE("BUILD " WIIU_PORT_VERSION "; automatic lifecycle tracing enabled");
-	debug(0, "Wii U SDL backend initialized; config and saves under %s", kDataRoot);
+	debug(0, "Wii U SDL backend initialized; config and default saves under %s", kDataRoot);
+	debug(0, "Wii U USB: %s", _usb.status());
 }
 
 bool OSystem_WiiU::hasFeature(Feature f) {

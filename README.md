@@ -28,12 +28,14 @@ before preparing 0.7.1. The complete control guide is below.
 ## Next version: 0.8.0 engine candidate
 
 I am preparing a combined test build adding **Tinsel, Sword1, Sword2, AGOS,
-Gob, Kyra/EOB, Darkseed and Sherlock** to the existing profile. Rebel Assault
+Gob, Kyra/EOB, Darkseed, Sherlock and SAGA/IHNM** to the existing profile. Rebel Assault
 I/II already use the included SCUMM v7/v8 engine. See the
 [0.8.0 candidate guide](backends/platform/sdl/wiiu/ENGINES-TEST-0.8.0.md) for all
-22 game IDs, installation/data requirements and the joint hardware checklist.
-These engines are pending Wii U tests; this is not a compatibility guarantee
-or a final 0.8.0 release. **Eye of the Beholder III is unsupported by the base;
+23 game IDs, installation/data requirements and the joint hardware checklist.
+My October 27 predecessor tests passed Simon 1, Broken Sword 1 and Goblins
+Quest 3. The October 28 candidate adds **I Have No Mouth, and I Must Scream**,
+a bounded Kyrandia 3 AUD-loading optimization and **FAT32 USB games/optional
+saves**. Those changes need console tests; this is not a final 0.8.0 release. **Eye of the Beholder III is unsupported by the base;
 Kyra provides I and II.** The 0.7.1 packages and build helper remain available.
 
 ## Features

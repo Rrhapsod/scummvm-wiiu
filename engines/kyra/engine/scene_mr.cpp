@@ -29,6 +29,9 @@
 namespace Kyra {
 
 void KyraEngine_MR::enterNewScene(uint16 sceneId, int facing, int unk1, int unk2, int unk3) {
+#ifdef WIIU_KYRA_IO_DIAGNOSTICS
+	const uint32 sceneStart = _system->getMillis();
+#endif
 	++_enterNewSceneLock;
 	_screen->hideMouse();
 
@@ -123,6 +126,9 @@ void KyraEngine_MR::enterNewScene(uint16 sceneId, int facing, int unk1, int unk2
 	}
 
 	loadSceneMsc();
+#ifdef WIIU_KYRA_IO_DIAGNOSTICS
+	const uint32 assetsDone = _system->getMillis();
+#endif
 	_sceneExit1 = _sceneList[sceneId].exit1;
 	_sceneExit2 = _sceneList[sceneId].exit2;
 	_sceneExit3 = _sceneList[sceneId].exit3;
@@ -131,7 +137,13 @@ void KyraEngine_MR::enterNewScene(uint16 sceneId, int facing, int unk1, int unk2
 	while (_system->getMillis() < waitUntilTimer)
 		_system->delayMillis(10);
 
+#ifdef WIIU_KYRA_IO_DIAGNOSTICS
+	const uint32 waitDone = _system->getMillis();
+#endif
 	initSceneScript(unk3);
+#ifdef WIIU_KYRA_IO_DIAGNOSTICS
+	const uint32 scriptDone = _system->getMillis();
+#endif
 
 	if (_overwriteSceneFacing) {
 		facing = _mainCharacter.facing;
@@ -164,6 +176,13 @@ void KyraEngine_MR::enterNewScene(uint16 sceneId, int facing, int unk1, int unk2
 	_screen->showMouse();
 
 	_currentScene = sceneId;
+#ifdef WIIU_KYRA_IO_DIAGNOSTICS
+	static uint traces = 0;
+	if (traces++ < 24)
+		debug(0, "Wii U Kyra3 scene %u: assets=%u wait=%u script=%u entry=%u total=%u ms",
+		      sceneId, assetsDone - sceneStart, waitDone - assetsDone, scriptDone - waitDone,
+		      _system->getMillis() - scriptDone, _system->getMillis() - sceneStart);
+#endif
 }
 
 void KyraEngine_MR::enterNewSceneUnk1(int facing, int unk1, int unk2) {

@@ -25,8 +25,11 @@
 
 #include "backends/platform/sdl/sdl.h"
 
+class WiiUUSBStorage;
+
 class OSystem_WiiU : public OSystem_SDL {
 public:
+	explicit OSystem_WiiU(const WiiUUSBStorage &usb) : _usb(usb) {}
 	~OSystem_WiiU() override;
 	void init() override;
 	void initBackend() override;
@@ -38,6 +41,7 @@ public:
 	void setVirtualKeyboardText(const Common::U32String &text) override;
 
 protected:
+	const WiiUUSBStorage &_usb;
 #ifdef WIIU_COMPAT_DIAGNOSTICS
 	Common::WriteStream *createLogFile() override;
 #endif

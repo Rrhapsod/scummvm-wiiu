@@ -23,6 +23,12 @@
 #include "audio/audiostream.h"
 
 #include "common/util.h"
+#ifdef __WIIU__
+#include "common/bufferedstream.h"
+#endif
+#ifdef WIIU_KYRA_IO_DIAGNOSTICS
+#include "common/system.h"
+#endif
 
 namespace Kyra {
 
@@ -318,7 +324,23 @@ bool AUDStream::seek(const Audio::Timestamp &where) {
 }
 
 Audio::SeekableAudioStream* makeAUDStream(Common::SeekableReadStream* stream, DisposeAfterUse::Flag disposeAfterUse) {
-	return new AUDStream(stream);
+#ifdef WIIU_KYRA_IO_DIAGNOSTICS
+	const uint32 start = g_system->getMillis();
+#endif
+#ifdef __WIIU__
+	// The duration scan seeks past every AUD chunk before playback. Keep
+	// nearby headers and payloads in memory instead of issuing thousands of
+	// small seeks through newlib/FSA when changing music on a scene transition.
+	// AUDStream owns its input; buffering is bounded to 64 KiB per sound.
+	stream = Common::wrapBufferedSeekableReadStream(stream, 64 * 1024, DisposeAfterUse::YES);
+#endif
+	AUDStream *audio = new AUDStream(stream);
+#ifdef WIIU_KYRA_IO_DIAGNOSTICS
+	static uint traces = 0;
+	if (traces++ < 24)
+		debug(0, "Wii U Kyra AUD initialization: %u ms, %lld bytes", g_system->getMillis() - start, (long long)stream->size());
+#endif
+	return audio;
 }
 
 } // End of namespace Kyra

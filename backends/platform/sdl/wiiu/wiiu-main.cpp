@@ -22,10 +22,13 @@
 
 #include "backends/platform/sdl/wiiu/wiiu.h"
 #include "base/main.h"
+#include "backends/platform/sdl/wiiu/wiiu-usb.h"
 
 int main(int argc, char *argv[]) {
 	// WUT's CRT initializes libc and the SD filesystem. SDL owns ProcUI/GX2.
-	g_system = new OSystem_WiiU();
+	WiiUUSBStorage usb;
+	usb.mount();
+	g_system = new OSystem_WiiU(usb);
 	g_system->init();
 	const int result = scummvm_main(argc, argv);
 	g_system->destroy();

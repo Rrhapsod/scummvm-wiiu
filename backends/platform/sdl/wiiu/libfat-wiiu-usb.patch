@@ -1,0 +1,281 @@
+diff --git a/include/fat.h b/include/fat.h
+index 68761d8..54c1fed 100644
+--- a/include/fat.h
++++ b/include/fat.h
+@@ -53,7 +53,7 @@ extern "C" {
+ #  ifdef NDS
+ #    include <nds/disc_io.h>
+ #  elif defined(__WIIU__)
+-#    include <iosuhax_disc_interface.h>
++#    include <mocha/disc_interface.h>
+ #  else
+ #    include <disc_io.h>
+ #  endif
+diff --git a/source/bit_ops.h b/source/bit_ops.h
+index 762be0b..59894b8 100644
+--- a/source/bit_ops.h
++++ b/source/bit_ops.h
+@@ -39,7 +39,7 @@ static inline uint16_t u8array_to_u16 (const uint8_t* item, int offset) {
+ }
+ 
+ static inline uint32_t u8array_to_u32 (const uint8_t* item, int offset) {
+-	return ( item[offset] | (item[offset + 1] << 8) | (item[offset + 2] << 16) | (item[offset + 3] << 24));
++	return ( item[offset] | (item[offset + 1] << 8) | (item[offset + 2] << 16) | ((uint32_t)item[offset + 3] << 24));
+ }
+ 
+ static inline void u16_to_u8array (uint8_t* item, int offset, uint16_t value) {
+diff --git a/source/cache.c b/source/cache.c
+index 07576b9..7556596 100644
+--- a/source/cache.c
++++ b/source/cache.c
+@@ -83,6 +83,13 @@ CACHE* _FAT_cache_constructor (unsigned int numberOfPages, unsigned int sectorsP
+ 		cacheEntries[i].last_access = 0;
+ 		cacheEntries[i].dirty = false;
+ 		cacheEntries[i].cache = (uint8_t*) _FAT_mem_align ( sectorsPerPage * bytesPerSector );
++		// Local: release partial allocations before returning failure.
++		if (!cacheEntries[i].cache) {
++			while (i > 0) _FAT_mem_free(cacheEntries[--i].cache);
++			_FAT_mem_free(cacheEntries);
++			_FAT_mem_free(cache);
++			return NULL;
++		}
+ 	}
+ 
+ 	cache->cacheEntries = cacheEntries;
+diff --git a/source/common.h b/source/common.h
+index e1cb946..44ff9f0 100644
+--- a/source/common.h
++++ b/source/common.h
+@@ -56,7 +56,7 @@
+   #include <gp2xtypes.h>
+   #include <disc_io.h>
+ #elif defined(__WIIU__)
+-  #include <iosuhax_disc_interface.h>
++  #include <mocha/disc_interface.h>
+   typedef uint8_t u8;
+   typedef uint16_t u16;
+   typedef int32_t s32;
+diff --git a/source/disc.c b/source/disc.c
+index a69b872..8e85fbc 100755
+--- a/source/disc.c
++++ b/source/disc.c
+@@ -40,14 +40,14 @@ The list is terminated by a NULL/NULL entry.
+ 
+ /* ====================== Wii U ====================== */
+ #if   defined (__WIIU__)
+-#include <iosuhax_disc_interface.h>
++#include <mocha/disc_interface.h>
+ 
+ static const DISC_INTERFACE* get_io_wiiu_sd (void) {
+-	return &IOSUHAX_sdio_disc_interface;
++	return &Mocha_sdio_disc_interface;
+ }
+ 
+ static const DISC_INTERFACE* get_io_wiiu_usb (void) {
+-	return &IOSUHAX_usb_disc_interface;
++	return &Mocha_usb_disc_interface;
+ }
+ 
+ const INTERFACE_ID _FAT_disc_interfaces[] = {
+diff --git a/source/file_allocation_table.c b/source/file_allocation_table.c
+index 72f8aa7..bcdef39 100644
+--- a/source/file_allocation_table.c
++++ b/source/file_allocation_table.c
+@@ -129,6 +129,9 @@ static bool _FAT_fat_writeFatEntry (PARTITION* partition, uint32_t cluster, uint
+ 		return false;
+ 	}
+ 
++	// Local: update every mirrored FAT, including FAT16 volumes.
++	for (uint32_t copy = 0; copy < partition->fat.copiesToWrite; ++copy) {
++	const sec_t fatStart = partition->fat.fatStart + copy * partition->fat.sectorsPerFat;
+ 	switch (partition->filesysType)
+ 	{
+ 		case FS_UNKNOWN:
+@@ -136,7 +139,7 @@ static bool _FAT_fat_writeFatEntry (PARTITION* partition, uint32_t cluster, uint
+ 			break;
+ 
+ 		case FS_FAT12:
+-			sector = partition->fat.fatStart + (((cluster * 3) / 2) / partition->bytesPerSector);
++			sector = fatStart + (((cluster * 3) / 2) / partition->bytesPerSector);
+ 			offset = ((cluster * 3) / 2) % partition->bytesPerSector;
+ 
+ 			if (cluster & 0x01) {
+@@ -175,7 +178,7 @@ static bool _FAT_fat_writeFatEntry (PARTITION* partition, uint32_t cluster, uint
+ 			break;
+ 
+ 		case FS_FAT16:
+-			sector = partition->fat.fatStart + ((cluster << 1) / partition->bytesPerSector);
++			sector = fatStart + ((cluster << 1) / partition->bytesPerSector);
+ 			offset = (cluster % (partition->bytesPerSector >> 1)) << 1;
+ 
+ 			_FAT_cache_writeLittleEndianValue (partition->cache, value, sector, offset, sizeof(u16));
+@@ -183,10 +186,11 @@ static bool _FAT_fat_writeFatEntry (PARTITION* partition, uint32_t cluster, uint
+ 			break;
+ 
+ 		case FS_FAT32:
+-			sector = partition->fat.fatStart + ((cluster << 2) / partition->bytesPerSector);
++			sector = fatStart + ((cluster << 2) / partition->bytesPerSector);
+ 			offset = (cluster % (partition->bytesPerSector >> 2)) << 2;
+ 
+-			_FAT_cache_writeLittleEndianValue (partition->cache, value, sector, offset, sizeof(u32));
++			if (!_FAT_cache_writeLittleEndianValue (partition->cache, value, sector, offset, sizeof(u32)))
++				return false;
+ 
+ 			break;
+ 
+@@ -195,6 +199,7 @@ static bool _FAT_fat_writeFatEntry (PARTITION* partition, uint32_t cluster, uint
+ 			break;
+ 	}
+ 
++	}
+ 	return true;
+ }
+ 
+diff --git a/source/libfat.c b/source/libfat.c
+index 11182f1..23704e9 100644
+--- a/source/libfat.c
++++ b/source/libfat.c
+@@ -109,7 +109,12 @@ bool fatMount (const char* name, const DISC_INTERFACE* interface, sec_t startSec
+ 	devops->name = nameCopy;
+ 	devops->deviceData = partition;
+ 
+-	AddDevice (devops);
++	// Local Wii U port: propagate registration failure and release the cache.
++	if (AddDevice (devops) < 0) {
++		_FAT_partition_destructor (partition);
++		_FAT_mem_free (devops);
++		return false;
++	}
+ 
+ 	return true;
+ }
+diff --git a/source/lock.c b/source/lock.c
+index 59c3444..eda099e 100644
+--- a/source/lock.c
++++ b/source/lock.c
+@@ -1,6 +1,6 @@
+ #include "common.h"
+ 
+-#ifndef USE_LWP_LOCK
++#if !defined(USE_LWP_LOCK) && !defined(__WIIU__)
+ 
+ #ifndef mutex_t
+ typedef int mutex_t;
+diff --git a/source/lock.h b/source/lock.h
+index de5723a..7490364 100644
+--- a/source/lock.h
++++ b/source/lock.h
+@@ -31,7 +31,17 @@
+ 
+ #include "common.h"
+ 
+-#ifdef USE_LWP_LOCK
++#if defined(__WIIU__)
++
++// Local Wii U port: the main and audio threads share the partition cache.
++#include <coreinit/mutex.h>
++typedef OSMutex mutex_t;
++static inline void _FAT_lock_init(mutex_t *m) { OSInitMutex(m); }
++static inline void _FAT_lock_deinit(mutex_t *m) { (void)m; }
++static inline void _FAT_lock(mutex_t *m) { OSLockMutex(m); }
++static inline void _FAT_unlock(mutex_t *m) { OSUnlockMutex(m); }
++
++#elif defined(USE_LWP_LOCK)
+ 
+ static inline void _FAT_lock_init(mutex_t *mutex)
+ {
+diff --git a/source/mem_allocate.h b/source/mem_allocate.h
+index 3308807..e7fb7a2 100644
+--- a/source/mem_allocate.h
++++ b/source/mem_allocate.h
+@@ -38,7 +38,9 @@ static inline void* _FAT_mem_allocate (size_t size) {
+ }
+ 
+ static inline void* _FAT_mem_align (size_t size) {
+-#ifdef __wii__
++#ifdef __WIIU__
++	return memalign (64, size);
++#elif defined(__wii__)
+ 	return memalign (32, size);
+ #else
+ 	return malloc (size);
+diff --git a/source/partition.c b/source/partition.c
+index 4a29261..b66a7a1 100644
+--- a/source/partition.c
++++ b/source/partition.c
+@@ -227,6 +227,16 @@ PARTITION* _FAT_partition_constructor_buf (const DISC_INTERFACE* disc, uint32_t
+ 		strncpy(partition->label, (char*)(sectorBuffer + BPB_FAT32_volumeLabel), 11);
+ 	partition->label[11] = '\0';
+ 
++	// Local: reject invalid mirror counts/active indices before writing metadata.
++	if (sectorBuffer[BPB_numFATs] < 1 || sectorBuffer[BPB_numFATs] > 2 ||
++	    ((sectorBuffer[BPB_FAT32_extFlags] & 0x80) &&
++	     !u8array_to_u16(sectorBuffer, BPB_sectorsPerFAT) &&
++	     (sectorBuffer[BPB_FAT32_extFlags] & 0x0F) >= sectorBuffer[BPB_numFATs])) {
++		_FAT_lock_deinit(&partition->lock);
++		_FAT_mem_free(partition);
++		return NULL;
++	}
++
+ 	// Set partition's disc interface
+ 	partition->disc = disc;
+ 
+@@ -251,6 +261,7 @@ PARTITION* _FAT_partition_constructor_buf (const DISC_INTERFACE* disc, uint32_t
+ 	partition->sectorsPerCluster = sectorBuffer[BPB_sectorsPerCluster];
+ 	partition->bytesPerCluster = partition->bytesPerSector * partition->sectorsPerCluster;
+ 	partition->fat.fatStart = startSector + u8array_to_u16(sectorBuffer, BPB_reservedSectors);
++	partition->fat.copiesToWrite = sectorBuffer[BPB_numFATs];
+ 
+ 	partition->rootDirStart = partition->fat.fatStart + (sectorBuffer[BPB_numFATs] * partition->fat.sectorsPerFat);
+ 	partition->dataStart = partition->rootDirStart +
+@@ -282,8 +293,9 @@ PARTITION* _FAT_partition_constructor_buf (const DISC_INTERFACE* disc, uint32_t
+ 		// Set up for the FAT32 way
+ 		partition->rootDirCluster = u8array_to_u32(sectorBuffer, BPB_FAT32_rootClus);
+ 		// Check if FAT mirroring is enabled
+-		if (!(sectorBuffer[BPB_FAT32_extFlags] & 0x80)) {
+-			// Use the active FAT
++		if (sectorBuffer[BPB_FAT32_extFlags] & 0x80) {
++			// Local: bit 7 disables mirroring and selects the active FAT.
++			partition->fat.copiesToWrite = 1;
+ 			partition->fat.fatStart = partition->fat.fatStart + ( partition->fat.sectorsPerFat * (sectorBuffer[BPB_FAT32_extFlags] & 0x0F));
+ 		}
+ 	}
+@@ -291,6 +303,13 @@ PARTITION* _FAT_partition_constructor_buf (const DISC_INTERFACE* disc, uint32_t
+ 	// Create a cache to use
+ 	partition->cache = _FAT_cache_constructor (cacheSize, sectorsPerPage, partition->disc, startSector+partition->numberOfSectors, partition->bytesPerSector);
+ 
++	// Local Wii U port: a failed cache allocation must not become a mounted drive.
++	if (!partition->cache) {
++		_FAT_lock_deinit(&partition->lock);
++		_FAT_mem_free(partition);
++		return NULL;
++	}
++
+ 	// Set current directory to the root
+ 	partition->cwdCluster = partition->rootDirCluster;
+ 
+diff --git a/source/partition.h b/source/partition.h
+index ec27a0e..2b8288f 100644
+--- a/source/partition.h
++++ b/source/partition.h
+@@ -43,6 +43,7 @@ typedef enum {FS_UNKNOWN, FS_FAT12, FS_FAT16, FS_FAT32} FS_TYPE;
+ typedef struct {
+ 	sec_t    fatStart;
+ 	uint32_t sectorsPerFat;
++	uint32_t copiesToWrite; // Local: keep mirrored FAT copies consistent.
+ 	uint32_t lastCluster;
+ 	uint32_t firstFree;
+ 	uint32_t numberFreeCluster;
+diff --git a/wiiu/Makefile b/wiiu/Makefile
+index 0bd25d2..630f712 100644
+--- a/wiiu/Makefile
++++ b/wiiu/Makefile
+@@ -27,7 +27,7 @@ LIB		:=	$(TOPDIR)/wiiu/lib
+ CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
+ 			$(MACHDEP)
+ 
+-CFLAGS	+=	$(INCLUDE) -D__WIIU__ -D__WUT__
++CFLAGS	+=	$(INCLUDE) -I$(WUT_ROOT)/include -D__WIIU__ -D__WUT__
+ 
+ CXXFLAGS	:= $(CFLAGS)
+ 

@@ -1,0 +1,387 @@
+diff --git a/source/devoptab/devoptab_fsa.cpp b/source/devoptab/devoptab_fsa.cpp
+index c9bbe3c..fd02f97 100644
+--- a/source/devoptab/devoptab_fsa.cpp
++++ b/source/devoptab/devoptab_fsa.cpp
+@@ -185,9 +185,9 @@ MochaUtilsStatus Mocha_MountFSEx(const char *virt_name, const char *dev_path, co
+     strncpy(mount->mountPath, normalizedMountPath.c_str(), sizeof(mount->mountPath) - 1);
+     FSError res;
+     if (!normalizedDevPath.empty()) {
+-        res = FSAMount(mount->clientHandle, normalizedDevPath.c_str(), normalizedMountPath.c_str(), mountFlags, mountArgBuf, mountArgBufLen);
++        res = FSAMount((unsigned int) mount->clientHandle, normalizedDevPath.c_str(), normalizedMountPath.c_str(), mountFlags, mountArgBuf, mountArgBufLen);
+         if (res < 0) {
+-            DEBUG_FUNCTION_LINE_ERR("FSAMount(0x%08X, %s, %s, %08X, %p, %08X) failed: %s", mount->clientHandle, normalizedDevPath.c_str(), normalizedMountPath.c_str(), mountFlags, mountArgBuf, mountArgBufLen, FSAGetStatusStr(res));
++            DEBUG_FUNCTION_LINE_ERR("FSAMount(0x%08X, %s, %s, %08X, %p, %08X) failed: %s", (unsigned int) mount->clientHandle, normalizedDevPath.c_str(), normalizedMountPath.c_str(), mountFlags, mountArgBuf, mountArgBufLen, FSAGetStatusStr(res));
+             fsa_free(mount);
+             if (res == FS_ERROR_ALREADY_EXISTS) {
+                 return MOCHA_RESULT_ALREADY_EXISTS;
+@@ -200,7 +200,7 @@ MochaUtilsStatus Mocha_MountFSEx(const char *virt_name, const char *dev_path, co
+     }
+ 
+     if ((res = FSAChangeDir(mount->clientHandle, mount->mountPath)) < 0) {
+-        DEBUG_FUNCTION_LINE_WARN("FSAChangeDir(0x%08X, %s) failed: %s", mount->clientHandle, mount->mountPath, FSAGetStatusStr(res));
++        DEBUG_FUNCTION_LINE_WARN("FSAChangeDir(0x%08X, %s) failed: %s", (unsigned int) mount->clientHandle, mount->mountPath, FSAGetStatusStr(res));
+     } else {
+         strncpy(mount->cwd, normalizedMountPath.c_str(), sizeof(mount->mountPath) - 1);
+     }
+diff --git a/source/devoptab/devoptab_fsa_chdir.cpp b/source/devoptab/devoptab_fsa_chdir.cpp
+index 8408239..4e7e1d7 100644
+--- a/source/devoptab/devoptab_fsa_chdir.cpp
++++ b/source/devoptab/devoptab_fsa_chdir.cpp
+@@ -18,7 +18,7 @@ int __fsa_chdir(struct _reent *r,
+ 
+     const FSError status = FSAChangeDir(deviceData->clientHandle, fixedPath);
+     if (status < 0) {
+-        DEBUG_FUNCTION_LINE_ERR("FSAChangeDir(0x%08X, %s) failed: %s", deviceData->clientHandle, fixedPath, FSAGetStatusStr(status));
++        DEBUG_FUNCTION_LINE_ERR("FSAChangeDir(0x%08X, %s) failed: %s", (unsigned int) deviceData->clientHandle, fixedPath, FSAGetStatusStr(status));
+         free(fixedPath);
+         r->_errno = __fsa_translate_error(status);
+         return -1;
+diff --git a/source/devoptab/devoptab_fsa_chmod.cpp b/source/devoptab/devoptab_fsa_chmod.cpp
+index 6f78916..298f7c6 100644
+--- a/source/devoptab/devoptab_fsa_chmod.cpp
++++ b/source/devoptab/devoptab_fsa_chmod.cpp
+@@ -24,7 +24,7 @@ int __fsa_chmod(struct _reent *r,
+     const FSError status = FSAChangeMode(deviceData->clientHandle, fixedPath, translatedMode);
+     if (status < 0) {
+         DEBUG_FUNCTION_LINE_ERR("FSAChangeMode(0x%08X, %s, 0x%X) failed: %s",
+-                                deviceData->clientHandle, fixedPath, translatedMode, FSAGetStatusStr(status));
++                                (unsigned int) deviceData->clientHandle, fixedPath, translatedMode, FSAGetStatusStr(status));
+         free(fixedPath);
+         r->_errno = __fsa_translate_error(status);
+         return -1;
+diff --git a/source/devoptab/devoptab_fsa_close.cpp b/source/devoptab/devoptab_fsa_close.cpp
+index e11876a..85d9d7c 100644
+--- a/source/devoptab/devoptab_fsa_close.cpp
++++ b/source/devoptab/devoptab_fsa_close.cpp
+@@ -18,7 +18,7 @@ int __fsa_close(struct _reent *r,
+     const FSError status = FSACloseFile(deviceData->clientHandle, file->fd);
+     if (status < 0) {
+         DEBUG_FUNCTION_LINE_ERR("FSACloseFile(0x%08X, 0x%08X) (%s) failed: %s",
+-                                deviceData->clientHandle, file->fd, file->fullPath, FSAGetStatusStr(status));
++                                (unsigned int) deviceData->clientHandle, (unsigned int) file->fd, file->fullPath, FSAGetStatusStr(status));
+         r->_errno = __fsa_translate_error(status);
+         return -1;
+     }
+diff --git a/source/devoptab/devoptab_fsa_dirclose.cpp b/source/devoptab/devoptab_fsa_dirclose.cpp
+index c0fc5d5..4afc7b7 100644
+--- a/source/devoptab/devoptab_fsa_dirclose.cpp
++++ b/source/devoptab/devoptab_fsa_dirclose.cpp
+@@ -19,7 +19,7 @@ int __fsa_dirclose(struct _reent *r,
+     const FSError status = FSACloseDir(deviceData->clientHandle, dir->fd);
+     if (status < 0) {
+         DEBUG_FUNCTION_LINE_ERR("FSACloseDir(0x%08X, 0x%08X) (%s) failed: %s",
+-                                deviceData->clientHandle, dir->fd, dir->fullPath, FSAGetStatusStr(status));
++                                (unsigned int) deviceData->clientHandle, (unsigned int) dir->fd, dir->fullPath, FSAGetStatusStr(status));
+         r->_errno = __fsa_translate_error(status);
+         return -1;
+     }
+diff --git a/source/devoptab/devoptab_fsa_dirnext.cpp b/source/devoptab/devoptab_fsa_dirnext.cpp
+index d756fcc..57877a1 100644
+--- a/source/devoptab/devoptab_fsa_dirnext.cpp
++++ b/source/devoptab/devoptab_fsa_dirnext.cpp
+@@ -23,7 +23,7 @@ int __fsa_dirnext(struct _reent *r,
+     if (status < 0) {
+         if (status != FS_ERROR_END_OF_DIR) {
+             DEBUG_FUNCTION_LINE_ERR("FSAReadDir(0x%08X, 0x%08X, %p) (%s) failed: %s",
+-                                    deviceData->clientHandle, dir->fd, &dir->entry_data, dir->fullPath, FSAGetStatusStr(status));
++                                    (unsigned int) deviceData->clientHandle, (unsigned int) dir->fd, &dir->entry_data, dir->fullPath, FSAGetStatusStr(status));
+         }
+         r->_errno = __fsa_translate_error(status);
+         return -1;
+diff --git a/source/devoptab/devoptab_fsa_diropen.cpp b/source/devoptab/devoptab_fsa_diropen.cpp
+index 6261e09..54bcde2 100644
+--- a/source/devoptab/devoptab_fsa_diropen.cpp
++++ b/source/devoptab/devoptab_fsa_diropen.cpp
+@@ -39,7 +39,7 @@ __fsa_diropen(struct _reent *r,
+     const FSError status = FSAOpenDir(deviceData->clientHandle, dir->fullPath, &fd);
+     if (status < 0) {
+         DEBUG_FUNCTION_LINE_ERR("FSAOpenDir(0x%08X, %s, %p) failed: %s",
+-                                deviceData->clientHandle, dir->fullPath, &fd, FSAGetStatusStr(status));
++                                (unsigned int) deviceData->clientHandle, dir->fullPath, &fd, FSAGetStatusStr(status));
+         r->_errno = __fsa_translate_error(status);
+         return nullptr;
+     }
+diff --git a/source/devoptab/devoptab_fsa_dirreset.cpp b/source/devoptab/devoptab_fsa_dirreset.cpp
+index 94538b8..769541b 100644
+--- a/source/devoptab/devoptab_fsa_dirreset.cpp
++++ b/source/devoptab/devoptab_fsa_dirreset.cpp
+@@ -18,7 +18,7 @@ int __fsa_dirreset(struct _reent *r,
+     const FSError status = FSARewindDir(deviceData->clientHandle, dir->fd);
+     if (status < 0) {
+         DEBUG_FUNCTION_LINE_ERR("FSARewindDir(0x%08X, 0x%08X) (%s) failed: %s",
+-                                deviceData->clientHandle, dir->fd, dir->fullPath, FSAGetStatusStr(status));
++                                (unsigned int) deviceData->clientHandle, (unsigned int) dir->fd, dir->fullPath, FSAGetStatusStr(status));
+         r->_errno = __fsa_translate_error(status);
+         return -1;
+     }
+diff --git a/source/devoptab/devoptab_fsa_fstat.cpp b/source/devoptab/devoptab_fsa_fstat.cpp
+index bd107da..9e7887c 100644
+--- a/source/devoptab/devoptab_fsa_fstat.cpp
++++ b/source/devoptab/devoptab_fsa_fstat.cpp
+@@ -20,7 +20,7 @@ int __fsa_fstat(struct _reent *r,
+     const FSError status = FSAGetStatFile(deviceData->clientHandle, file->fd, &fsStat);
+     if (status < 0) {
+         DEBUG_FUNCTION_LINE_ERR("FSAGetStatFile(0x%08X, 0x%08X, %p) (%s) failed: %s",
+-                                deviceData->clientHandle, file->fd, &fsStat,
++                                (unsigned int) deviceData->clientHandle, (unsigned int) file->fd, &fsStat,
+                                 file->fullPath, FSAGetStatusStr(status));
+         r->_errno = __fsa_translate_error(status);
+         return -1;
+diff --git a/source/devoptab/devoptab_fsa_fsync.cpp b/source/devoptab/devoptab_fsa_fsync.cpp
+index d193754..c05b03a 100644
+--- a/source/devoptab/devoptab_fsa_fsync.cpp
++++ b/source/devoptab/devoptab_fsa_fsync.cpp
+@@ -17,7 +17,7 @@ int __fsa_fsync(struct _reent *r,
+     const FSError status = FSAFlushFile(deviceData->clientHandle, file->fd);
+     if (status < 0) {
+         DEBUG_FUNCTION_LINE_ERR("FSAFlushFile(0x%08X, 0x%08X) (%s) failed: %s",
+-                                deviceData->clientHandle, file->fd, file->fullPath, FSAGetStatusStr(status));
++                                (unsigned int) deviceData->clientHandle, (unsigned int) file->fd, file->fullPath, FSAGetStatusStr(status));
+         r->_errno = __fsa_translate_error(status);
+         return -1;
+     }
+diff --git a/source/devoptab/devoptab_fsa_mkdir.cpp b/source/devoptab/devoptab_fsa_mkdir.cpp
+index 78dd946..5d4ce9b 100644
+--- a/source/devoptab/devoptab_fsa_mkdir.cpp
++++ b/source/devoptab/devoptab_fsa_mkdir.cpp
+@@ -23,7 +23,7 @@ int __fsa_mkdir(struct _reent *r,
+     const FSError status = FSAMakeDir(deviceData->clientHandle, fixedPath, translatedMode);
+     if (status < 0) {
+         DEBUG_FUNCTION_LINE_ERR("FSAMakeDir(0x%08X, %s, 0x%X) failed: %s",
+-                                deviceData->clientHandle, fixedPath, translatedMode, FSAGetStatusStr(status));
++                                (unsigned int) deviceData->clientHandle, fixedPath, translatedMode, FSAGetStatusStr(status));
+         free(fixedPath);
+         r->_errno = __fsa_translate_error(status);
+         return -1;
+diff --git a/source/devoptab/devoptab_fsa_open.cpp b/source/devoptab/devoptab_fsa_open.cpp
+index 5396660..cc90f20 100644
+--- a/source/devoptab/devoptab_fsa_open.cpp
++++ b/source/devoptab/devoptab_fsa_open.cpp
+@@ -101,12 +101,12 @@ int __fsa_open(struct _reent *r,
+                 if (status == FS_ERROR_OK) {
+                     if (FSACloseFile(deviceData->clientHandle, fd) != FS_ERROR_OK) {
+                         DEBUG_FUNCTION_LINE_ERR("FSACloseFile(0x%08X, 0x%08X) (%s) failed: %s",
+-                                                deviceData->clientHandle, fd, file->fullPath, FSAGetStatusStr(status));
++                                                (unsigned int) deviceData->clientHandle, (unsigned int) fd, file->fullPath, FSAGetStatusStr(status));
+                     }
+                     fd = -1;
+                 } else {
+                     DEBUG_FUNCTION_LINE_ERR("FSAOpenFileEx(0x%08X, %s, %s, 0x%X, 0x%08X, 0x%08X, %p) failed: %s",
+-                                            deviceData->clientHandle, file->fullPath, "w", translatedMode, openFlags, preAllocSize, &fd,
++                                            (unsigned int) deviceData->clientHandle, file->fullPath, "w", translatedMode, openFlags, (unsigned int) preAllocSize, &fd,
+                                             FSAGetStatusStr(status));
+                     r->_errno = __fsa_translate_error(status);
+                     return -1;
+@@ -128,7 +128,7 @@ int __fsa_open(struct _reent *r,
+     if (status < 0) {
+         if (status != FS_ERROR_NOT_FOUND) {
+             DEBUG_FUNCTION_LINE_ERR("FSAOpenFileEx(0x%08X, %s, %s, 0x%X, 0x%08X, 0x%08X, %p) failed: %s",
+-                                    deviceData->clientHandle, file->fullPath, fsMode, translatedMode, openFlags, preAllocSize, &fd,
++                                    (unsigned int) deviceData->clientHandle, file->fullPath, fsMode, translatedMode, openFlags, (unsigned int) preAllocSize, &fd,
+                                     FSAGetStatusStr(status));
+         }
+         r->_errno = __fsa_translate_error(status);
+@@ -145,11 +145,11 @@ int __fsa_open(struct _reent *r,
+         status = FSAGetStatFile(deviceData->clientHandle, fd, &stat);
+         if (status < 0) {
+             DEBUG_FUNCTION_LINE_ERR("FSAGetStatFile(0x%08X, 0x%08X, %p) (%s) failed: %s",
+-                                    deviceData->clientHandle, fd, &stat, file->fullPath, FSAGetStatusStr(status));
++                                    (unsigned int) deviceData->clientHandle, (unsigned int) fd, &stat, file->fullPath, FSAGetStatusStr(status));
+             r->_errno = __fsa_translate_error(status);
+             if (FSACloseFile(deviceData->clientHandle, fd) < 0) {
+                 DEBUG_FUNCTION_LINE_ERR("FSACloseFile(0x%08X, 0x%08X) (%s) failed: %s",
+-                                        deviceData->clientHandle, fd, file->fullPath, FSAGetStatusStr(status));
++                                        (unsigned int) deviceData->clientHandle, (unsigned int) fd, file->fullPath, FSAGetStatusStr(status));
+             }
+             return -1;
+         }
+diff --git a/source/devoptab/devoptab_fsa_read.cpp b/source/devoptab/devoptab_fsa_read.cpp
+index 1ea4874..2ce876a 100644
+--- a/source/devoptab/devoptab_fsa_read.cpp
++++ b/source/devoptab/devoptab_fsa_read.cpp
+@@ -52,7 +52,7 @@ ssize_t __fsa_read(struct _reent *r, void *fd, char *ptr, size_t len) {
+ 
+         if (status < 0) {
+             DEBUG_FUNCTION_LINE_ERR("FSAReadFile(0x%08X, %p, 1, 0x%08X, 0x%08X, 0) (%s) failed: %s",
+-                                    deviceData->clientHandle, tmp, size, file->fd, file->fullPath, FSAGetStatusStr(status));
++                                    (unsigned int) deviceData->clientHandle, tmp, size, (unsigned int) file->fd, file->fullPath, FSAGetStatusStr(status));
+ 
+             if (bytesRead != 0) {
+                 return bytesRead; // error after partial read
+diff --git a/source/devoptab/devoptab_fsa_rename.cpp b/source/devoptab/devoptab_fsa_rename.cpp
+index d427918..107ad2f 100644
+--- a/source/devoptab/devoptab_fsa_rename.cpp
++++ b/source/devoptab/devoptab_fsa_rename.cpp
+@@ -28,7 +28,7 @@ int __fsa_rename(struct _reent *r,
+     const FSError status = FSARename(deviceData->clientHandle, fixedOldPath, fixedNewPath);
+     if (status < 0) {
+         DEBUG_FUNCTION_LINE_ERR("FSARename(0x%08X, %s, %s) failed: %s",
+-                                deviceData->clientHandle, fixedOldPath, fixedNewPath, FSAGetStatusStr(status));
++                                (unsigned int) deviceData->clientHandle, fixedOldPath, fixedNewPath, FSAGetStatusStr(status));
+         free(fixedOldPath);
+         free(fixedNewPath);
+         r->_errno = __fsa_translate_error(status);
+diff --git a/source/devoptab/devoptab_fsa_rmdir.cpp b/source/devoptab/devoptab_fsa_rmdir.cpp
+index d99320c..83d7433 100644
+--- a/source/devoptab/devoptab_fsa_rmdir.cpp
++++ b/source/devoptab/devoptab_fsa_rmdir.cpp
+@@ -20,7 +20,7 @@ int __fsa_rmdir(struct _reent *r,
+     const FSError status = FSARemove(deviceData->clientHandle, fixedPath);
+     if (status < 0) {
+         DEBUG_FUNCTION_LINE_ERR("FSARemove(0x%08X, %s) failed: %s",
+-                                deviceData->clientHandle, fixedPath, FSAGetStatusStr(status));
++                                (unsigned int) deviceData->clientHandle, fixedPath, FSAGetStatusStr(status));
+         free(fixedPath);
+         r->_errno = __fsa_translate_error(status);
+         return -1;
+diff --git a/source/devoptab/devoptab_fsa_seek.cpp b/source/devoptab/devoptab_fsa_seek.cpp
+index 7a52fb2..895f71e 100644
+--- a/source/devoptab/devoptab_fsa_seek.cpp
++++ b/source/devoptab/devoptab_fsa_seek.cpp
+@@ -35,7 +35,7 @@ off_t __fsa_seek(struct _reent *r,
+             status = FSAGetStatFile(deviceData->clientHandle, file->fd, &fsStat);
+             if (status < 0) {
+                 DEBUG_FUNCTION_LINE_ERR("FSAGetStatFile(0x%08X, 0x%08X, %p) (%s) failed: %s",
+-                                        deviceData->clientHandle, file->fd, &fsStat, file->fullPath, FSAGetStatusStr(status));
++                                        (unsigned int) deviceData->clientHandle, (unsigned int) file->fd, &fsStat, file->fullPath, FSAGetStatusStr(status));
+                 r->_errno = __fsa_translate_error(status);
+                 return -1;
+             }
+@@ -68,7 +68,7 @@ off_t __fsa_seek(struct _reent *r,
+     status = FSASetPosFile(deviceData->clientHandle, file->fd, file->offset);
+     if (status < 0) {
+         DEBUG_FUNCTION_LINE_ERR("FSASetPosFile(0x%08X, 0x%08X, 0x%08X) (%s) failed: %s",
+-                                deviceData->clientHandle, file->fd, file->offset, file->fullPath, FSAGetStatusStr(status));
++                                (unsigned int) deviceData->clientHandle, (unsigned int) file->fd, (unsigned int) file->offset, file->fullPath, FSAGetStatusStr(status));
+         file->offset = old_pos;
+         r->_errno    = __fsa_translate_error(status);
+         return -1;
+diff --git a/source/devoptab/devoptab_fsa_stat.cpp b/source/devoptab/devoptab_fsa_stat.cpp
+index 47d554c..d0f5261 100644
+--- a/source/devoptab/devoptab_fsa_stat.cpp
++++ b/source/devoptab/devoptab_fsa_stat.cpp
+@@ -24,7 +24,7 @@ int __fsa_stat(struct _reent *r,
+     if (status < 0) {
+         if (status != FS_ERROR_NOT_FOUND) {
+             DEBUG_FUNCTION_LINE_ERR("FSAGetStat(0x%08X, %s, %p) failed: %s",
+-                                    deviceData->clientHandle, fixedPath, &fsStat, FSAGetStatusStr(status));
++                                    (unsigned int) deviceData->clientHandle, fixedPath, &fsStat, FSAGetStatusStr(status));
+         }
+         free(fixedPath);
+         r->_errno = __fsa_translate_error(status);
+diff --git a/source/devoptab/devoptab_fsa_statvfs.cpp b/source/devoptab/devoptab_fsa_statvfs.cpp
+index 055984f..9e19853 100644
+--- a/source/devoptab/devoptab_fsa_statvfs.cpp
++++ b/source/devoptab/devoptab_fsa_statvfs.cpp
+@@ -23,7 +23,7 @@ int __fsa_statvfs(struct _reent *r,
+     const FSError status = FSAGetFreeSpaceSize(deviceData->clientHandle, fixedPath, &freeSpace);
+     if (status < 0) {
+         DEBUG_FUNCTION_LINE_ERR("FSAGetFreeSpaceSize(0x%08X, %s, %p) failed: %s",
+-                                deviceData->clientHandle, fixedPath, &freeSpace, FSAGetStatusStr(status));
++                                (unsigned int) deviceData->clientHandle, fixedPath, &freeSpace, FSAGetStatusStr(status));
+         free(fixedPath);
+         r->_errno = __fsa_translate_error(status);
+         return -1;
+diff --git a/source/devoptab/devoptab_fsa_truncate.cpp b/source/devoptab/devoptab_fsa_truncate.cpp
+index ebfb37e..2e93a3a 100644
+--- a/source/devoptab/devoptab_fsa_truncate.cpp
++++ b/source/devoptab/devoptab_fsa_truncate.cpp
+@@ -21,7 +21,7 @@ int __fsa_ftruncate(struct _reent *r,
+     FSError status = FSASetPosFile(deviceData->clientHandle, file->fd, len);
+     if (status < 0) {
+         DEBUG_FUNCTION_LINE_ERR("FSASetPosFile(0x%08X, 0x%08X, 0x%08llX) failed: %s",
+-                                deviceData->clientHandle, file->fd, len, FSAGetStatusStr(status));
++                                (unsigned int) deviceData->clientHandle, (unsigned int) file->fd, len, FSAGetStatusStr(status));
+         r->_errno = __fsa_translate_error(status);
+         return -1;
+     }
+@@ -29,7 +29,7 @@ int __fsa_ftruncate(struct _reent *r,
+     status = FSATruncateFile(deviceData->clientHandle, file->fd);
+     if (status < 0) {
+         DEBUG_FUNCTION_LINE_ERR("FSATruncateFile(0x%08X, 0x%08X) failed: %s",
+-                                deviceData->clientHandle, file->fd, FSAGetStatusStr(status));
++                                (unsigned int) deviceData->clientHandle, (unsigned int) file->fd, FSAGetStatusStr(status));
+         r->_errno = __fsa_translate_error(status);
+         return -1;
+     }
+diff --git a/source/devoptab/devoptab_fsa_unlink.cpp b/source/devoptab/devoptab_fsa_unlink.cpp
+index 8ac188c..485d051 100644
+--- a/source/devoptab/devoptab_fsa_unlink.cpp
++++ b/source/devoptab/devoptab_fsa_unlink.cpp
+@@ -20,7 +20,7 @@ int __fsa_unlink(struct _reent *r,
+     const FSError status = FSARemove(deviceData->clientHandle, fixedPath);
+     if (status < 0) {
+         DEBUG_FUNCTION_LINE_ERR("FSARemove(0x%08X, %s) failed: %s",
+-                                deviceData->clientHandle, fixedPath, FSAGetStatusStr(status));
++                                (unsigned int) deviceData->clientHandle, fixedPath, FSAGetStatusStr(status));
+         free(fixedPath);
+         r->_errno = __fsa_translate_error(status);
+         return -1;
+diff --git a/source/devoptab/devoptab_fsa_write.cpp b/source/devoptab/devoptab_fsa_write.cpp
+index 247251e..95c39dd 100644
+--- a/source/devoptab/devoptab_fsa_write.cpp
++++ b/source/devoptab/devoptab_fsa_write.cpp
+@@ -59,7 +59,7 @@ ssize_t __fsa_write(struct _reent *r, void *fd, const char *ptr, size_t len) {
+         const FSError status = FSAWriteFile(deviceData->clientHandle, tmp, 1, size, file->fd, 0);
+         if (status < 0) {
+             DEBUG_FUNCTION_LINE_ERR("FSAWriteFile(0x%08X, %p, 1, 0x%08X, 0x%08X, 0) (%s) failed: %s",
+-                                    deviceData->clientHandle, tmp, size, file->fd, file->fullPath, FSAGetStatusStr(status));
++                                    (unsigned int) deviceData->clientHandle, tmp, size, (unsigned int) file->fd, file->fullPath, FSAGetStatusStr(status));
+             if (bytesWritten != 0) {
+                 return bytesWritten; // error after partial write
+             }
+diff --git a/source/disc_interface.c b/source/disc_interface.c
+index 2885339..a2ec4e2 100644
+--- a/source/disc_interface.c
++++ b/source/disc_interface.c
+@@ -34,8 +34,8 @@ static int initialized = 0;
+ 
+ static int fsaFdSd  = 0;
+ static int fsaFdUsb = 0;
+-static int sdioFd   = 0;
+-static int usbFd    = 0;
++static int32_t sdioFd   = 0;
++static int32_t usbFd    = 0;
+ 
+ static void Mocha_disc_io_initialize(void) {
+     if (initialized == 0) {
+diff --git a/source/fsa.cpp b/source/fsa.cpp
+index 3f1876f..2139b85 100644
+--- a/source/fsa.cpp
++++ b/source/fsa.cpp
+@@ -14,7 +14,7 @@ FSError FSAEx_RawOpen(FSClient *client, const char *device_path, int32_t *outHan
+     return FSAEx_RawOpenEx(FSGetClientBody(client)->clientHandle, device_path, outHandle);
+ }
+ 
+-FSError FSAEx_RawOpenEx(int clientHandle, const char *device_path, int32_t *outHandle) {
++FSError FSAEx_RawOpenEx(FSAClientHandle clientHandle, const char *device_path, int32_t *outHandle) {
+     if (!outHandle) {
+         return FS_ERROR_INVALID_BUFFER;
+     }
+@@ -50,7 +50,7 @@ FSError FSAEx_RawClose(FSClient *client, int32_t device_handle) {
+     return FSAEx_RawCloseEx(FSGetClientBody(client)->clientHandle, device_handle);
+ }
+ 
+-FSError FSAEx_RawCloseEx(int clientHandle, int32_t device_handle) {
++FSError FSAEx_RawCloseEx(FSAClientHandle clientHandle, int32_t device_handle) {
+     auto *buffer = (FSAShimBuffer *) memalign(0x40, sizeof(FSAShimBuffer));
+     if (!buffer) {
+         return FS_ERROR_INVALID_BUFFER;
+@@ -80,7 +80,7 @@ FSError FSAEx_RawRead(FSClient *client, void *data, uint32_t size_bytes, uint32_
+     return FSAEx_RawReadEx(FSGetClientBody(client)->clientHandle, data, size_bytes, cnt, blocks_offset, device_handle);
+ }
+ 
+-FSError FSAEx_RawReadEx(int clientHandle, void *data, uint32_t size_bytes, uint32_t cnt, uint64_t blocks_offset, int device_handle) {
++FSError FSAEx_RawReadEx(FSAClientHandle clientHandle, void *data, uint32_t size_bytes, uint32_t cnt, uint64_t blocks_offset, int device_handle) {
+     if (data == nullptr) {
+         return FS_ERROR_INVALID_BUFFER;
+     }
+@@ -142,7 +142,7 @@ FSError FSAEx_RawWrite(FSClient *client, const void *data, uint32_t size_bytes,
+     return FSAEx_RawWriteEx(FSGetClientBody(client)->clientHandle, data, size_bytes, cnt, blocks_offset, device_handle);
+ }
+ 
+-FSError FSAEx_RawWriteEx(int clientHandle, const void *data, uint32_t size_bytes, uint32_t cnt, uint64_t blocks_offset, int device_handle) {
++FSError FSAEx_RawWriteEx(FSAClientHandle clientHandle, const void *data, uint32_t size_bytes, uint32_t cnt, uint64_t blocks_offset, int device_handle) {
+     auto *shim = (FSAShimBuffer *) memalign(0x40, sizeof(FSAShimBuffer));
+     if (!shim) {
+         return FS_ERROR_INVALID_BUFFER;

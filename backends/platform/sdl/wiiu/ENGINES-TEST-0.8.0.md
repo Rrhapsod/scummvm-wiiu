@@ -1,4 +1,4 @@
-# ScummVM Wii U — 0.8.0 engine candidate, October 26, 2026
+# ScummVM Wii U — 0.8.0 engine candidate, October 28, 2026
 
 I requested one combined build to test the next group of engines before a
 0.8.0 release. This candidate keeps the upstream **2026.4.0** base, the complete
@@ -11,19 +11,19 @@ Nunchuk controls. **Inclusion is not a Wii U compatibility result.**
 | --- | --- | --- |
 | Tinsel | Discworld — `tinsel:dw` | Pending my test |
 | Tinsel | Discworld II: Missing Presumed...!? — `tinsel:dw2` | Pending my test |
-| Sword1 | Broken Sword: The Shadow of the Templars — `sword1:sword1` | Pending my test |
+| Sword1 | Broken Sword: The Shadow of the Templars — `sword1:sword1` | My Oct 27 predecessor test passed (GOG/Windows/English); new build pending |
 | Sword2 | Broken Sword II: The Smoking Mirror — `sword2:sword2` | Pending my test |
 | AGOS | Elvira: Mistress of the Dark — `agos:elvira1` | Pending my test |
 | AGOS | Elvira II: The Jaws of Cerberus — `agos:elvira2` | Pending my test |
-| AGOS | Simon the Sorcerer — `agos:simon1` | Pending my test |
+| AGOS | Simon the Sorcerer — `agos:simon1` | My Oct 27 predecessor test passed (CD/Windows/English); new build pending |
 | AGOS | Simon the Sorcerer II — `agos:simon2` | Pending my test |
 | Gob | Gobliiins — `gob:gob1` | Pending my test |
 | Gob | Gobliins 2: The Prince Buffoon — `gob:gob2` | Pending my test |
-| Gob | Goblins Quest 3 — `gob:gob3` | Pending my test |
+| Gob | Goblins Quest 3 — `gob:gob3` | My Oct 27 predecessor test passed (CD v1.02/DOS/English); new build pending |
 | Gob | The Bizarre Adventures of Woodruff and the Schnibble — `gob:woodruff` | Pending my test |
 | Kyra | The Legend of Kyrandia, Book 1 — `kyra:kyra1` | Pending my test |
 | Kyra | The Legend of Kyrandia, Book 2: Hand of Fate — `kyra:kyra2` | Pending my test |
-| Kyra | The Legend of Kyrandia, Book 3: Malcolm's Revenge — `kyra:kyra3` | Pending my test |
+| Kyra | The Legend of Kyrandia, Book 3: Malcolm's Revenge — `kyra:kyra3` | Playable in predecessor (DOS/English); I reported ~4 s scene stalls; IO change pending console test |
 | Kyra/EOB | Eye of the Beholder — `kyra:eob` | Pending my test |
 | Kyra/EOB | Eye of the Beholder II: The Legend of Darkmoon — `kyra:eob2` | Pending my test |
 | Darkseed | Dark Seed — `darkseed:darkseed` | Pending my test |
@@ -31,6 +31,7 @@ Nunchuk controls. **Inclusion is not a Wii U compatibility result.**
 | SCUMM v7/v8 | Star Wars: Rebel Assault II: The Hidden Empire — `scumm:rebel2` | Pending my test |
 | Sherlock | The Lost Files of Sherlock Holmes: The Case of the Serrated Scalpel — `sherlock:scalpel` | Pending my test |
 | Sherlock | The Lost Files of Sherlock Holmes: The Case of the Rose Tattoo — `sherlock:rosetattoo` | Pending my test |
+| SAGA/IHNM | I Have No Mouth, and I Must Scream — `saga:ihnm` | Pending my test |
 
 **Eye of the Beholder III is not implemented in this ScummVM base.** Enabling
 Kyra/EOB supplies I and II only. It is excluded rather than advertised as
@@ -47,7 +48,7 @@ Rebel Assault II PlayStation version are outside this candidate's scope.
 
 ## Installation and required data
 
-Use **ScummVM-wiiu-0.8.0-candidate-20261026-aroma.zip** with Aroma. Extract the
+Use **ScummVM-wiiu-0.8.0-candidate-20261028-aroma.zip** with Aroma. Extract the
 complete ZIP to the SD root, merge folders and replace `wiiu/apps/ScummVM.wuhb`.
 Keep the previous 0.7.1 executable/package and preserve configuration, saves
 and game folders. No games or MT-32 ROMs are included.
@@ -95,16 +96,73 @@ replaces it. Include the candidate version/revision, exact scene and input used.
 Use the included TEST-RESULTS.md table for a combined report. Also reopen one
 previously working 0.7.1 game to check for regressions.
 
+## Kyrandia 3 loading
+
+I reported playable Malcolm's Revenge with roughly four-second stalls on scene
+changes in binary `67e2ae12`. The supplied October 27 log identifies the game
+and normal teardown, but contains no scene/IO timings. The new Wii U AUD input
+buffer targets the many tiny seeks in the audio-duration scan. It uses 64 KiB
+per active AUD stream; no full speech archive is preloaded and game pacing,
+script waits and music fades are unchanged.
+
+Host tests of the actual decoder/Common buffer preserve PCM samples, duration,
+seek/rewind behavior and ownership. With 2,000 synthetic 2,048-byte chunks, the
+initial scan changes from 4,004 reads/2,001 seeks to 63 reads/63 seeks. These
+are operation counts, not measured SD speed or proof of fixing the reported
+stalls. This candidate logs up to 24 AUD initializations and 24 Kyra3 scene
+transitions, including the explicit fade wait separately from scripts/entry.
+Please revisit the same scene changes on SD and copy the log after Quit.
+
+## USB games and saves (first hardware candidate)
+
+Use **one FAT32 drive**, with 512-byte logical sectors and an MBR partition
+layout, connected before launching ScummVM. A FAT32 volume without a partition
+table is also covered by image tests. NTFS, exFAT, GPT, Wii U formatted/encrypted
+drives, multiple USB drives and live removal are outside this candidate.
+**Do not reformat a drive containing data just to try this build.** If the Wii U
+Menu offers to format this PC-readable FAT32 drive, cancel that prompt.
+
+1. On a computer, copy a game's own files into a folder such as
+   `USB:/scummvm/games/ihnm/`. Create `USB:/scummvm/saves/` if you want USB saves.
+2. Keep the full installation ZIP on SD. The WUHB, configuration, log and bundled
+   engine resources still use SD. ScummVM mounts only the USB FAT filesystem;
+   it does not format storage or move any existing files/saves.
+3. Choose **Add Game**, go up to the drive list and open **usb:**. Select the
+   game folder (`usb:/scummvm/games/ihnm/`). SD remains `/vol/external01/`.
+4. Saves stay on SD by default. For USB saves choose the existing USB saves
+   folder under **Global Options → Paths → Save Path**, or the individual
+   game's **Game Options → Paths → Save Path**. A per-game path overrides the
+   global setting. Copy old saves yourself if you want them available there.
+5. Create a spare save, load it, overwrite that spare slot, then Quit cleanly.
+   Relaunch and load it again. Check that the files are present on USB from
+   the computer. Leave the drive connected until ScummVM has exited.
+
+If `usb:` does not appear, check `SD:/scummvm/scummvm.log` for `Wii U USB:`.
+The log distinguishes unavailable Mocha API, an occupied device name, failure
+to mount FAT and a mounted drive. No USB is a supported SD-only startup case.
+A saved USB path with no drive present should report an unavailable path;
+it does not silently move saves to SD. Hardware/bridge/power compatibility and
+save durability still require physical-console tests. Use a drive with a
+suitable power supply; changing the format cannot fix an unstable connection.
+
+Record these USB checks in TEST-RESULTS.md, together with drive model, partition
+layout and whether games and saves were on SD or USB. Also test HOME/return,
+menu/reopen, SD-only startup and one previously working SD game.
+
 ## Build and evidence
 
-Activate the shared Wii U SDK and run `build-0.8.0-test.sh`. It uses a fresh
-`build-scummvm-wiiu-0.8.0-test-20261026` directory, enables all requested existing
-engines statically, checks required features and restores generated Xeen data
-after staging. WIIU_ENGINES_TEST identifies the candidate only; detailed
-performance/IR diagnostics are off. The shared r51/WUT/SDL SDK and its seven
-patches are unchanged. BUILD-INFO and SHA256SUMS record exact build provenance.
+Pin the new independent USB SDK profile described in [USB-SDK.md](USB-SDK.md),
+then run `build-0.8.0-test.sh`. It uses a fresh October 28 directory, retains
+all previous engines/codecs, explicitly adds SAGA/IHNM, and restores Xeen data
+after staging. No additional engine-data archive is required for IHNM.
+The [official 2026.4.0 compatibility list](https://www.scummvm.org/compatibility/2026.4.0/)
+lists `saga:ihnm`; that desktop status is not a Wii U test result.
 
-My earlier success report belongs to 2026.4.0 binary `90b6e646`; it does not
-validate these newly enabled engines or this larger binary. All 22 listed game
-tests and the combined build's Wii U runtime remain pending until I test them.
-The final 0.8.0 release is a later step after hardware results and any fixes.
+`WIIU_ENGINES_TEST` identifies this build; `WIIU_KYRA_IO_DIAGNOSTICS` enables only
+the bounded loading measurements above. Detailed renderer/audio/IR tracing
+remains off. The r51 compiler, WUT, SDL/seven patches and codecs are retained;
+the separate profile adds the pinned, locally patched libfat/libmocha. The
+shared SDK default and older binaries are unchanged. BUILD-INFO and SHA256SUMS
+record exact provenance. The three successful game reports above apply to
+`67e2ae12`, not to this new binary. All 23 games in the new build, USB and the
+Kyrandia change need console tests before a final 0.8.0 release.

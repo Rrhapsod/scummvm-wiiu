@@ -9,11 +9,14 @@ See RELEASE-0.7.1.md for changes and README.md for both complete button tables.
 
 For the combined 0.8.0 test profile, run build-0.8.0-test.sh instead of the
 0.7.1 release helper. It adds Tinsel, Sword1/2, AGOS, Gob, Kyra/EOB, Darkseed
-and Sherlock, retaining the existing engines/codecs. Rebel Assault I/II already
+and Sherlock, plus SAGA/IHNM, retaining the existing engines/codecs. Rebel Assault I/II already
 use SCUMM v7/v8. Include the bundled kyra.dat and darkseed.dat in addition to
 source-generated mm.dat. Eye of the Beholder III is not supported; I/II are.
 This is a hardware-test candidate; see ENGINES-TEST-0.8.0.md. Existing 0.7.1
-packages are unchanged and no new SDL/SDK patch is required.
+packages are unchanged. The October 28 candidate requires the independent USB
+SDK additions described in USB-SDK.md (libfat/libmocha and local patches); the
+shared default SDK and seven SDL patches are unchanged. Use the new profile
+and a fresh build directory. Bounded Kyra3 loading diagnostics are enabled.
 
 For release 0.7.1 (including Wii Remote IR), apply these incremental
 patches to devkitPro/SDL wiiu-sdl2-2.32 in order:

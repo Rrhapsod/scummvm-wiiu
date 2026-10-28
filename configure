@@ -3704,10 +3704,10 @@ EOF
 	wiiu)
 		append_var DEFINES "-DWIIU -D__WIIU__ -D__WUT__ -DESPRESSO"
 		append_var CXXFLAGS "-mcpu=750 -meabi -mhard-float -ffunction-sections -fdata-sections"
-		append_var CXXFLAGS "-I$WUT_ROOT/include -I$DEVKITPRO/portlibs/ppc/include"
+		append_var CXXFLAGS "-I$WUT_ROOT/include -I$WUT_ROOT/usr/include -I$DEVKITPRO/portlibs/ppc/include"
 		append_var LDFLAGS "-mcpu=750 -meabi -mhard-float -specs=$WUT_ROOT/share/wut.specs"
-		append_var LDFLAGS "-L$WUT_ROOT/lib -L$DEVKITPRO/portlibs/wiiu/lib -L$DEVKITPRO/portlibs/ppc/lib"
-		append_var LIBS "-lwut -lm"
+		append_var LDFLAGS "-L$WUT_ROOT/usr/lib -L$WUT_ROOT/lib -L$DEVKITPRO/portlibs/wiiu/lib -L$DEVKITPRO/portlibs/ppc/lib"
+		append_var LIBS "-lfat -lmocha -lwut -lm"
 		add_line_to_config_mk 'WIIU = 1'
 		;;
 	wii)
