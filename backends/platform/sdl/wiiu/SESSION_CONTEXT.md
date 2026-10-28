@@ -1,6 +1,6 @@
 # Wii U port — start here in a new chat
 
-Last verified locally: **2026-10-26**. This is a compact handoff, not the full
+Last verified locally: **2026-10-28**. This is a compact handoff, not the full
 conversation or proof that every earlier test still applies. Recheck Git/files
 before acting; the current user request takes precedence over old next steps.
 
@@ -32,14 +32,73 @@ Plan sections: 26–27 renderer freeze; 28 Xeen/data/compatibility; 29–32 Curs
 audio and QFG4 loading; 33 text editing/Vorbis; 34 controller keyboard;
 35–36 Groovie FMV and 0.7.0; 38 original Wii Remote IR candidate; 42 button 2/C
 swap and hardware feedback; 43 upstream 2026.4.0; 44 release 0.7.1;
-45 storage cleanup and archival; 46 combined 0.8.0 engine candidate.
+45 storage cleanup and archival; 46 original combined 0.8.0 engine candidate;
+47 SAGA, Kyra3 IO and FAT32 USB candidate.
 Read the whole plan for an architectural audit or
 when explicitly requested, not by default for every small follow-up.
 `WIIU_IMPLEMENTATION_STATUS.md` describes the historical first integration,
 not the current release. Missing outer files in a standalone clone mean local
 evidence is unavailable; they do not imply the source port is absent.
 
-## Current development: combined 0.8.0 engine candidate — 2026-10-26
+## Current development: SAGA / Kyra IO / FAT USB candidate — 2026-10-28
+
+- Runtime/source **7cd5beaac29de66257719985dd1fbdb7f2718053**, based on upstream
+  2026.4.0. Identity: `0.8.0 candidate 20261028 (SAGA / Kyra IO / FAT USB)`,
+  revision `-wiiu-7cd5beaa`. Final 0.8.0 is still pending hardware results.
+- My supplied Oct 27 log identifies predecessor **67e2ae12**. I reported Simon
+  1 (CD/Windows/English), Sword1 (GOG/Windows/English) and Gob3 (CD v1.02/DOS/
+  English) working perfectly. Kyra3 DOS/English is playable but I reported
+  approximately 4-second scene stalls. The log has no per-scene timings and
+  does not establish a cause. Archived unchanged at
+  `work/logs/io-saga-usb-20261028-baseline/scummvm-67e2ae12-20261027.log`, SHA256
+  `6fa0b7bdf40fcf8bd590e69fad7f251e1b2e27055aa8a5e80edb15a5b7407600`.
+- Added static **SAGA + IHNM** for I Have No Mouth, and I Must Scream. All
+  previous engines, codecs and data retained; no additional engine-data archive.
+  The guide now lists 23 game IDs. No new game's Wii U compatibility is implied.
+- Wii U AUD input now has a bounded 64 KiB Common buffer per sound, targeting
+  thousands of per-chunk seeks in the duration scan on music changes. Actual
+  decoder/buffer host tests preserve samples, duration, seek/rewind and ownership.
+  2,000 synthetic 2,048-byte chunks: 4,004 reads/2,001 seeks -> 63 reads/63 seeks.
+  This is not console timing or proof of fixing Kyra3. `WIIU_KYRA_IO_DIAGNOSTICS`
+  records up to 24 AUD initializations and 24 Kyra3 transitions; other tracing off.
+- **FAT32 USB hardware candidate:** libfat + Mocha raw USB, one PC-readable
+  drive connected before launch, 512-byte logical sectors and MBR (or FAT
+  volume without table). `usb:/` is listed only after mounting. Games and an
+  explicitly selected save path use existing ScummVM FS/save abstractions;
+  SD config/log/data/default saves stay unchanged. No migration or formatting.
+  NTFS/exFAT/GPT/Wii U encrypted WFS/multiple drives/hot removal are excluded.
+  Mount owned by a static main object, flushed after backend destruction,
+  including SDL quit/fatalError `exit()` paths. No SD remount or new ProcUI loop.
+- Pin SDK **`../sdk/versions/r51-wut1.9.1-sdl2.32.7-usb-20261028`** explicitly
+  before sourcing env.sh. **Shared current remains the earlier r51 profile**;
+  it lacks these USB dependencies. Compiler/WUT/SDL/codecs unchanged; new local
+  libfat/libmocha patches fix Mocha/newlib types, partition locking, aligned/
+  partial cache allocation and mirrored FAT writes. Sources/patches/licenses
+  preserved; README.WIIU + USB-SDK.md + build-usb-sdk.sh explain reproduction.
+- Full cross-build, final revision relink, linked SAGA/IHNM + previous engines,
+  required flags, no strong undefineds, unchanged import modules, embedded RPX,
+  unchanged name/icon, ZIP contents/licenses/data and SDK doctors pass. Host
+  ASan/UBSan owner tests include init/mount failure, collision, repeated mount
+  and exit() order. Actual libfat MBR/VBR image tests pass concurrent game reads
+  plus save overwrite/fsync/close, external mtools bytes and clean fsck.fat.
+  **No physical USB, save durability, Wii U/Cemu or improved Kyra scene timing
+  has been tested for this binary.**
+- Artifacts: `work/build-scummvm-wiiu-0.8.0-test-20261028/`:
+  `ScummVM-wiiu-0.8.0-candidate-20261028-aroma.zip`, SHA256
+  `b9de11fd397ba00f431c8736d1d4f16c8290e357b58922635235dd852fc1231e`;
+  separate experimental RPX ZIP, BUILD-INFO/SHA256SUMS, guides and ELF/RPX/WUHB.
+  Verifier: `work/package-0.8.0-test-20261028.py FULL_RUNTIME_COMMIT`.
+  Main guide: checkout `backends/platform/sdl/wiiu/ENGINES-TEST-0.8.0.md`.
+- Next hardware checks: same Kyra scenes on SD + copied timing log; IHNM;
+  FAT32 USB Add Game, save/load/overwrite, Quit/relaunch/reload, HOME/return,
+  SD-only startup and a previously working SD game. Keep the drive connected
+  until exit; cancel the Wii U Menu's format prompt for a FAT32 test drive.
+  Record model/power/layout and SD vs USB game/save paths. Older three build/
+  release groups and pre-existing doc diff/Android caches preserved. No push,
+  tag or publication. Detail: plan section 47; `work/logs/*20261028*`; shared
+  SDK report `../sdk/validation/20261028-usb/REPORT.md`.
+
+## Predecessor: combined 0.8.0 engine candidate — 2026-10-26
 
 - I requested all engines in one build for joint hardware tests. Source/binary
   **67e2ae127bdf0101d25290e50908e3af97c398fd**, upstream 2026.4.0. Identity:
@@ -65,8 +124,8 @@ evidence is unavailable; they do not imply the source port is absent.
   Verifier: `work/package-0.8.0-test-20261026.py FULL_RUNTIME_COMMIT`.
 - Guide: checkout `backends/platform/sdl/wiiu/ENGINES-TEST-0.8.0.md`; 22 game
   IDs/checklist and `TEST-RESULTS-0.8.0.md`. Bundled root TESTING.md and
-  TEST-RESULTS.md provide the same information. **All 22 games and this combined
-  binary await my Wii U tests**; no game data/logs were supplied in this task.
+  TEST-RESULTS.md provide the same information. At packaging time all 22 games awaited tests. My later October 27 report
+  and log are recorded in the current section above; the original ZIP is intact.
   Non-Aroma RPX remains unverified. 0.8.0 is not a finished release yet.
 - Existing 0.7.1 and tested 2026.4.0 packages/builds are intact; a new third
   build directory exists for this candidate. No SDK changes, push, tag or
