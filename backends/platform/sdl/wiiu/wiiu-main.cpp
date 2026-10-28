@@ -26,7 +26,8 @@
 
 int main(int argc, char *argv[]) {
 	// WUT's CRT initializes libc and the SD filesystem. SDL owns ProcUI/GX2.
-	WiiUUSBStorage usb;
+	// Static lifetime also covers SDL quit/fatalError paths using exit().
+	static WiiUUSBStorage usb;
 	usb.mount();
 	g_system = new OSystem_WiiU(usb);
 	g_system->init();

@@ -23,6 +23,7 @@ int Mocha_DeInitLibrary();
     (p/'test.cpp').write_text(r'''
 #include <cassert>
 #include <cstring>
+#include <cstdlib>
 #include <vector>
 #include "fat.h"
 #include "backends/platform/sdl/wiiu/wiiu-usb.h"
@@ -39,7 +40,15 @@ bool fatMount(const char *s, const DISC_INTERFACE *d, unsigned start, unsigned p
  assert(start == 0 && pages * sectors * 512 == 131072); calls.push_back(3); return mountOK;
 }
 void fatUnmount(const char *s) { assert(!strcmp(s,"usb:")); calls.push_back(4); }
-int main() {
+int main(int argc, char **) {
+ if (argc > 1) {
+   // SDL quit/fatalError destroy the backend and call exit(), bypassing
+   // automatic local destructors. A function static still flushes at exit.
+   std::atexit([] { assert((calls == std::vector<int>{1,2,3,99,4,5,6})); });
+   static WiiUUSBStorage usb;
+   usb.mount(); calls.push_back(99); std::exit(0);
+ }
+
  { WiiUUSBStorage usb; assert(!usb.root()); }
  assert(calls.empty());
  { device=4; WiiUUSBStorage usb; usb.mount(); usb.mount(); assert(!usb.root()); }
@@ -60,9 +69,10 @@ int main() {
                     '-I'+str(p),'-I'+str(root),str(p/'test.cpp'),
                     str(root/'backends/platform/sdl/wiiu/wiiu-usb.cpp'),'-o',str(out)], check=True)
     subprocess.run([str(out)],check=True)
+    subprocess.run([str(out), "exit-path"],check=True)
 main=(root/'backends/platform/sdl/wiiu/wiiu-main.cpp').read_text()
-assert main.index('WiiUUSBStorage usb;') < main.index('new OSystem_WiiU(usb)') < main.index('g_system->destroy();')
+assert main.index('static WiiUUSBStorage usb;') < main.index('new OSystem_WiiU(usb)') < main.index('g_system->destroy();')
 backend=(root/'backends/platform/sdl/wiiu/wiiu.cpp').read_text()
 assert 'if (_usb.root())\n\t\tfactory->addDrive(_usb.root());' in backend
 assert 'new DefaultSaveFileManager(Common::Path(kDataRoot).join("saves"))' in backend
-print('PASS: actual USB owner, unavailable API/device, name collision, partial failure, repeat mount, flush/close order and SD/save defaults (host mocks)')
+print('PASS: actual USB owner, unavailable API/device, name collision, partial failure, repeat mount, exit() cleanup, flush/close order and SD/save defaults (host mocks)')

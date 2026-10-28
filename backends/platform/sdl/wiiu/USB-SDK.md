@@ -30,8 +30,8 @@ A WFS mount such as `/vol/storage_usb01` does not provide FAT32 access.
 
 Locally I pin `sdk/versions/r51-wut1.9.1-sdl2.32.7-usb-20261028`, derived from
 `r51-wut1.9.1-sdl2.32.7-local`. The shared `sdk/current` remains unchanged.
-The compiler, WUT, SDL and codecs retain their previous bytes, apart from a
-relocated libmad metadata prefix. See the profile manifest for dependency
+The compiler, WUT, SDL and codecs retain their previous bytes, apart from
+relocated libtool metadata prefixes. See the profile manifest for dependency
 source/patch/archive hashes. Previous release packages are preserved.
 
 ## Reproduce without modifying an active SDK
@@ -54,8 +54,9 @@ and re-source `sdk/env.sh`, then use a fresh out-of-tree build directory.
 
 ## Ownership and verification
 
-`WiiUUSBStorage` in main mounts before the backend and stays alive until after
-`g_system->destroy()`. It mounts only `usb:`, refuses an occupied device name,
+`WiiUUSBStorage` has static lifetime in main: it mounts before the backend and
+stays alive until after `g_system->destroy()`, including SDL quit/fatal-error
+paths that call `exit()` instead of returning from main. It mounts only `usb:`, refuses an occupied device name,
 and closes failed raw mounts. On exit it flushes libfat before closing the
 raw USB/FSA handle and libmocha. It never calls `fatInitDefault`, unmounts SD,
 formats storage, moves saves or redirects the configured save path.
