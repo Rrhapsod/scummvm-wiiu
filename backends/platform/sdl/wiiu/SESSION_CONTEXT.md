@@ -1,6 +1,6 @@
 # Wii U port — start here in a new chat
 
-Last verified locally: **2026-10-28**. This is a compact handoff, not the full
+Last verified locally: **2026-10-29**. This is a compact handoff, not the full
 conversation or proof that every earlier test still applies. Recheck Git/files
 before acting; the current user request takes precedence over old next steps.
 
@@ -33,14 +33,60 @@ audio and QFG4 loading; 33 text editing/Vorbis; 34 controller keyboard;
 35–36 Groovie FMV and 0.7.0; 38 original Wii Remote IR candidate; 42 button 2/C
 swap and hardware feedback; 43 upstream 2026.4.0; 44 release 0.7.1;
 45 storage cleanup and archival; 46 original combined 0.8.0 engine candidate;
-47 SAGA, Kyra3 IO and FAT32 USB candidate.
+47 SAGA, Kyra3 IO and FAT32 USB candidate; 48 IHNM opening skip fix.
 Read the whole plan for an architectural audit or
 when explicitly requested, not by default for every small follow-up.
 `WIIU_IMPLEMENTATION_STATUS.md` describes the historical first integration,
 not the current release. Missing outer files in a standalone clone mean local
 evidence is unavailable; they do not imply the source port is absent.
 
-## Current development: SAGA / Kyra IO / FAT USB candidate — 2026-10-28
+## Current development: IHNM opening skip fix — 2026-10-29
+
+- Runtime **8d242742c53e964ba4378c1dc2bf09a243053861**, upstream 2026.4.0,
+  `0.8.0 candidate 20261029 (SAGA intro input)`, revision `-wiiu-8d242742`.
+  All engines/codecs/data, the confirmed Kyra IO change and pending FAT USB
+  implementation retained. Exact new binary has not been tested on Wii U/Cemu.
+- I reported **Kyrandia 3 worked perfectly** with predecessor **7cd5beaa**.
+  IHNM DOS/English started, but I initially described no controls/cursor;
+  I clarified this was **during the opening, with Y unable to skip**. This is
+  not evidence of missing mouse controls in character selection/gameplay.
+  **USB explicitly not tested.** New log is the October 28 21:11–21:17 session,
+  archived unchanged at `work/logs/saga-input-20261029-baseline/`, SHA256
+  `a3cae78031eda5419722134aed6069d834f222c27626a338c11215132652ba01`.
+  It shows ongoing IHNM cutaways, keyboard cancellation, launcher return,
+  Kyra3 and clean Quit. Large AUD initializations: 487/499 ms; total scene
+  entries include movement/animations and are not frozen-IO measurements.
+- SAGA's game shortcut map had no JOY_Y Escape and was disabled for video/
+  cutaway/null panels. The separate IHNM intro poll ignored keymapped actions.
+  Fixed panel/text map selection before polling, including first-press input;
+  initialized panel state and removed conflicting unconditional map re-enables.
+  Original map/action IDs and keyboard bindings retained. Y/Remote 2 skips;
+  X/Nunchuk Z skips speech; L/Remote 1 opens original options where allowed.
+  Logo/title also accepts Wii U A/B/touch/IR clicks. Cursor remains intentionally
+  hidden during videos; existing show/restore behavior is preserved.
+- Actual SAGA factory/panel routing/intro and normal input consumers pass host
+  ASan/UBSan with mocked keymapper/event transport in portable, Wii U and
+  diagnostic builds: first skip, custom actions, mouse press/release, options,
+  exclusive panel maps, save/status text and global map state. This is not
+  hardware or game progression validation. Bounded WIIU_SAGA_INPUT_DIAGNOSTICS
+  records panel/cursor requests and accepted skip/click/action events; existing
+  Kyra diagnostic limits retained, other detailed traces off.
+- Fresh full build: `work/build-scummvm-wiiu-0.8.0-test-20261029/`. Aroma ZIP
+  `ScummVM-wiiu-0.8.0-candidate-20261029-aroma.zip`, SHA256
+  `a6e53a3f7b4048098326bbba563dd5747328beca69203f1ef5341ed850c0e0a4`.
+  RPX ZIP/ELF/WUHB, BUILD-INFO/SHA256SUMS and updated guides also present.
+  Verifier: `work/package-0.8.0-test-20261029.py FULL_RUNTIME_COMMIT`.
+  All required engines/symbols, codec equality, no strong undefineds, unchanged
+  imports/icon/name, embedded RPX, data/ZIP/licenses and pinned SDK doctor pass.
+- Pin the same **USB SDK profile dated 20261028** as below; no SDK/profile/
+  default changes. Kyra, USB and input backend source are byte-equal to
+  7cd5beaa; old packages and unrelated doc diff/Android caches are preserved.
+  No push/tag/publication. Evidence: plan section 48 and `work/logs/*20261029*`.
+  Next: my Y/2 skip test on logo and AM opening, then interactive selection,
+  chapter controls/save-name entry/menu/reopen and copied log. USB remains
+  pending separately; 0.8.0 final still depends on the broader game tests.
+
+## Predecessor: SAGA / Kyra IO / FAT USB candidate — 2026-10-28
 
 - Runtime/source **7cd5beaac29de66257719985dd1fbdb7f2718053**, based on upstream
   2026.4.0. Identity: `0.8.0 candidate 20261028 (SAGA / Kyra IO / FAT USB)`,
@@ -81,8 +127,8 @@ evidence is unavailable; they do not imply the source port is absent.
   ASan/UBSan owner tests include init/mount failure, collision, repeated mount
   and exit() order. Actual libfat MBR/VBR image tests pass concurrent game reads
   plus save overwrite/fsync/close, external mtools bytes and clean fsck.fat.
-  **No physical USB, save durability, Wii U/Cemu or improved Kyra scene timing
-  has been tested for this binary.**
+  At packaging this binary had no hardware test. My subsequent 7cd5beaa
+  Kyra3 success/IHNM opening failure and untested USB are recorded above.
 - Artifacts: `work/build-scummvm-wiiu-0.8.0-test-20261028/`:
   `ScummVM-wiiu-0.8.0-candidate-20261028-aroma.zip`, SHA256
   `b9de11fd397ba00f431c8736d1d4f16c8290e357b58922635235dd852fc1231e`;
