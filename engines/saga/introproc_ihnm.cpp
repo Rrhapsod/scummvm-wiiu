@@ -143,6 +143,9 @@ void Scene::IHNMLoadCutaways() {
 bool Scene::checkKey() {
 	Common::Event event;
 	bool res = false;
+	// This intro polls separately from SagaEngine::processInput(). The
+	// keymapper must already know the current cutaway/video panel here too.
+	_vm->enableKeyMap(_vm->_interface->getMode());
 
 	while (_vm->_eventMan->pollEvent(event)) {
 		switch (event.type) {
@@ -157,11 +160,31 @@ bool Scene::checkKey() {
 			if (event.kbd.ascii)
 				res = true;
 			break;
+		case Common::EVENT_CUSTOM_ENGINE_ACTION_START:
+			// Keyboard shortcuts may already have become keymapped actions.
+			// Preserve the intro's original "any key" behavior for those too.
+			res = true;
+			break;
+#ifdef __WIIU__
+		case Common::EVENT_LBUTTONDOWN:
+		case Common::EVENT_RBUTTONDOWN:
+			// A/B, touch and IR clicks can dismiss the initial logo/title
+			// screens even though those screens intentionally hide the cursor.
+			res = true;
+			break;
+#endif
 		default:
 			break;
 		}
 	}
 
+#ifdef WIIU_SAGA_INPUT_DIAGNOSTICS
+	if (res) {
+		static uint traces = 0;
+		if (traces++ < 12)
+			debug(0, "Wii U SAGA intro: skip input accepted");
+	}
+#endif
 	return res;
 }
 

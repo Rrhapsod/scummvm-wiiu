@@ -4,9 +4,10 @@ Candidate package/revision: ____________________
 Console environment: ____________________
 Controllers / Remote model / Sensor Bar: ____________________
 
-This template is for the October 28 candidate. My October 27 predecessor
-passed Simon 1, Broken Sword 1 and Goblins Quest 3; Kyra3 was playable with
-scene stalls. Those reports do not validate this new binary. Enter PASS/FAIL/NOT TESTED;
+This template is for the October 29 candidate. My October 27 predecessor
+passed Simon 1, Broken Sword 1 and Goblins Quest 3. My 7cd5beaa Kyra3 test worked perfectly; IHNM started but Y did not
+skip the opening (cursor deliberately hidden there). USB was not tested.
+Those reports do not validate this new binary. Enter PASS/FAIL/NOT TESTED;
 include platform/language/floppy-or-CD edition and a copied log for failures.
 
 | Game / ID | Edition | Detect/start | Movie/audio | Controls/keyboard | Save/load | Return/reopen/HOME/Quit |
@@ -44,3 +45,7 @@ Game path (SD/USB) and save path (SD/USB): ____________________
 USB Add Game / initial save/load / overwrite / Quit/relaunch/load: ____________________
 HOME/return / no-drive SD startup / previously working SD game: ____________________
 Kyra3 same-scene transition delay before/after / copied log: ____________________
+
+IHNM: Y/Remote 2 first logo / AM opening skip: ____________________
+IHNM: cursor in character selection / select character / chapter controls: ____________________
+IHNM: original options / save-name entry / menu/reopen / copied log: ____________________

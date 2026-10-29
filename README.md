@@ -33,9 +33,11 @@ I/II already use the included SCUMM v7/v8 engine. See the
 [0.8.0 candidate guide](backends/platform/sdl/wiiu/ENGINES-TEST-0.8.0.md) for all
 23 game IDs, installation/data requirements and the joint hardware checklist.
 My October 27 predecessor tests passed Simon 1, Broken Sword 1 and Goblins
-Quest 3. The October 28 candidate adds **I Have No Mouth, and I Must Scream**,
+Quest 3. The 0.8.0 candidates add **I Have No Mouth, and I Must Scream**,
 a bounded Kyrandia 3 AUD-loading optimization and **FAT32 USB games/optional
-saves**. Those changes need console tests; this is not a final 0.8.0 release. **Eye of the Beholder III is unsupported by the base;
+saves**. I reported Kyrandia 3 working perfectly with `7cd5beaa`. The October 29
+candidate fixes Y/Remote 2 skipping the IHNM opening; that fix and USB still
+need console tests. This is not a final 0.8.0 release. **Eye of the Beholder III is unsupported by the base;
 Kyra provides I and II.** The 0.7.1 packages and build helper remain available.
 
 ## Features

@@ -216,6 +216,7 @@ SagaEngine::SagaEngine(OSystem *syst, const SAGAGameDescription *gameDesc)
 	: Engine(syst), _gameDescription(gameDesc), _rnd("saga") {
 
 	_framesEsc = 0;
+	_currentPanelMode = -1;
 
 	_globalFlags = 0;
 	memset(_ethicsPoints, 0, sizeof(_ethicsPoints));
@@ -722,13 +723,17 @@ void SagaEngine::getExcuseInfo(int verb, const char *&textString, int &soundReso
 
 void SagaEngine::enableKeyMap(int mode) {
 	PanelModes newPanelMode = (PanelModes)mode;
-	if (_currentPanelMode == newPanelMode) {
-		return;
-	}
 
 	Common::String id;
 	switch (newPanelMode) {
+	case kPanelNull:
+	case kPanelCutaway:
+	case kPanelVideo:
+	case kPanelPlacard:
+	case kPanelChapterSelection:
 	case kPanelMain:
+		// Escape/skip is also needed while the cursor and gameplay UI are
+		// hidden. Keep the existing action IDs and user mappings in this map.
 		id = gameKeyMapId;
 		break;
 	case kPanelOption:
@@ -753,12 +758,21 @@ void SagaEngine::enableKeyMap(int mode) {
 
 	Common::Keymapper *keymapper = g_system->getEventManager()->getKeymapper();
 	const Common::KeymapArray &keymaps = keymapper->getKeymaps();
+	const bool textInput = _interface->_textInput || _interface->_statusTextInput;
 	for (Common::Keymap *keymap : keymaps) {
 		const Common::String &keymapId = keymap->getId();
 		if (keymap->getType() == Common::Keymap::kKeymapTypeGame && keymapId != engineKeyMapId) {
-			keymap->setEnabled(keymapId == id);
+			// Text entry can change without a panel change. Refresh the state
+			// before polling, keeping typed letters out of shortcut actions.
+			const bool textShortcut = textInput && (keymapId == gameKeyMapId || keymapId == saveKeyMapId);
+			keymap->setEnabled(keymapId == id && !textShortcut);
 		}
 	}
+#ifdef WIIU_SAGA_INPUT_DIAGNOSTICS
+	static uint traces = 0;
+	if (_currentPanelMode != newPanelMode && traces++ < 24)
+		debug(0, "Wii U SAGA panel: %d, shortcuts=%s", mode, id.c_str());
+#endif
 	_currentPanelMode = newPanelMode;
 }
 

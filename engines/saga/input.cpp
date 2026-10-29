@@ -36,8 +36,20 @@ namespace Saga {
 
 int SagaEngine::processInput() {
 	Common::Event event;
+	// A script/cutaway may have changed panels since the previous input.
+	// Select its keymap before polling so the first button is not lost.
+	enableKeyMap(_interface->getMode());
 
 	while (_eventMan->pollEvent(event)) {
+#ifdef WIIU_SAGA_INPUT_DIAGNOSTICS
+		if (event.type == Common::EVENT_LBUTTONDOWN || event.type == Common::EVENT_RBUTTONDOWN ||
+		    event.type == Common::EVENT_CUSTOM_ENGINE_ACTION_START) {
+			static uint traces = 0;
+			if (traces++ < 24)
+				debug(0, "Wii U SAGA input: event=%d action=%u panel=%d mouse=%d,%d",
+				      event.type, (unsigned)event.customType, _interface->getMode(), event.mouse.x, event.mouse.y);
+		}
+#endif
 		// Scale down mouse coordinates for the Japanese version which runs in double resolution internally.
 		if ((event.type == Common::EVENT_LBUTTONDOWN || event.type == Common::EVENT_RBUTTONDOWN ||
 			event.type == Common::EVENT_WHEELUP || event.type == Common::EVENT_WHEELDOWN) && getLanguage() == Common::JA_JPN) {
@@ -146,15 +158,6 @@ int SagaEngine::processInput() {
 			break;
 		default:
 			break;
-		}
-
-		Common::Keymapper *keymapper = SagaEngine::getEventManager()->getKeymapper();
-		if (_interface->_textInput || _interface->_statusTextInput) {
-			keymapper->getKeymap("game-shortcuts")->setEnabled(false);
-			keymapper->getKeymap("save-panel")->setEnabled(false);
-		} else {
-			keymapper->getKeymap("game-shortcuts")->setEnabled(true);
-			keymapper->getKeymap("save-panel")->setEnabled(true);
 		}
 
 		enableKeyMap(_interface->getMode());

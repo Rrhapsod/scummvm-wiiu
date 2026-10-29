@@ -557,6 +557,11 @@ void Gfx::showCursor(bool state) {
 		state = false;
 
 	CursorMan.showMouse(state);
+#ifdef WIIU_SAGA_INPUT_DIAGNOSTICS
+	static uint traces = 0;
+	if (traces++ < 24)
+		debug(0, "Wii U SAGA cursor: %s", state ? "shown" : "hidden");
+#endif
 }
 
 void Gfx::setCursor(CursorType cursorType) {

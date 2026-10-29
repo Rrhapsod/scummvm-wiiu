@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# All-in-one 0.8.0 engine candidate; existing 0.7.1 features retained, bounded Kyra loading diagnostics.
+# All-in-one 0.8.0 engine candidate; existing 0.7.1 features retained, bounded Kyra/SAGA diagnostics.
 set -euo pipefail
 : "${DEVKITPRO:?Activate the Wii U SDK first}"
 : "${DEVKITPPC:?Activate the Wii U SDK first}"
 wiiu_script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 wiiu_src="$(cd "$wiiu_script_dir/../../../.." && pwd)"
-export WIIU_BUILD_DIR="${WIIU_BUILD_DIR:-$wiiu_src/../build-scummvm-wiiu-0.8.0-test-20261028}"
-export CXXFLAGS="${CXXFLAGS:-} -DWIIU_ENGINES_TEST -DWIIU_KYRA_IO_DIAGNOSTICS"
+export WIIU_BUILD_DIR="${WIIU_BUILD_DIR:-$wiiu_src/../build-scummvm-wiiu-0.8.0-test-20261029}"
+export CXXFLAGS="${CXXFLAGS:-} -DWIIU_ENGINES_TEST -DWIIU_KYRA_IO_DIAGNOSTICS -DWIIU_SAGA_INPUT_DIAGNOSTICS"
 if [[ ! -f "$WUT_ROOT/usr/lib/libfat.a" || ! -f "$WUT_ROOT/usr/lib/libmocha.a" ]]; then
     echo "USB SDK dependencies missing; see USB-SDK.md and build-usb-sdk.sh." >&2
     exit 1

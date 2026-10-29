@@ -304,6 +304,7 @@ Common::KeymapArray SagaMetaEngine::initKeymaps(const char *target) const {
 		act->setCustomEngineActionEvent(kActionOptions);
 		act->addDefaultInputMapping("F5");
 		act->addDefaultInputMapping("C+o");
+		act->addDefaultInputMapping("JOY_LEFT_SHOULDER");
 		engineKeyMap->addAction(act);
 	}
 
@@ -328,6 +329,7 @@ Common::KeymapArray SagaMetaEngine::initKeymaps(const char *target) const {
 		act = new Action("ESCAPE", _("Escape"));
 		act->setCustomEngineActionEvent(kActionEscape);
 		act->addDefaultInputMapping("ESCAPE");
+		act->addDefaultInputMapping("JOY_Y");
 		gameKeyMap->addAction(act);
 
 		act = new Action("PAUSE", _("Pause game"));
@@ -339,6 +341,7 @@ Common::KeymapArray SagaMetaEngine::initKeymaps(const char *target) const {
 		act = new Action("ABRTSPEECH", _("Abort speech"));
 		act->setCustomEngineActionEvent(kActionAbortSpeech);
 		act->addDefaultInputMapping("SPACE");
+		act->addDefaultInputMapping("JOY_X");
 		gameKeyMap->addAction(act);
 
 		act = new Action("SHOWDILOG", _("Show dialog"));

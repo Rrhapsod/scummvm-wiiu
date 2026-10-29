@@ -1,4 +1,4 @@
-# ScummVM Wii U — 0.8.0 engine candidate, October 28, 2026
+# ScummVM Wii U — 0.8.0 engine candidate, October 29, 2026
 
 I requested one combined build to test the next group of engines before a
 0.8.0 release. This candidate keeps the upstream **2026.4.0** base, the complete
@@ -23,7 +23,7 @@ Nunchuk controls. **Inclusion is not a Wii U compatibility result.**
 | Gob | The Bizarre Adventures of Woodruff and the Schnibble — `gob:woodruff` | Pending my test |
 | Kyra | The Legend of Kyrandia, Book 1 — `kyra:kyra1` | Pending my test |
 | Kyra | The Legend of Kyrandia, Book 2: Hand of Fate — `kyra:kyra2` | Pending my test |
-| Kyra | The Legend of Kyrandia, Book 3: Malcolm's Revenge — `kyra:kyra3` | Playable in predecessor (DOS/English); I reported ~4 s scene stalls; IO change pending console test |
+| Kyra | The Legend of Kyrandia, Book 3: Malcolm's Revenge — `kyra:kyra3` | My 7cd5beaa test worked perfectly (DOS/English); same IO implementation retained; new binary pending |
 | Kyra/EOB | Eye of the Beholder — `kyra:eob` | Pending my test |
 | Kyra/EOB | Eye of the Beholder II: The Legend of Darkmoon — `kyra:eob2` | Pending my test |
 | Darkseed | Dark Seed — `darkseed:darkseed` | Pending my test |
@@ -31,7 +31,7 @@ Nunchuk controls. **Inclusion is not a Wii U compatibility result.**
 | SCUMM v7/v8 | Star Wars: Rebel Assault II: The Hidden Empire — `scumm:rebel2` | Pending my test |
 | Sherlock | The Lost Files of Sherlock Holmes: The Case of the Serrated Scalpel — `sherlock:scalpel` | Pending my test |
 | Sherlock | The Lost Files of Sherlock Holmes: The Case of the Rose Tattoo — `sherlock:rosetattoo` | Pending my test |
-| SAGA/IHNM | I Have No Mouth, and I Must Scream — `saga:ihnm` | Pending my test |
+| SAGA/IHNM | I Have No Mouth, and I Must Scream — `saga:ihnm` | Started in 7cd5beaa (DOS/English); Y failed to skip opening; this fix awaits my test |
 
 **Eye of the Beholder III is not implemented in this ScummVM base.** Enabling
 Kyra/EOB supplies I and II only. It is excluded rather than advertised as
@@ -48,7 +48,7 @@ Rebel Assault II PlayStation version are outside this candidate's scope.
 
 ## Installation and required data
 
-Use **ScummVM-wiiu-0.8.0-candidate-20261028-aroma.zip** with Aroma. Extract the
+Use **ScummVM-wiiu-0.8.0-candidate-20261029-aroma.zip** with Aroma. Extract the
 complete ZIP to the SD root, merge folders and replace `wiiu/apps/ScummVM.wuhb`.
 Keep the previous 0.7.1 executable/package and preserve configuration, saves
 and game folders. No games or MT-32 ROMs are included.
@@ -96,6 +96,38 @@ replaces it. Include the candidate version/revision, exact scene and input used.
 Use the included TEST-RESULTS.md table for a combined report. Also reopen one
 previously working 0.7.1 game to check for regressions.
 
+## I Have No Mouth: opening input fix
+
+My October 28 session identifies `7cd5beaa`. I clarified that the missing cursor
+was during the opening, with AM speaking, and that **Y could not skip it**.
+This does not establish broken mouse controls in character selection/gameplay.
+The log shows ongoing cutaways, a native keyboard cancellation, launcher return
+and a later Kyrandia 3 run, not a complete game/input freeze. USB was not tested.
+
+SAGA's custom game map lacked a joystick Escape binding and was disabled for
+null/video/cutaway panels. Its separately polled logo/title intro also ignored
+keymapped action events. The October 29 candidate adds Y/Remote 2 for Escape,
+X/Nunchuk Z for speech skip and L/Remote 1 for the original options panel. The
+current panel/text state selects the map before the first input is polled;
+text fields retain ordinary letters and panel maps stay exclusive. Existing
+keymap IDs, keyboard bindings, global Plus menu and Minus keyboard remain.
+
+- **Y / Remote 2:** skip the opening/cutaway. The initial logo/title screens
+  also accept A/B or a touch/IR click in the Wii U build.
+- **A/B / Remote A/B / touch/IR:** existing mouse controls once the interactive
+  character-selection/gameplay screen appears. **The cursor stays deliberately
+  hidden during noninteractive videos.** This fix does not force a cursor over
+  videos or change their presentation.
+- Test Y/2 on the first logo and again while AM speaks, then select one of the
+  five characters, move/click with GamePad and Remote, open the options panel
+  and edit a spare save name. Return to the launcher and reopen the game.
+
+The host regression runs the actual keymap factory, panel routing and intro/
+normal input consumers using mocked event transport, under ASan/UBSan. Physical
+input and game progression still require my test of this new binary. Bounded
+`WIIU_SAGA_INPUT_DIAGNOSTICS` logs panel changes, skip acceptance, click/action
+events and cursor show/hide requests; copy scummvm.log after the test.
+
 ## Kyrandia 3 loading
 
 I reported playable Malcolm's Revenge with roughly four-second stalls on scene
@@ -111,7 +143,10 @@ initial scan changes from 4,004 reads/2,001 seeks to 63 reads/63 seeks. These
 are operation counts, not measured SD speed or proof of fixing the reported
 stalls. This candidate logs up to 24 AUD initializations and 24 Kyra3 scene
 transitions, including the explicit fade wait separately from scripts/entry.
-Please revisit the same scene changes on SD and copy the log after Quit.
+My subsequent test of `7cd5beaa` worked perfectly. Its log records large AUD
+initializations at 487/499 ms and three scene transitions; total scene duration
+also includes entry animations/walking, so it is not a disk-stall measurement.
+This candidate retains the exact Kyra/USB implementations from that binary.
 
 ## USB games and saves (first hardware candidate)
 
@@ -152,17 +187,17 @@ menu/reopen, SD-only startup and one previously working SD game.
 ## Build and evidence
 
 Pin the new independent USB SDK profile described in [USB-SDK.md](USB-SDK.md),
-then run `build-0.8.0-test.sh`. It uses a fresh October 28 directory, retains
+then run `build-0.8.0-test.sh`. It uses a fresh October 29 directory, retains
 all previous engines/codecs, explicitly adds SAGA/IHNM, and restores Xeen data
 after staging. No additional engine-data archive is required for IHNM.
 The [official 2026.4.0 compatibility list](https://www.scummvm.org/compatibility/2026.4.0/)
 lists `saga:ihnm`; that desktop status is not a Wii U test result.
 
 `WIIU_ENGINES_TEST` identifies this build; `WIIU_KYRA_IO_DIAGNOSTICS` enables only
-the bounded loading measurements above. Detailed renderer/audio/IR tracing
-remains off. The r51 compiler, WUT, SDL/seven patches and codecs are retained;
+the bounded loading measurements above. Bounded SAGA input/cursor diagnostics are also enabled; detailed renderer/
+audio/IR tracing remains off. The r51 compiler, WUT, SDL/seven patches and codecs are retained;
 the separate profile adds the pinned, locally patched libfat/libmocha. The
 shared SDK default and older binaries are unchanged. BUILD-INFO and SHA256SUMS
-record exact provenance. The three successful game reports above apply to
-`67e2ae12`, not to this new binary. All 23 games in the new build, USB and the
+record exact provenance. The three older game reports above apply to `67e2ae12`; my Kyra3 success and
+IHNM opening report apply to `7cd5beaa`, not to this new binary. All 23 games in the new build, USB and the
 Kyrandia change need console tests before a final 0.8.0 release.
