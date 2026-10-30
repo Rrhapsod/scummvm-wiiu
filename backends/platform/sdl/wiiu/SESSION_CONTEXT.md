@@ -1,6 +1,6 @@
 # Wii U port — start here in a new chat
 
-Last verified locally: **2026-10-29**. This is a compact handoff, not the full
+Last verified locally: **2026-10-30**. This is a compact handoff, not the full
 conversation or proof that every earlier test still applies. Recheck Git/files
 before acting; the current user request takes precedence over old next steps.
 
@@ -19,7 +19,7 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 | Current user features/controls/audio | checkout `README.md` |
 | Current development / joint engine tests | checkout `backends/platform/sdl/wiiu/ENGINES-TEST-0.8.0.md` |
 | Current 0.7.1 release/base update | checkout `backends/platform/sdl/wiiu/RELEASE-0.7.1.md` |
-| Build/SDK and all seven SDL patches | checkout `backends/platform/sdl/wiiu/README.WIIU` |
+| Build/SDK and SDL patches (7 release / 8 candidate) | checkout `backends/platform/sdl/wiiu/README.WIIU` |
 | Full GamePad / Remote + Nunchuk controls | checkout `README.md`, Controls |
 | Current prepared release changes | checkout `backends/platform/sdl/wiiu/RELEASE-0.7.1.md` |
 | Binary provenance/packages/checksums | `work/releases/0.7.1/BUILD-INFO.txt`, `SHA256SUMS.txt`, `PUBLISH.md` |
@@ -33,19 +33,68 @@ audio and QFG4 loading; 33 text editing/Vorbis; 34 controller keyboard;
 35–36 Groovie FMV and 0.7.0; 38 original Wii Remote IR candidate; 42 button 2/C
 swap and hardware feedback; 43 upstream 2026.4.0; 44 release 0.7.1;
 45 storage cleanup and archival; 46 original combined 0.8.0 engine candidate;
-47 SAGA, Kyra3 IO and FAT32 USB candidate; 48 IHNM opening skip fix.
+47 SAGA, Kyra3 IO and FAT32 USB candidate; 48 IHNM opening skip fix;
+49 IHNM success and pixel-precision IR candidate.
 Read the whole plan for an architectural audit or
 when explicitly requested, not by default for every small follow-up.
 `WIIU_IMPLEMENTATION_STATUS.md` describes the historical first integration,
 not the current release. Missing outer files in a standalone clone mean local
 evidence is unavailable; they do not imply the source port is absent.
 
-## Current development: IHNM opening skip fix — 2026-10-29
+## Current development: Wii Remote pointer precision — 2026-10-30
+
+- Runtime **51ae1b0d6f5d8c833b7edad48aed0b90c62511da**, upstream 2026.4.0,
+  `0.8.0 candidate 20261030 (Remote pointer precision)`. Complete combined
+  engine/codec profile, Kyra IO, SAGA input fix and pending FAT USB retained.
+  **This exact new binary has no Wii U/Cemu execution result yet.**
+- I reported **IHNM worked perfectly** with **8d242742**. New evidence is the
+  October 29 20:02–20:04 session, archived unchanged in
+  `work/logs/remote-precision-20261030-baseline/scummvm.log`, 6408 bytes/97 lines,
+  SHA256 `31cf7794273a5cd09fc26e0cf60e92b0df14c54198603f313cddbd42ba8e5925`.
+  It records an accepted opening skip, interactive character/chapter clicks
+  and clean Quit. No raw IR sample trace or physical USB test is present.
+- My next report describes grid-like slow Remote motion. The actual SDL helper
+  had a width/320 deadband for its active owner: 4 display pixels at 720p,
+  6 at 1080p, including drags. Eighth incremental patch
+  `sdl2-wiimote-precision.patch` reports every changed pixel for the owner.
+  Touch/stick acquisition hysteresis and the 350 ms yield remain. Identical
+  positions are silent; no extra averaging delay, reads or engine timing change.
+- A final slow-ramp host regression fails against the old helper with 16 moves
+  in 4-pixel steps over 64 pixels at 720p. Updated actual-code ASan/UBSan mocks
+  pass 24 horizontal/vertical/diagonal ramp cases, both directions, 320/854/
+  1280/1920 widths, hover/held drag, same-pixel noise, ownership, clicks, invalid
+  tracking, multiple Remotes, disconnect/suspend and tick wrap. Native keyboard
+  tests pass. This does not measure physical IR noise or console smoothness.
+- Pin **`../sdk/versions/r51-wut1.9.1-sdl2.32.7-pointer-20261030`** before
+  sourcing shared env.sh. Based on the preserved USB profile; only SDL rebuilt,
+  with eight patches + the existing KPADError fix. Toolchain/WUT/codecs/USB
+  libraries are byte-equal to the base. New SDL SHA256
+  `379f97bb867c2d1da9903a98735ea9433d6f4ba7dbaf916b53d498efbf43555d`.
+  `current` is unchanged. Reproduction: POINTER-SDK.md / build-pointer-sdk.sh;
+  shared SDK evidence `../sdk/validation/20261030-pointer/REPORT.md`.
+- Fresh full cross-build, linked engines/codecs, no strong undefineds, imports,
+  embedded RPX, unchanged icon/name/data, eight patches/licenses and ZIP checks
+  pass. SAGA source equals confirmed 8d242742; Kyra/USB/adapter unchanged.
+  SDK doctor passes; prior default/USB manifests and October 29 package hashes
+  still pass. Unrelated documentation diff and Android caches are preserved.
+- Artifacts: `work/build-scummvm-wiiu-0.8.0-test-20261030/`. Aroma ZIP
+  `ScummVM-wiiu-0.8.0-candidate-20261030-aroma.zip`, SHA256
+  `8ddfb9bd05e49983c0d4bfdc9f36e5ee0a8d664fe0b66cddde53f965987cf2ee`.
+  RPX ZIP, ELF/RPX/WUHB, BUILD-INFO/SHA256SUMS and test guides also present.
+  Verifier: `work/package-0.8.0-test-20261030.py FULL_RUNTIME_COMMIT`.
+  Evidence: plan section 49 and `work/logs/remote-precision-*20261030*`.
+- Next: compare slow IR motion/small targets and A drag in launcher + a game,
+  stationary jitter, GamePad touch/sticks and Nunchuk handover, keyboard,
+  HOME/disconnect/Quit; copy log. Physical USB and broader 0.8.0 game tests
+  remain pending. No push/tag/publication or old package replacement.
+
+## Predecessor: IHNM opening skip fix — 2026-10-29
 
 - Runtime **8d242742c53e964ba4378c1dc2bf09a243053861**, upstream 2026.4.0,
   `0.8.0 candidate 20261029 (SAGA intro input)`, revision `-wiiu-8d242742`.
   All engines/codecs/data, the confirmed Kyra IO change and pending FAT USB
-  implementation retained. Exact new binary has not been tested on Wii U/Cemu.
+  implementation retained. I subsequently reported IHNM working perfectly;
+  the October 29 log is archived in the current development section above.
 - I reported **Kyrandia 3 worked perfectly** with predecessor **7cd5beaa**.
   IHNM DOS/English started, but I initially described no controls/cursor;
   I clarified this was **during the opening, with Y unable to skip**. This is
@@ -82,8 +131,7 @@ evidence is unavailable; they do not imply the source port is absent.
   default changes. Kyra, USB and input backend source are byte-equal to
   7cd5beaa; old packages and unrelated doc diff/Android caches are preserved.
   No push/tag/publication. Evidence: plan section 48 and `work/logs/*20261029*`.
-  Next: my Y/2 skip test on logo and AM opening, then interactive selection,
-  chapter controls/save-name entry/menu/reopen and copied log. USB remains
+  My subsequent report confirms IHNM in the tested scenario. USB remains
   pending separately; 0.8.0 final still depends on the broader game tests.
 
 ## Predecessor: SAGA / Kyra IO / FAT USB candidate — 2026-10-28
@@ -416,8 +464,9 @@ Still pending in the recorded evidence:
   `work/sdk/env.sh` forwards to it. Existing build caches may have stale paths.
   Fresh SDL (`build-wiiu-remote-20261020`) and ScummVM Remote builds now pass
   at the new location. WUT/codecs themselves were not rebuilt in this task.
-- Current source requires all **seven** incremental SDL patches in README.WIIU
-  order; the prepared 0.7.0 binaries used six. Current shared r51 SDL SHA256:
+- Prepared 0.7.1 uses **seven** incremental SDL patches in README.WIIU
+  order; the new pointer candidate adds patch 8 in its independent profile.
+  Prepared 0.7.0 binaries used six. Preserved shared-default r51 SDL SHA256:
   `81db9275bbd57dd5fb7bd95d62a4c8da2f22f44db9c3ce3d6b30e00077c08d34`.
   The original October 20 Remote binary used the preserved r50 archive SHA256
   `d29ce16f335358b0327412a14faa993e7718736225f0afc6d9db1bf4c291113c`.
