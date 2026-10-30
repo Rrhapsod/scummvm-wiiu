@@ -15,8 +15,9 @@ source-generated mm.dat. Eye of the Beholder III is not supported; I/II are.
 This is a hardware-test candidate; see ENGINES-TEST-0.8.0.md. Existing 0.7.1
 packages are unchanged. The October 28 candidate requires the independent USB
 SDK additions described in USB-SDK.md (libfat/libmocha and local patches); the
-shared default SDK and seven SDL patches are unchanged. Use the new profile
-and a fresh build directory. Bounded Kyra3 loading diagnostics are enabled.
+shared default SDK is unchanged. The October 30 pointer candidate additionally
+requires SDL patch 8 and its independent profile; see POINTER-SDK.md. Use a
+fresh build directory. Bounded Kyra3/SAGA diagnostics remain enabled.
 
 For release 0.7.1 (including Wii Remote IR), apply these incremental
 patches to devkitPro/SDL wiiu-sdl2-2.32 in order:
@@ -32,6 +33,11 @@ The local SDK compatibility adjustments listed below are also retained.
 The older 0.7.0 binaries use patches 1-6; preserve those archives. The current
 0.7.1 release uses all seven. REMOTE-TEST-20261021.md describes a historical
 diagnostic candidate, not the release build.
+For the October 30 development candidate, apply an eighth patch after these:
+  8. sdl2-wiimote-precision.patch
+It reports every changed pixel while the Remote owns the cursor, retaining
+touch/stick ownership protection. POINTER-SDK.md and build-pointer-sdk.sh
+describe a separate SDK profile; do not overwrite an active installation.
 
 Requires devkitPPC, WUT, the devkitPro Wii U SDL2 port, target zlib and
 wut-tools (elf2rpl and wuhbtool). DEVKITPRO must identify the same SDK used

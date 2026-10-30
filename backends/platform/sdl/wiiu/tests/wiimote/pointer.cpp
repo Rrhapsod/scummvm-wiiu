@@ -5,6 +5,7 @@
 #include <cstring>
 #include <cstdio>
 #include <vector>
+#include <utility>
 #include <limits>
 using Uint32 = uint32_t;
 using SDL_MouseID = Uint32;
@@ -74,7 +75,7 @@ int main() {
     const auto count = mouseEvents.size(); update(0, 1, 1, WPAD_BUTTON_A); assert(mouseEvents.size() == count);
     update(0, 0, 0, WPAD_BUTTON_A); assert(mx == 639 && my == 359); // drag
     update(0, 0, 0); assert(mouseEvents.back().state == SDL_RELEASED);
-    update(0, 0.001f, 0.001f); assert(mouseEvents.back().type == 1); // subthreshold jitter
+    update(0, 0.0001f, 0.0001f); assert(mouseEvents.back().type == 1); // same pixel
     const auto beforeLost = mouseEvents.size();
     update(0, 0, 0, 0, -1);
     update(0, std::numeric_limits<float>::quiet_NaN(), 0);
@@ -120,6 +121,52 @@ int main() {
     ticks = 0xffffff00u; WIIU_YieldRemotePointer(); update(0, 1, 1);
     ticks = 120; update(0, 1, 1); assert(remotePointerOwner == -1);
     update(0, 0, 0); assert(remotePointerOwner == 0);
+    // Slow subpixel ramps must reach every display pixel, horizontally,
+    // vertically and diagonally, in either direction, including held drags.
+    // Sample inside each pixel so float roundoff cannot change the oracle.
+    for (const auto &dimensions : std::vector<std::pair<int, int>>{{1280,720}, {1920,1080}, {854,480}, {320,200}}) {
+        window.w = dimensions.first; window.h = dimensions.second;
+        for (int axis = 0; axis < 3; ++axis) for (int direction : {-1, 1}) {
+            WIIU_DisableRemotePointer(0); WIIU_ConfigureRemotePointer(0, WPAD_EXT_CORE);
+            ticks += 1000;
+            const Uint32 held = direction < 0 ? WPAD_BUTTON_A : 0;
+            const int start = 100;
+            const auto position = [&](float pixel, int extent) { return 2.0f * pixel / (extent - 1) - 1.0f; };
+            update(0, position(start + .375f, window.w), position(start + .375f, window.h), held);
+            mouseEvents.clear();
+            int maxStep = 0, lastX = mx, lastY = my, motions = 0;
+            for (int step = 1; step <= 256; ++step) {
+                const float pixel = start + .375f + direction * step / 4.0f;
+                update(0, position(axis != 1 ? pixel : start + .375f, window.w),
+                       position(axis != 0 ? pixel : start + .375f, window.h), held);
+                maxStep = SDL_max(maxStep, SDL_max(SDL_abs(mx-lastX), SDL_abs(my-lastY)));
+                lastX = mx; lastY = my;
+            }
+            for (const auto &event : mouseEvents) {
+                assert(event.type == 0); ++motions; // no duplicate presses during drag
+            }
+            printf("IR ramp %dx%d axis=%d direction=%d: %d motions, max step=%d pixel(s)\n",
+                   window.w, window.h, axis, direction, motions, maxStep);
+            fflush(stdout);
+            assert(maxStep == 1 && motions == 64);
+            assert(mx == (axis != 1 ? start + direction*64 : start));
+            assert(my == (axis != 0 ? start + direction*64 : start));
+            const auto stableCount = mouseEvents.size();
+            for (int i = 0; i < 100; ++i) {
+                update(0, position(mx + (i%2 ? .2f : .3f), window.w),
+                       position(my + (i%2 ? .2f : .3f), window.h), held);
+            }
+            assert(mouseEvents.size() == stableCount); // stationary same-pixel noise
+            update(0, position(mx + .25f, window.w), position(my + .25f, window.h));
+            // After touch/stick yield, one-pixel noise must NOT reclaim ownership.
+            WIIU_YieldRemotePointer(); ticks += 400; mx = 0; my = 0;
+            const int anchorX = remotePointers[0].x, anchorY = remotePointers[0].y;
+            update(0, position(anchorX + 1.25f, window.w), position(anchorY + .25f, window.h));
+            assert(remotePointerOwner == -1 && mx == 0 && my == 0);
+            update(0, position(anchorX + SDL_max(2,window.w/100) + .25f, window.w), position(anchorY + .25f, window.h));
+            assert(remotePointerOwner == 0);
+        }
+    }
     optedIn = false; WIIU_ConfigureRemotePointer(0, WPAD_EXT_CORE); assert(!sensorBar);
-    puts("PASS: actual SDL IR helper: opt-in, Sensor Bar lifecycle, valid/invalid/NaN samples, hover/click/drag ordering, jitter, touch arbitration, multiple Remotes, unplug/focus release, 480/720/1080 mapping, tick wrap (host mocks)");
+    puts("PASS: actual SDL IR helper: pixel-by-pixel slow ramps/drag, same-pixel stability, ownership hysteresis, opt-in, Sensor Bar lifecycle, invalid/NaN samples, click ordering, touch arbitration, multiple Remotes, unplug/focus/suspend release, resolution changes, tick wrap (host mocks)");
 }

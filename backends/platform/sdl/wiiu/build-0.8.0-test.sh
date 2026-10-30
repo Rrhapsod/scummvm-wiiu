@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# All-in-one 0.8.0 engine candidate; existing 0.7.1 features retained, bounded Kyra/SAGA diagnostics.
+# All-in-one 0.8.0 engine candidate with pixel-precision IR; bounded Kyra/SAGA diagnostics.
 set -euo pipefail
 : "${DEVKITPRO:?Activate the Wii U SDK first}"
 : "${DEVKITPPC:?Activate the Wii U SDK first}"
 wiiu_script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 wiiu_src="$(cd "$wiiu_script_dir/../../../.." && pwd)"
-export WIIU_BUILD_DIR="${WIIU_BUILD_DIR:-$wiiu_src/../build-scummvm-wiiu-0.8.0-test-20261029}"
+export WIIU_BUILD_DIR="${WIIU_BUILD_DIR:-$wiiu_src/../build-scummvm-wiiu-0.8.0-test-20261030}"
 export CXXFLAGS="${CXXFLAGS:-} -DWIIU_ENGINES_TEST -DWIIU_KYRA_IO_DIAGNOSTICS -DWIIU_SAGA_INPUT_DIAGNOSTICS"
 if [[ ! -f "$WUT_ROOT/usr/lib/libfat.a" || ! -f "$WUT_ROOT/usr/lib/libmocha.a" ]]; then
     echo "USB SDK dependencies missing; see USB-SDK.md and build-usb-sdk.sh." >&2
@@ -17,6 +17,10 @@ for symbol in WIIU_SuspendRemotePointers Blit_RGBA8888_RGB565; do
         exit 1
     fi
 done
+if ! powerpc-eabi-strings "$DEVKITPRO/portlibs/wiiu/lib/libSDL2.a" | grep 'WiiU pointer: pixel-precision IR' > /dev/null; then
+    echo "Rebuild SDL with the eighth patch; see POINTER-SDK.md." >&2
+    exit 1
+fi
 mkdir -p "$WIIU_BUILD_DIR"
 cd "$WIIU_BUILD_DIR"
 "$wiiu_src/configure" --host=wiiu --disable-all-engines \
@@ -46,6 +50,9 @@ for stage in wiiu_release wiiu_rpx_release; do
     cmp engine-data/mm.dat "$stage/scummvm/data/mm.dat"
     cp "$wiiu_script_dir/ENGINES-TEST-0.8.0.md" "$stage/TESTING.md"
     cp "$wiiu_script_dir/USB-SDK.md" "$stage/USB-SDK.md"
+    cp "$wiiu_script_dir/POINTER-SDK.md" "$stage/POINTER-SDK.md"
+    cp "$wiiu_script_dir/POINTER-SDK.md" "$wiiu_script_dir/build-pointer-sdk.sh" \
+        "$wiiu_script_dir/sdl2-wiimote-precision.patch" "$stage/scummvm/doc/backends/platform/sdl/wiiu/"
     cp "$wiiu_script_dir/USB-SDK.md" "$wiiu_script_dir/build-usb-sdk.sh" \
         "$wiiu_script_dir/libfat-wiiu-usb.patch" "$wiiu_script_dir/libmocha-wiiu-usb.patch" \
         "$stage/scummvm/doc/backends/platform/sdl/wiiu/"

@@ -4,9 +4,10 @@ Candidate package/revision: ____________________
 Console environment: ____________________
 Controllers / Remote model / Sensor Bar: ____________________
 
-This template is for the October 29 candidate. My October 27 predecessor
-passed Simon 1, Broken Sword 1 and Goblins Quest 3. My 7cd5beaa Kyra3 test worked perfectly; IHNM started but Y did not
-skip the opening (cursor deliberately hidden there). USB was not tested.
+This template is for the October 30 candidate. My October 27 predecessor
+passed Simon 1, Broken Sword 1 and Goblins Quest 3. My 7cd5beaa Kyra3 test worked perfectly; IHNM then worked perfectly in 8d242742, including opening skip and interactive
+clicks in the supplied log. USB was not tested. The new pointer change still
+needs a console comparison.
 Those reports do not validate this new binary. Enter PASS/FAIL/NOT TESTED;
 include platform/language/floppy-or-CD edition and a copied log for failures.
 
@@ -49,3 +50,8 @@ Kyra3 same-scene transition delay before/after / copied log: ___________________
 IHNM: Y/Remote 2 first logo / AM opening skip: ____________________
 IHNM: cursor in character selection / select character / chapter controls: ____________________
 IHNM: original options / save-name entry / menu/reopen / copied log: ____________________
+
+Remote pointer: display mode / distance / Sensor Bar placement: ____________________
+Slow horizontal/vertical/diagonal movement / small targets / held A drag: ____________________
+Stationary jitter / touch and stick handover / IR loss and button release: ____________________
+Minus keyboard / HOME return / disconnect / clean Quit / copied log: ____________________

@@ -2,7 +2,7 @@
 #ifndef WIIU_RELEASE_VERSION_H
 #define WIIU_RELEASE_VERSION_H
 #ifdef WIIU_ENGINES_TEST
-#define WIIU_PORT_VERSION "0.8.0 candidate 20261029 (SAGA intro input)"
+#define WIIU_PORT_VERSION "0.8.0 candidate 20261030 (Remote pointer precision)"
 #elif defined(WIIU_REMOTE_TEST)
 #define WIIU_PORT_VERSION "0.7.0 + Wii Remote IR candidate 20261021 (2 = Escape)"
 #elif defined(WIIU_FMV_BLIT_TEST)
