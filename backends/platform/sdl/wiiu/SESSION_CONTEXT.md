@@ -1,6 +1,6 @@
 # Wii U port — start here in a new chat
 
-Last verified locally: **2026-10-30**. This is a compact handoff, not the full
+Last verified locally: **2026-11-05**. This is a compact handoff, not the full
 conversation or proof that every earlier test still applies. Recheck Git/files
 before acting; the current user request takes precedence over old next steps.
 
@@ -19,7 +19,7 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 | Current user features/controls/audio | checkout `README.md` |
 | Current development / joint engine tests | checkout `backends/platform/sdl/wiiu/ENGINES-TEST-0.8.0.md` |
 | Current 0.7.1 release/base update | checkout `backends/platform/sdl/wiiu/RELEASE-0.7.1.md` |
-| Build/SDK and SDL patches (7 release / 8 candidate) | checkout `backends/platform/sdl/wiiu/README.WIIU` |
+| Build/SDK and SDL patches (7 release / 9 candidate) | checkout `backends/platform/sdl/wiiu/README.WIIU` |
 | Full GamePad / Remote + Nunchuk controls | checkout `README.md`, Controls |
 | Current prepared release changes | checkout `backends/platform/sdl/wiiu/RELEASE-0.7.1.md` |
 | Binary provenance/packages/checksums | `work/releases/0.7.1/BUILD-INFO.txt`, `SHA256SUMS.txt`, `PUBLISH.md` |
@@ -34,19 +34,72 @@ audio and QFG4 loading; 33 text editing/Vorbis; 34 controller keyboard;
 swap and hardware feedback; 43 upstream 2026.4.0; 44 release 0.7.1;
 45 storage cleanup and archival; 46 original combined 0.8.0 engine candidate;
 47 SAGA, Kyra3 IO and FAT32 USB candidate; 48 IHNM opening skip fix;
-49 IHNM success and pixel-precision IR candidate.
+49 IHNM success and pixel-precision IR candidate; 50 adaptive IR stabilization.
 Read the whole plan for an architectural audit or
 when explicitly requested, not by default for every small follow-up.
 `WIIU_IMPLEMENTATION_STATUS.md` describes the historical first integration,
 not the current release. Missing outer files in a standalone clone mean local
 evidence is unavailable; they do not imply the source port is absent.
 
-## Current development: Wii Remote pointer precision — 2026-10-30
+## Current development: adaptive IR stabilization — 2026-11-05
+
+- Runtime **6666255db53d008d678903244955afe4771b86f2**, upstream 2026.4.0,
+  `0.8.0 candidate 20261105 (Remote pointer stabilization)`. All combined
+  engines/codecs, confirmed SAGA/Kyra fixes and pending FAT USB retained.
+  **The exact new binary has not been run on Wii U/Cemu.**
+- I reported smoother motion but excessive stationary jitter compared with
+  the Wii U Menu after the last delivered October 30 candidate (**51ae1b0d**
+  by conversation context; no new log/build ID supplied). This is a hardware
+  scenario report, not full regression coverage. No new raw IR trace, display
+  mode or Remote model was supplied. Evidence/baseline:
+  `work/logs/remote-stability-20261105-baseline/`.
+- Patch 9 `sdl2-wiimote-stability.patch` retains 1–8 and adds a speed-adaptive
+  low-pass filter before integer conversion. It independently implements the
+  1 Euro principle (Casiez/Roussel/Vogel, CHI 2012), not Nintendo's menu code.
+  0.8 Hz minimum / beta 0.03 / derivative 1 Hz, in 1280x720 reference units.
+  No spatial dead zone; stronger stabilization near rest, more response during
+  motion. Smoothing introduces some tracking delay; buttons remain immediate
+  at the filtered cursor. Per-channel elapsed-time state resets on invalid IR,
+  ownership loss, resize, suspend/disconnect or gaps >250 ms. Same-tick polls
+  do not advance. Touch/stick arbitration and existing releases remain.
+- Actual helper/adapter ASan/UBSan: raw predecessor fails stationary-noise
+  regression (RMS ratio 1.018, x span 8 pixels). New synthetic noise at
+  8/16/33 ms and 854/1280/1920 widths gives RMS .245–.318 and x span 1–2 pixels.
+  24 timed slow ramps preserve one-pixel steps, <=3.13-pixel lag at 15.625 px/s,
+  and final convergence. Synthetic 300 px/s fast ramp delay stays <32 ms after
+  startup; reversal/clicks/cycle-of-life/native keyboard pass. These are mocks,
+  not physical tracking/noise, end-to-end latency or console FPS measurements.
+- Pin `../sdk/versions/r51-wut1.9.1-sdl2.32.7-stable-pointer-20261105` before
+  sourcing env.sh. Based on preserved October 30 profile; only SDL rebuilt.
+  New libSDL2.a SHA256
+  `c7dd4529c74845db23d833b2166d6cece6bcf83f796323ba00ffd9f85e1fe552`.
+  Compiler/WUT/codecs/USB unchanged; `current` unchanged. Nine patches plus
+  KPADError reproduce every modified SDL file. Doctor passes 2611 files/6 links;
+  old profile/default manifests and October 30 package checksums still pass.
+  Reproduction: POINTER-SDK.md/build-pointer-sdk.sh; shared evidence:
+  `../sdk/validation/20261105-pointer-stability/REPORT.md`.
+- Fresh full cross-build/package checks pass: engine/codec feature equality,
+  SAGA/Kyra/USB/adapter source equality, imports/no strong undefineds, RPX/WUHB
+  equality, unchanged name/icon/data, nine patches/licenses and ZIP integrity.
+  Artifacts: `work/build-scummvm-wiiu-0.8.0-test-20261105/`. Aroma ZIP
+  `ScummVM-wiiu-0.8.0-candidate-20261105-aroma.zip`, SHA256
+  `28195d38ffe50954ae4e1f60b4f38d30fc8bd24df4b022f1e5a6f11eeb582469`.
+  RPX ZIP/ELF/RPX/WUHB, BUILD-INFO/SHA256SUMS and test guides also present.
+  Verifier: `work/package-0.8.0-test-20261105.py FULL_RUNTIME_COMMIT`.
+- Next hardware comparison: stationary jitter/small launcher targets, slow
+  diagonals/A drag, quick motion/reversal and delay feel in launcher + a game,
+  GamePad/Nunchuk handover, keyboard, HOME/disconnect/Quit, then copied log.
+  Physical USB/broader engines still pending. No push/tag/publication. Older
+  binaries, unrelated dirty docs and Android caches are preserved. Detailed
+  evidence: plan section 50, `work/logs/remote-stability-*20261105*`.
+
+## Predecessor: Wii Remote pointer precision — 2026-10-30
 
 - Runtime **51ae1b0d6f5d8c833b7edad48aed0b90c62511da**, upstream 2026.4.0,
   `0.8.0 candidate 20261030 (Remote pointer precision)`. Complete combined
   engine/codec profile, Kyra IO, SAGA input fix and pending FAT USB retained.
-  **This exact new binary has no Wii U/Cemu execution result yet.**
+  My November 5 follow-up reports smoother motion but excessive stationary
+  jitter, referring to the last delivered candidate; no fresh log was supplied.
 - I reported **IHNM worked perfectly** with **8d242742**. New evidence is the
   October 29 20:02–20:04 session, archived unchanged in
   `work/logs/remote-precision-20261030-baseline/scummvm.log`, 6408 bytes/97 lines,
@@ -465,7 +518,8 @@ Still pending in the recorded evidence:
   Fresh SDL (`build-wiiu-remote-20261020`) and ScummVM Remote builds now pass
   at the new location. WUT/codecs themselves were not rebuilt in this task.
 - Prepared 0.7.1 uses **seven** incremental SDL patches in README.WIIU
-  order; the new pointer candidate adds patch 8 in its independent profile.
+  order; pointer precision adds patch 8 and adaptive stabilization adds
+  patch 9 in separate candidate SDK profiles.
   Prepared 0.7.0 binaries used six. Preserved shared-default r51 SDL SHA256:
   `81db9275bbd57dd5fb7bd95d62a4c8da2f22f44db9c3ce3d6b30e00077c08d34`.
   The original October 20 Remote binary used the preserved r50 archive SHA256
