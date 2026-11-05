@@ -1,0 +1,114 @@
+--- a/src/joystick/wiiu/SDL_wiiupointer.h
++++ b/src/joystick/wiiu/SDL_wiiupointer.h
+@@ -14,6 +14,10 @@
+     SDL_bool valid;
+     SDL_bool reported;
+     int x, y;
++    SDL_bool filterReady;
++    int filterWidth, filterHeight;
++    Uint32 filterTicks;
++    float rawX, rawY, smoothX, smoothY, velocityX, velocityY;
+     Uint32 buttons;
+     Uint32 suppressed;
+ } WIIU_RemotePointer;
+@@ -52,6 +56,7 @@
+         SDL_SendMouseButton(win, id, SDL_RELEASED, SDL_BUTTON_RIGHT);
+     p->buttons = 0;
+     p->valid = SDL_FALSE;
++    p->filterReady = SDL_FALSE;
+     if (remotePointerOwner == channel)
+         remotePointerOwner = -1;
+ }
+@@ -79,7 +84,7 @@
+             WPADSetSensorBar(TRUE);
+             KPADEnableDPD((KPADChan)channel);
+             remotePointers[channel].configured = SDL_TRUE;
+-            SDL_Log("WiiU pointer: pixel-precision IR and external Sensor Bar enabled for channel %d", channel);
++            SDL_Log("WiiU pointer: adaptive-stabilized IR and external Sensor Bar enabled for channel %d", channel);
+         }
+     } else {
+         WIIU_DisableRemotePointer(channel);
+@@ -94,6 +99,55 @@
+         return; /* Do not interrupt an IR drag. */
+     remotePointerOwner = -1;
+     remotePointerYieldUntil = SDL_GetTicks() + 350;
++}
++
++/* Speed-based low-pass filtering (1 Euro principle, Casiez/Roussel/Vogel,
++ * CHI 2012; https://gery.casiez.net/1euro/). Independently implemented here.
++ * Filter before integer conversion, in 1280x720 reference units so changing
++ * display resolution does not change the normalized tracking response.
++ * Stronger stabilization at rest, higher cutoff while moving; no spatial
++ * dead zone. A shared cutoff preserves the direction of diagonal movement. */
++static float WIIU_PointerAlpha(float cutoff, float seconds)
++{
++    const float scaled = 6.28318530718f * cutoff * seconds;
++    return scaled / (1.0f + scaled);
++}
++
++static void WIIU_FilterRemotePointer(WIIU_RemotePointer *p, SDL_Window *win,
++                                     const KPADStatus *kpad, int *x, int *y)
++{
++    const Uint32 now = SDL_GetTicks();
++    const Uint32 elapsed = now - p->filterTicks;
++    const float rawX = (kpad->pos.x + 1.0f) * 640.0f;
++    const float rawY = (kpad->pos.y + 1.0f) * 360.0f;
++    const SDL_bool reset = !p->filterReady || p->filterWidth != win->w || p->filterHeight != win->h || elapsed > 250;
++    if (reset) {
++        /* Never interpolate across tracking/ownership loss, resize, suspend
++         * or a long frame gap. Buttons still use the normal immediate path. */
++        p->smoothX = rawX;
++        p->smoothY = rawY;
++        p->velocityX = p->velocityY = 0.0f;
++        p->filterReady = SDL_TRUE;
++    } else if (elapsed) {
++        const float seconds = elapsed * 0.001f;
++        const float derivativeAlpha = WIIU_PointerAlpha(1.0f, seconds);
++        float speed, alpha;
++        p->velocityX += derivativeAlpha * ((rawX - p->rawX) / seconds - p->velocityX);
++        p->velocityY += derivativeAlpha * ((rawY - p->rawY) / seconds - p->velocityY);
++        speed = SDL_max(SDL_fabsf(p->velocityX), SDL_fabsf(p->velocityY));
++        alpha = WIIU_PointerAlpha(0.8f + 0.03f * speed, seconds);
++        p->smoothX += alpha * (rawX - p->smoothX);
++        p->smoothY += alpha * (rawY - p->smoothY);
++    }
++    if (reset || elapsed) {
++        p->rawX = rawX;
++        p->rawY = rawY;
++        p->filterTicks = now;
++    }
++    p->filterWidth = win->w;
++    p->filterHeight = win->h;
++    *x = (int)((p->smoothX / 1280.0f) * (win->w - 1));
++    *y = (int)((p->smoothY / 720.0f) * (win->h - 1));
+ }
+ 
+ static void WIIU_UpdateRemotePointer(int channel, const KPADStatus *kpad, Uint32 held)
+@@ -132,7 +186,7 @@
+         p->reported = SDL_TRUE;
+     }
+     /* Ownership hysteresis is not a motion filter. Once this Remote owns the
+-     * cursor, report every changed pixel: the former width/320 deadband made
++     * cursor, report every changed filtered pixel: the old width/320 deadband made
+      * slow motion jump by 4 pixels at 720p and 6 at 1080p, including drags.
+      * Keep the larger threshold only when reclaiming from touch/sticks or
+      * another idle Remote, so sensor noise cannot steal their cursor. */
+@@ -145,8 +199,17 @@
+     claim = pressed || (valid && moved && SDL_TICKS_PASSED(SDL_GetTicks(), remotePointerYieldUntil));
+     if (remotePointerOwner >= 0 && remotePointerOwner != channel && remotePointers[remotePointerOwner].buttons)
+         claim = SDL_FALSE;
+-    if (claim)
++    if (claim) {
++        if (remotePointerOwner != channel)
++            p->filterReady = SDL_FALSE;
+         remotePointerOwner = channel;
++    }
++    if (valid && remotePointerOwner == channel) {
++        WIIU_FilterRemotePointer(p, win, kpad, &x, &y);
++        moved = !p->valid || x != p->x || y != p->y;
++    } else {
++        p->filterReady = SDL_FALSE;
++    }
+     if (valid && remotePointerOwner == channel && (moved || pressed)) {
+         /* Position before button-down, including a stationary Remote after a
+          * GamePad touch. Send actual SDL mouse state for drag/clipping logic. */

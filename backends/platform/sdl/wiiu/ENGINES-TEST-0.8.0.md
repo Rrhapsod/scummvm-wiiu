@@ -1,4 +1,4 @@
-# ScummVM Wii U — 0.8.0 engine candidate, October 30, 2026
+# ScummVM Wii U — 0.8.0 engine candidate, November 5, 2026
 
 I requested one combined build to test the next group of engines before a
 0.8.0 release. This candidate keeps the upstream **2026.4.0** base, the complete
@@ -48,7 +48,7 @@ Rebel Assault II PlayStation version are outside this candidate's scope.
 
 ## Installation and required data
 
-Use **ScummVM-wiiu-0.8.0-candidate-20261030-aroma.zip** with Aroma. Extract the
+Use **ScummVM-wiiu-0.8.0-candidate-20261105-aroma.zip** with Aroma. Extract the
 complete ZIP to the SD root, merge folders and replace `wiiu/apps/ScummVM.wuhb`.
 Keep the previous 0.7.1 executable/package and preserve configuration, saves
 and game folders. No games or MT-32 ROMs are included.
@@ -96,28 +96,36 @@ replaces it. Include the candidate version/revision, exact scene and input used.
 Use the included TEST-RESULTS.md table for a combined report. Also reopen one
 previously working 0.7.1 game to check for regressions.
 
-## Wii Remote pointer precision
+## Wii Remote pointer stabilization
 
-My new report describes a grid-like cursor when moving the Remote slowly.
-The previous SDL helper discarded small movements until they accumulated to
-4 display pixels at 720p or 6 at 1080p, including while dragging. This
-candidate reports every changed display pixel while the Remote owns the
-cursor. The acquisition threshold after touch/stick use remains to prevent
-idle IR noise from taking over. Identical pixel coordinates remain silent;
-there is no extra averaging delay. Game cursor resolution still applies.
+My test of the October 30 candidate found smoother motion but excessive
+stationary jitter compared with the Wii U Menu. Removing the old coarse
+motion threshold exposed raw IR noise. This candidate adds a speed-adaptive
+low-pass filter before pixel conversion: stronger stabilization near rest,
+higher responsiveness while moving. It keeps one-pixel output precision;
+there is no return to the earlier 4–6-pixel motion deadband.
 
-1. Move slowly horizontally, vertically and diagonally over the launcher,
-   including small buttons, then repeat in a previously working game.
-2. Hold A to drag slowly. Check B/right-click and release both buttons after
-   moving off the Sensor Bar and after disconnecting the Remote.
-3. Leave the Remote still, use touch and both GamePad/Nunchuk sticks, then
-   deliberately point again. Check that idle IR does not pull the cursor back.
-4. Open/cancel the native keyboard with Minus; test HOME/return and Quit.
+The filter introduces a small adaptive tracking delay. It does not delay button
+press/release events, and clicks use the filtered cursor position. Tracking
+loss, handover, resize, suspend/disconnect or a long sample gap reset the
+filter so it cannot sweep from a stale cursor location. Games retain their
+own logical cursor resolution and frame rate. I do not know which filtering
+algorithm Nintendo uses; this is an independent implementation.
 
-Compare using the same display mode, distance and Sensor Bar placement.
-Record 480p/720p/1080p, Remote model, any stationary jitter and the exact
-candidate revision. Host mock ramps show one-pixel steps; smoothness with real
-IR and a physical console still needs my test. See [POINTER-SDK.md](POINTER-SDK.md).
+1. Leave the Remote aimed at a small launcher button and compare stationary
+   jitter with the October 30 candidate using the same distance/display mode.
+2. Move slowly horizontally, vertically and diagonally, then move quickly and
+   reverse direction. Check small targets and whether tracking feels delayed.
+3. Repeat in a previously working game, holding A for slow drag and testing B.
+   Check button releases after losing IR and disconnecting the Remote.
+4. Use GamePad touch/sticks and Nunchuk, then point again. Open/cancel the native
+   keyboard, test HOME/return and Quit.
+
+Record display mode, Remote model, Sensor Bar placement, remaining jitter and
+tracking feel. Host synthetic noise tests reduce RMS jitter by 68–75%, with
+one-pixel slow-ramp steps and bounded fast tracking delay; these are not
+physical Sensor Bar or Wii U performance measurements. The exact new binary
+needs my console comparison. See [POINTER-SDK.md](POINTER-SDK.md).
 
 ## I Have No Mouth: confirmed predecessor input fix
 
@@ -200,13 +208,13 @@ menu/reopen, SD-only startup and one previously working SD game.
 
 Pin the independent pointer SDK profile in [POINTER-SDK.md](POINTER-SDK.md),
 which retains the USB dependencies described in [USB-SDK.md](USB-SDK.md), then
-run `build-0.8.0-test.sh`. It uses a fresh October 30 directory and restores
+run `build-0.8.0-test.sh`. It uses a fresh November 5 directory and restores
 Xeen data after staging. No additional engine-data archive is needed for IHNM.
 
 `WIIU_ENGINES_TEST` identifies this build. Bounded Kyra loading and SAGA input/
 cursor diagnostics remain enabled; detailed renderer/audio/IR tracing is off.
-The r51 compiler, WUT, codecs and USB libraries are retained; SDL adds only
-incremental patch 8 to the existing seven patches. The shared SDK default and
+The r51 compiler, WUT, codecs and USB libraries are retained; SDL retains patches 1–8 and adds
+incremental patch 9 for adaptive stabilization. The shared SDK default and
 older binaries are unchanged. BUILD-INFO and SHA256SUMS record provenance.
 My Simon 1/Sword1/Gob3 reports apply to `67e2ae12`, Kyra3 success to `7cd5beaa`
 and IHNM success to `8d242742`. This new pointer binary and physical USB remain

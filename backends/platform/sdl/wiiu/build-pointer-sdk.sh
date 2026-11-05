@@ -16,7 +16,7 @@ cp -a --reflink=auto "$wiiu_pointer_base" "$WIIU_POINTER_SDK_DEST"
 mkdir -p "$WIIU_POINTER_SOURCES/SDL"
 git -C "$WIIU_POINTER_SDL_REPO" archive "$wiiu_pointer_revision" | tar -x -C "$WIIU_POINTER_SOURCES/SDL"
 for wiiu_pointer_patch in sdl2-swkbd-input sdl2-swkbd-lifecycle sdl2-renderer-lifecycle \
-    sdl2-timer-zero-timeout sdl2-swkbd-controller sdl2-rgba565-blit sdl2-wiimote-pointer sdl2-wiimote-precision; do
+    sdl2-timer-zero-timeout sdl2-swkbd-controller sdl2-rgba565-blit sdl2-wiimote-pointer sdl2-wiimote-precision sdl2-wiimote-stability; do
     patch -d "$WIIU_POINTER_SOURCES/SDL" -p1 --batch --forward < "$wiiu_pointer_script/$wiiu_pointer_patch.patch"
 done
 python3 - "$wiiu_pointer_base" "$WIIU_POINTER_SDK_DEST" "$WIIU_POINTER_SOURCES/SDL" <<'PY'
@@ -25,7 +25,7 @@ import sys
 base,dest,source=map(Path,sys.argv[1:])
 for p in dest.rglob('*.la'):
     p.write_text(p.read_text().replace(str(base),str(dest)))
-# Existing WUT compatibility adjustment, separate from the eight SDL patches.
+# Existing WUT compatibility adjustment, separate from the nine SDL patches.
 p=source/'src/joystick/wiiu/SDL_wiiujoystick.c'
 s=p.read_text()
 assert s.count('int32_t err;') == 1
@@ -45,9 +45,9 @@ import datetime,hashlib,json,os,sys
 dest,base,backend=map(Path,sys.argv[1:])
 m=json.loads((base/'MANIFEST.json').read_text())
 m.update(profile=dest.name,build_date=datetime.date.today().isoformat())
-m['versions']['SDL2']='2.32.7 + eight local patches (pixel-precision IR)'
+m['versions']['SDL2']='2.32.7 + nine local patches (adaptive-stabilized IR)'
 m['provenance']['base_profile']=str(base)
-m['provenance']['pointer_precision']={
+m['provenance']['pointer_stability']={
     'SDL2_repository':'https://github.com/devkitPro/SDL.git',
     'SDL2_commit':'a8f1e43a4a9d70cbae397433e1a3dd40113679aa',
     'patches':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(backend.glob('sdl2-*.patch'))},
