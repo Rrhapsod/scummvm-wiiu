@@ -1,6 +1,6 @@
 # Wii U port — start here in a new chat
 
-Last verified locally: **2026-11-05**. This is a compact handoff, not the full
+Last verified locally: **2026-11-17**. This is a compact handoff, not the full
 conversation or proof that every earlier test still applies. Recheck Git/files
 before acting; the current user request takes precedence over old next steps.
 
@@ -34,19 +34,73 @@ audio and QFG4 loading; 33 text editing/Vorbis; 34 controller keyboard;
 swap and hardware feedback; 43 upstream 2026.4.0; 44 release 0.7.1;
 45 storage cleanup and archival; 46 original combined 0.8.0 engine candidate;
 47 SAGA, Kyra3 IO and FAT32 USB candidate; 48 IHNM opening skip fix;
-49 IHNM success and pixel-precision IR candidate; 50 adaptive IR stabilization.
+49 IHNM success and pixel-precision IR candidate; 50 adaptive IR stabilization;
+51 successful pointer/FAT mount report and USB browser navigation fix.
 Read the whole plan for an architectural audit or
 when explicitly requested, not by default for every small follow-up.
 `WIIU_IMPLEMENTATION_STATUS.md` describes the historical first integration,
 not the current release. Missing outer files in a standalone clone mean local
 evidence is unavailable; they do not imply the source port is absent.
 
-## Current development: adaptive IR stabilization — 2026-11-05
+## Current development: SD/USB browser navigation — 2026-11-17
+
+- Runtime **6e1b8130f207cd65325f94badcacc8c37daac817**, upstream 2026.4.0,
+  `0.8.0 candidate 20261117 (USB browser navigation)`. Same complete engine/
+  codec profile and nine-patch SDL as the pointer candidate. **This exact new
+  browser binary has no Wii U/Cemu execution result yet.**
+- I reported the Remote pointer **excellent** with **6666255d**; my new log
+  identifies that exact build in the November 16 22:55:59–22:59:46 session.
+  It also proves **FAT USB mounted at usb:/** and clean shutdown. USB game
+  reads/saves are still unverified. Evidence archived byte-for-byte:
+  `work/logs/remote-success-usb-20261117/scummvm.log`, 3208 bytes/37 lines,
+  SHA256 `9dc0ed778e3e42e267d94612519dfc9f62c1f6f345645a55c679eead4860a47f`.
+- I then reported Up stopped at a root showing `vol`, with no drive list.
+  The exact path field/drive model/port were not supplied; path editing was
+  not tried. My Wii U Menu incompatible/format prompt is separate from the
+  successful ScummVM FAT mount. No reformat is needed for this reported mount.
+- WUT registers the default libc device `fs` and sets cwd to
+  `fs:/vol/external01`, but drives were registered without that prefix.
+  Old navigation could miss the SD boundary and reach a physical root with no
+  drive-list parent. An explicit `/` also selected that physical root, while
+  the virtual root used an empty path that did not persist as a root node.
+- Wii U-only changes in `backends/fs/posix-drives/posix-drives-fs.cpp` normalize
+  `fs:/...` aliases and give the virtual drive list the stable path `/`.
+  Up from `/vol` or SD/USB now reaches that list; reopening or typing `/`
+  recreates it. `usb:` keeps its driver prefix. Actual current-directory and
+  relative-file semantics are preserved; other platforms retain their behavior.
+- `tests/usb/browser.py` compiles actual drive nodes/factory and the actual
+  normalizer with mock libc/string/stream transport. Baseline fails the FSA
+  alias traversal; new ASan/UBSan tests pass aliases, physical-root recovery,
+  Up from SD/USB, root persistence, typed paths, child directory types and
+  SD-only enumeration, in both d_type/stat modes. Native POSIX regression and
+  actual USB owner lifecycle tests pass. These do not execute the real GUI or
+  physical game/save IO. The exact user path was not reproduced from a trace.
+- Same pinned SDK `../sdk/versions/r51-wut1.9.1-sdl2.32.7-stable-pointer-20261105`;
+  doctor passes. SDL SHA256 remains
+  `c7dd4529c74845db23d833b2166d6cece6bcf83f796323ba00ffd9f85e1fe552`.
+  Mount/USB owner, input, SAGA/Kyra and resources remain byte-equal to the
+  previous implementation. Full cross-build/final revision relink, imports/
+  no strong undefineds, embedded RPX, name/icon/data/ZIP/licenses checks pass.
+- Artifacts: `work/build-scummvm-wiiu-0.8.0-test-20261117/`. Aroma ZIP
+  `ScummVM-wiiu-0.8.0-candidate-20261117-aroma.zip`, SHA256
+  `c1cd3d1b6173a133e4fec077c85606a8ba00fcc72c0ce3b55b201426209c0d5e`.
+  Also RPX ZIP, ELF/RPX/WUHB, BUILD-INFO/SHA256SUMS and updated test guide.
+  Verifier: `work/package-0.8.0-test-20261117.py FULL_RUNTIME_COMMIT`.
+  Evidence: plan section 51 and `work/logs/usb-browser-*20261117*`.
+- Next: Add Game → Go up → `/` listing external01/ and usb:/, enter a USB
+  game folder and test startup; close/reopen browser, return from both devices,
+  SD-only startup and optional spare USB save/load/overwrite/relaunch. Copy
+  the log. Broader engines/final 0.8.0 remain pending. Older packages, SDK
+  default, original log and unrelated doc/Android changes preserved. No
+  push/tag/publication or formatting/configuration/save migration performed.
+
+## Predecessor: adaptive IR stabilization — 2026-11-05
 
 - Runtime **6666255db53d008d678903244955afe4771b86f2**, upstream 2026.4.0,
   `0.8.0 candidate 20261105 (Remote pointer stabilization)`. All combined
   engines/codecs, confirmed SAGA/Kyra fixes and pending FAT USB retained.
-  **The exact new binary has not been run on Wii U/Cemu.**
+  My November 17 report calls the pointer excellent; the November 16 log
+  confirms this runtime, successful FAT USB mount and clean shutdown (above).
 - I reported smoother motion but excessive stationary jitter compared with
   the Wii U Menu after the last delivered October 30 candidate (**51ae1b0d**
   by conversation context; no new log/build ID supplied). This is a hardware
