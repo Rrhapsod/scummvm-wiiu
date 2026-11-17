@@ -181,7 +181,9 @@ int main(){
   assert(listed);delete node;
  }
  fakeCwd="fs:/vol/external01/games";
- auto*node=f.makeCurrentDirectoryFileNode();assert(node->getPath()=="/");delete node;
+ auto*node=f.makeCurrentDirectoryFileNode();assert(node->getPath()=="/vol/external01/games");
+ auto*up=node->getParent();delete node;node=up;assert(node->getPath()=="/vol/external01/");
+ up=node->getParent();delete node;node=up;assert(node->getPath()=="/");delete node;
  // SD-only startup must still offer a usable root without a phantom USB.
  DrivesPOSIXFilesystemFactory sd;sd.addDrive("/vol/external01");
  node=static_cast<FilesystemFactory&>(sd).makeRootFileNode();AbstractFSList entries;

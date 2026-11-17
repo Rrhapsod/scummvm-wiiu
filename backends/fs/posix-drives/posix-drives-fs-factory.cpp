@@ -42,9 +42,7 @@ AbstractFSNode *DrivesPOSIXFilesystemFactory::makeRootFileNode() const {
 }
 
 AbstractFSNode *DrivesPOSIXFilesystemFactory::makeCurrentDirectoryFileNode() const {
-#if defined(PSP2) || defined(__WIIU__)
-	// Vita has no getcwd; Wii U's cwd is loader-owned. Empty/root browser
-	// paths must reopen the drive list instead of falling back to the SD.
+#if defined(PSP2) // The Vita does not have getcwd
 	return makeRootFileNode();
 #else
 	char buf[MAXPATHLEN];

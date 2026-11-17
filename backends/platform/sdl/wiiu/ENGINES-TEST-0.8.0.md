@@ -177,8 +177,8 @@ save/load are still unverified. The Wii U Menu's format prompt is separate;
 I cancel it to keep the PC-readable FAT volume.
 
 This candidate normalizes WUT's `fs:/vol/external01` alias to the registered SD
-path, makes `/` the persistent virtual drive list and reopens that list when
-an empty/current-directory path is requested. Old `/`, `/vol` and `fs:/...`
+path and makes `/` the persistent virtual drive list. Current-directory and
+relative-file handling are preserved. Old `/`, `/vol` and `fs:/...`
 browser paths can now navigate back to the registered drives. `usb:` keeps its
 own device prefix. No configuration reset or USB reformat is required.
 
