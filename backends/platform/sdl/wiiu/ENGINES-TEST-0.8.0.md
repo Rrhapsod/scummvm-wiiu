@@ -1,4 +1,4 @@
-# ScummVM Wii U — 0.8.0 engine candidate, November 5, 2026
+# ScummVM Wii U — 0.8.0 engine candidate, November 17, 2026
 
 I requested one combined build to test the next group of engines before a
 0.8.0 release. This candidate keeps the upstream **2026.4.0** base, the complete
@@ -48,7 +48,7 @@ Rebel Assault II PlayStation version are outside this candidate's scope.
 
 ## Installation and required data
 
-Use **ScummVM-wiiu-0.8.0-candidate-20261105-aroma.zip** with Aroma. Extract the
+Use **ScummVM-wiiu-0.8.0-candidate-20261117-aroma.zip** with Aroma. Extract the
 complete ZIP to the SD root, merge folders and replace `wiiu/apps/ScummVM.wuhb`.
 Keep the previous 0.7.1 executable/package and preserve configuration, saves
 and game folders. No games or MT-32 ROMs are included.
@@ -168,6 +168,28 @@ initializations at 487/499 ms and three scene transitions; total scene duration
 also includes entry animations/walking, so it is not a disk-stall measurement.
 This candidate retains the exact Kyra/USB implementations from that binary.
 
+## USB browser navigation fix
+
+My November 16 log identifies `6666255d` and reports `FAT USB mounted at usb:/`.
+I reported the Remote pointer excellent, but could not reach the drive list:
+pressing Up stopped at a physical root showing `vol`. USB game loading and
+save/load are still unverified. The Wii U Menu's format prompt is separate;
+I cancel it to keep the PC-readable FAT volume.
+
+This candidate normalizes WUT's `fs:/vol/external01` alias to the registered SD
+path, makes `/` the persistent virtual drive list and reopens that list when
+an empty/current-directory path is requested. Old `/`, `/vol` and `fs:/...`
+browser paths can now navigate back to the registered drives. `usb:` keeps its
+own device prefix. No configuration reset or USB reformat is required.
+
+After opening **Add Game**, press **Go up** until the path field shows `/`
+and the list offers **external01/** (SD) and **usb:/** (when mounted). Enter
+`usb:/scummvm/games/yourgame/` and select the game's folder. The path field also
+accepts `usb:/` directly. Repeat from the Save Path chooser to select an existing
+USB saves directory if desired. Verify SD-only startup, return to the drive list
+from each device, close/reopen the browser, game startup and a spare save/load.
+Copy the normal log before relaunch; the new binary still needs my console test.
+
 ## USB games and saves (first hardware candidate)
 
 Use **one FAT32 drive**, with 512-byte logical sectors and an MBR partition
@@ -208,7 +230,7 @@ menu/reopen, SD-only startup and one previously working SD game.
 
 Pin the independent pointer SDK profile in [POINTER-SDK.md](POINTER-SDK.md),
 which retains the USB dependencies described in [USB-SDK.md](USB-SDK.md), then
-run `build-0.8.0-test.sh`. It uses a fresh November 5 directory and restores
+run `build-0.8.0-test.sh`. It uses a fresh November 17 directory and restores
 Xeen data after staging. No additional engine-data archive is needed for IHNM.
 
 `WIIU_ENGINES_TEST` identifies this build. Bounded Kyra loading and SAGA input/
@@ -217,5 +239,5 @@ The r51 compiler, WUT, codecs and USB libraries are retained; SDL retains patche
 incremental patch 9 for adaptive stabilization. The shared SDK default and
 older binaries are unchanged. BUILD-INFO and SHA256SUMS record provenance.
 My Simon 1/Sword1/Gob3 reports apply to `67e2ae12`, Kyra3 success to `7cd5beaa`
-and IHNM success to `8d242742`. This new pointer binary and physical USB remain
-untested; final 0.8.0 still needs the broader requested game tests.
+and IHNM success to `8d242742`. The pointer has my successful report for `6666255d`; this new browser binary
+and USB game/save operations still need my test; final 0.8.0 still needs the broader requested game tests.

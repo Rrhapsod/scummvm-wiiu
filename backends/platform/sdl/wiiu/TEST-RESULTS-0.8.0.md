@@ -4,7 +4,7 @@ Candidate package/revision: ____________________
 Console environment: ____________________
 Controllers / Remote model / Sensor Bar: ____________________
 
-This template is for the November 5 candidate. My October 27 predecessor
+This template is for the November 17 candidate. My October 27 predecessor
 passed Simon 1, Broken Sword 1 and Goblins Quest 3. My 7cd5beaa Kyra3 test worked perfectly; IHNM then worked perfectly in 8d242742, including opening skip and interactive
 clicks in the supplied log. USB was not tested. The new pointer change still
 needs a console comparison. My October 30 pointer candidate improved motion
@@ -58,3 +58,5 @@ Stationary jitter / touch and stick handover / IR loss and button release: _____
 Minus keyboard / HOME return / disconnect / clean Quit / copied log: ____________________
 
 Adaptive pointer: stationary jitter before/after / fast movement lag / reversal: ____________________
+
+USB browser: SD -> Up -> / drive list / usb: / close-reopen / old fs: path: ____________________

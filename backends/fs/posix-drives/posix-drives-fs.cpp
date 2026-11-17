@@ -31,12 +31,44 @@
 
 #include <dirent.h>
 
+#ifdef __WIIU__
+// WUT's cwd includes its libc device prefix (fs:/vol/external01), while
+// registered drives and configuration defaults use /vol/external01. Keep
+// those aliases identical for parent navigation; usb: is a different driver.
+static Common::String normalizeWiiUDrivePath(const Common::String &path) {
+	if (path == "fs:")
+		return "/";
+	if (path.hasPrefix("fs:/"))
+		return Common::String(path.c_str() + 3);
+	return path;
+}
+#endif
+
 DrivePOSIXFilesystemNode::DrivePOSIXFilesystemNode(const Common::String &path, const Config &config) :
+#ifdef __WIIU__
+		POSIXFilesystemNode(normalizeWiiUDrivePath(path)),
+#else
 		POSIXFilesystemNode(path),
+#endif
 		_isPseudoRoot(false),
 		_config(config) {
 
+#ifdef __WIIU__
+	// Give the drive list a persistent, editable path. A physical FSA root
+	// would show only 'vol' and have no parent, trapping legacy browser paths.
+	if (_path == "/") {
+		_isPseudoRoot = true;
+		_isDirectory = true;
+		_isValid = true;
+		return;
+	}
+#endif
+
+#ifdef __WIIU__
+	if (isDrive(_path)) {
+#else
 	if (isDrive(path)) {
+#endif
 		_isDirectory = true;
 		_isValid = true;
 
@@ -53,6 +85,10 @@ DrivePOSIXFilesystemNode::DrivePOSIXFilesystemNode(const Config &config) :
 		_config(config) {
 	_isDirectory = true;
 	_isValid = false;
+#ifdef __WIIU__
+	_path = "/";
+	_displayName = "/";
+#endif
 }
 
 void DrivePOSIXFilesystemNode::configureStream(StdioStream *stream) {
