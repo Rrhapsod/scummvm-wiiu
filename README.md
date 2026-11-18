@@ -1,44 +1,56 @@
-# ScummVM for Wii U / Aroma — v0.7.1
+# ScummVM for Wii U / Aroma — v0.8.0
 
 ![ScummVM icon](dists/psp2/icon0.png)
 
 A community-developed, native ScummVM port for **Nintendo Wii U running Aroma**.
 Launch **ScummVM** directly from the Wii U Menu and play using the GamePad
-touchscreen or the analog stick and buttons. **No RetroArch required.**
+touchscreen, analog stick and buttons, or Wii Remote IR Pointer. **No RetroArch required.**
 
 This is an **unofficial, experimental port**, not an official ScummVM release.
-Version **0.7.1** includes **SCUMM v0–v8, MM/Xeen, SCI/SCI32, Mohawk,
-Blade Runner and Groovie/Groovie2**, not every engine supported by desktop
-ScummVM. Humongous Entertainment and MM1 remain disabled. Games and MT-32 ROMs
-are not included.
+The community port version is **0.8.0**, based on **ScummVM 2026.4.0**.
+It includes **15 engine families** in one build, **full Wii Remote IR Pointer
+support with adaptive stabilization**, and **game loading from FAT32 USB
+storage**. Games and MT-32 ROMs are not included.
 
-The community port version is **0.7.1**, based on **ScummVM 2026.4.0**.
-See the [0.7.1 release notes](backends/platform/sdl/wiiu/RELEASE-0.7.1.md)
-for the changes, packages and validation details.
-
-This release adds **Wii Remote IR pointing and Nunchuk support**, including
-simultaneous GamePad input. **Remote 2 = Escape/back; Nunchuk C = slow analog
-pointer.** I reported a successful console test of the 2026.4.0 predecessor
-before preparing 0.7.1. The complete control guide is below.
+See the [0.8.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.8.0.md)
+for downloads, changes and validation. The complete control tables and USB
+setup guide are below. **Remote 2 = Escape/back; Nunchuk C = slow analog
+pointer.** GamePad and Remote can remain connected together.
 
 [Downloads](https://github.com/Rrhapsod/scummvm-wiiu/releases) ·
 [Report a Wii U issue](https://github.com/Rrhapsod/scummvm-wiiu/issues) ·
 [Upstream ScummVM README](README.scummvm.md)
 
-## Next version: 0.8.0 engine candidate
+## Integrated engines
 
-I am preparing a combined test build adding **Tinsel, Sword1, Sword2, AGOS,
-Gob, Kyra/EOB, Darkseed, Sherlock and SAGA/IHNM** to the existing profile. Rebel Assault
-I/II already use the included SCUMM v7/v8 engine. See the
-[0.8.0 candidate guide](backends/platform/sdl/wiiu/ENGINES-TEST-0.8.0.md) for all
-23 game IDs, installation/data requirements and the joint hardware checklist.
-My October 27 predecessor tests passed Simon 1, Broken Sword 1 and Goblins
-Quest 3. The 0.8.0 candidates add **I Have No Mouth, and I Must Scream**,
-a bounded Kyrandia 3 AUD-loading optimization and **FAT32 USB games/optional
-saves**. I reported Kyrandia 3 working perfectly with `7cd5beaa`. The October 29
-candidate fixes Y/Remote 2 skipping the IHNM opening; that fix and USB still
-need console tests. This is not a final 0.8.0 release. **Eye of the Beholder III is unsupported by the base;
-Kyra provides I and II.** The 0.7.1 packages and build helper remain available.
+All engines below are statically included in the same 0.8.0 executable.
+The examples identify the enabled scope; integration does not guarantee every
+game edition or a complete playthrough on Wii U.
+
+| Engine | Included scope and game examples |
+| --- | --- |
+| **SCUMM** | v0–v8: classic LucasArts adventures, The Curse of Monkey Island, Star Wars: Rebel Assault I and II (original PC versions) |
+| **MM / Xeen** | Clouds of Xeen, Darkside of Xeen, World of Xeen, Swords of Xeen |
+| **SCI / SCI32** | Sierra SCI adventures, including Quest for Glory IV (DOS/Windows) |
+| **Mohawk** | Myst, Myst Masterpiece Edition, Riven (original editions) |
+| **Blade Runner** | Blade Runner (original release) |
+| **Groovie / Groovie2** | The 7th Guest, The 11th Hour |
+| **Tinsel** | Discworld, Discworld II: Missing Presumed...!? |
+| **Sword1** | Broken Sword: The Shadow of the Templars |
+| **Sword2** | Broken Sword II: The Smoking Mirror |
+| **AGOS** | Elvira: Mistress of the Dark, Elvira II: The Jaws of Cerberus, Simon the Sorcerer 1 and 2 |
+| **Gob** | Gobliiins, Gobliins 2: The Prince Buffoon, Goblins Quest 3, The Bizarre Adventures of Woodruff and the Schnibble |
+| **Kyra / EOB** | The Legend of Kyrandia Books 1–3, Eye of the Beholder I and II |
+| **Darkseed** | Dark Seed |
+| **Sherlock** | The Lost Files of Sherlock Holmes: The Case of the Serrated Scalpel and The Case of the Rose Tattoo |
+| **SAGA / IHNM** | I Have No Mouth, and I Must Scream |
+
+Rebel Assault uses SCUMM; Scalpel and Rose Tattoo use Sherlock. They are not
+separate engine plugins. **Eye of the Beholder III is not implemented by this
+ScummVM base.** HE, MM1, AGOS2, Lands of Lore and Rebel Assault II's PSX version
+are disabled. Discworld Noir requires features outside this build. Use the
+bundled engine data, especially `mm.dat`, `kyra.dat` and `darkseed.dat`.
+Sword1/2 SMK and DXA cutscenes are supported; MPEG-2 cutscene decoding is disabled.
 
 ## Features
 
@@ -47,7 +59,8 @@ Kyra provides I and II.** The 0.7.1 packages and build helper remain available.
 - Standard ScummVM launcher, with video output on the TV and GamePad.
 - **Touchscreen pointer control**, including tap-to-click.
 - **Analog-stick pointer control** with physical left/right mouse buttons.
-- **Wii Remote IR pointer**, A/B mouse clicks, Nunchuk movement and precision mode.
+- **Full Wii Remote IR Pointer support**: fine movement, adaptive stabilization
+  at rest, immediate A/B clicks, held-button dragging and optional Nunchuk input.
 - Simultaneous GamePad/Remote input and controller hotplug.
 - **Native Wii U on-screen keyboard** for text entry and save descriptions.
 - Audio playback through the existing SDL mixer backend.
@@ -56,7 +69,10 @@ Kyra provides I and II.** The 0.7.1 packages and build helper remain available.
 - Existing-text editing in supported launcher/ScummVM and original SCUMM fields.
 - Faster Curse of Monkey Island transitions and Quest for Glory IV resource loading.
 - Faster Groovie pixel conversion; my latest 11th Hour movie/audio test improved.
-- Game data browsing, configuration and save files on the SD card.
+- **FAT32 USB game loading**, with a drive list for SD and USB.
+- Configuration, engine data, logs and default saves remain on SD; an optional
+  USB save folder can be selected explicitly.
+- Faster Kyrandia 3 scene loading and corrected IHNM opening-skip controls.
 - SDL2-based backend; no Libretro frontend or RetroArch dependency.
 - Corrected renderer texture cleanup for repeated game/launcher transitions;
   I confirmed that this fix resolved the repeated-exit freeze on my Wii U.
@@ -80,7 +96,7 @@ Keep backups of your saves when testing an experimental build.
 
 | Package | Intended use | Validation |
 | --- | --- | --- |
-| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | The 2026.4.0 predecessor passed my console test; 0.7.1 changes version metadata and documentation |
+| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | The 0.8.0 browser predecessor passed my latest console test; final package checked locally |
 | RPX experimental ZIP (`ScummVM.rpx`) | Community testing with a non-Aroma Wii U Homebrew Launcher/loader that supports RPX | **Not yet tested outside Aroma** |
 
 Both packages include the same executable and required data in different
@@ -119,6 +135,45 @@ root; this is also the path format used in configuration files.
 To update, back up your saves and merge the new package onto the SD card.
 Replace the existing `wiiu/apps/ScummVM.wuhb` rather than keeping multiple
 copies with different filenames.
+
+## Run games from USB
+
+Use **one PC-readable FAT32 drive**, preferably a conventional **MBR partition
+layout with 512-byte logical sectors**, connected **before launching ScummVM**.
+A FAT volume without a partition table is also supported by the driver. The
+SD card is still required for the application, engine data, configuration and
+log. Keep the USB drive connected until ScummVM has fully exited.
+
+1. On a computer, copy your game folders to the drive, for example
+   `USB:/scummvm/games/yourgame/`. Back up any existing files before changing
+   the drive's format or partition layout.
+2. Connect the drive and launch ScummVM from Aroma. If the Wii U Menu offers
+   to format the drive, **cancel**: its encrypted Wii U format is different
+   from the PC-readable FAT32 format used here. ScummVM never formats storage.
+3. Choose **Add Game**, then **Go up / Up** until the path is **`/`**.
+   This is the drive list: **external01/** is the SD card and **usb:/** is the
+   mounted USB drive. Select **usb:/** and browse to the game's folder.
+   The editable path field also accepts **`usb:/`** directly.
+4. Add the game and choose **Start**. The game data can stay on USB; no copy
+   to SD is needed.
+
+The SD root appears as `/vol/external01/` and the USB root as `usb:/`.
+Version 0.8.0 fixes the browser getting stuck at a physical root showing `vol`.
+I reported that the corrected USB navigation/loading scenario worked perfectly.
+My supplied log confirms the FAT mount and Blade Runner startup/clean exit;
+it does not record the game's data path or establish USB save durability.
+
+Saves remain in `SD:/scummvm/saves/` by default. To try USB saves, create a
+folder such as `USB:/scummvm/saves/` on your computer and select it in
+**Global Options → Paths → Save Path**, or the game's path settings. Existing
+saves are not moved automatically. USB save/load/overwrite and persistence
+after relaunch still need a targeted hardware report; keep a backup.
+
+If **usb:/** is absent, check `SD:/scummvm/scummvm.log` for **`Wii U USB:`**.
+Connect before launch, check FAT32/MBR and ensure the drive has sufficient power.
+No particular USB port, hub or drive model has been validated by the supplied
+report. NTFS, exFAT, GPT, encrypted Wii U storage, multiple drives and hot
+removal are outside the supported configuration. SD-only use still works.
 
 ## Controls
 
@@ -159,6 +214,12 @@ Pair the Remote with the Wii U before launching. For IR pointing, use a powered
 Sensor Bar and keep the Remote aimed at it with a clear line of sight. A Remote
 without a Nunchuk can still point, click, open menus and use its own buttons.
 Attach a Nunchuk for analog movement, dialogue skip and precision mode.
+
+The Pointer reports fine motion and applies adaptive stabilization to reduce
+stationary IR jitter while remaining responsive during movement. It supports
+launcher/game pointing, A/B clicks and dragging, and handover to GamePad touch
+or either analog stick. I reported the stabilized pointer excellent on my
+Wii U; no extra pointer option needs to be enabled.
 
 | Input | Default action | GamePad equivalent |
 | --- | --- | --- |
@@ -219,7 +280,7 @@ later; I still need hardware confirmation of the reported Pro-only/HOME case.
 
 ## MP3 audio playback
 
-MP3 support remains included in 0.7.1. Earlier SCUMM-only packages did not
+MP3 support remains included in 0.8.0. Earlier SCUMM-only packages did not
 include the MP3 decoder.
 
 MP3 decoding is automatic when a supported game engine reads audio in a
@@ -249,7 +310,7 @@ not confirm MP3 playback. Keep the originals as a backup.
 
 ## Ogg Vorbis audio playback
 
-Version 0.7.1 includes **Ogg Vorbis** decoding. It is automatic when an
+Version 0.8.0 includes **Ogg Vorbis** decoding. It is automatic when an
 included engine reads a supported Vorbis resource; there is no Ogg toggle.
 
 1. Keep the game's required filenames and directory layout. Some engines use
@@ -323,6 +384,11 @@ I successfully tested the following games on my Wii U:
 | The Curse of Monkey Island | Gameplay and all audio; scene/menu delays resolved in my tests |
 | Might and Magic: World of Xeen | Playable; game-specific keyboard mappings apply |
 | Quest for Glory IV | DOS and Windows editions opened and were playable; startup greatly improved |
+| Simon the Sorcerer 1 | CD/Windows/English worked perfectly in my reported test |
+| Broken Sword: The Shadow of the Templars | GOG/Windows/English worked perfectly in my reported test |
+| Goblins Quest 3 | CD v1.02/DOS/English worked perfectly in my reported test |
+| The Legend of Kyrandia: Malcolm's Revenge | Worked perfectly after the AUD-loading optimization |
+| I Have No Mouth, and I Must Scream | Worked perfectly after the opening-skip input fix |
 
 I also tested the native keyboard successfully on September 26, 2026.
 My earlier SDK tests covered TV/GamePad video, touch,
@@ -348,13 +414,14 @@ The diagnostic log shows roughly 29–31 ms drawing per frame instead of about
 and some empty audio-queue observations, so I do not claim constant 30 fps or
 perfect playback across all Groovie games.
 
-The game-specific results above refer to earlier builds. On October 22, 2026,
-I reported that the ScummVM 2026.4.0 update test was a success, after the earlier
-Remote and button-remapping tests. That report identifies the predecessor
-binary `90b6e646`; I supplied no new log or per-game/scenario breakdown.
-Release 0.7.1 retains that runtime implementation and SDK, changing the port
-version metadata and documentation. Its newly packaged binary has not had a
-separate console run. Detailed diagnostic tracing remains disabled.
+The results above span earlier builds and specific game editions. During the
+0.8.0 candidates, I confirmed Kyrandia 3 and IHNM after their fixes, then called
+the stabilized Remote Pointer excellent. On November 18, 2026, I reported the
+USB browser fix worked perfectly. My November 17 session identifies `6e1b8130`,
+records `FAT USB mounted at usb:/`, starts Blade Runner (Windows/English) and
+ends cleanly. The final 0.8.0 package retains that implementation, with release
+metadata/build/docs updates and candidate diagnostics disabled. It has not had
+a separate console run. Exact source/profile/hashes accompany the downloads.
 
 These are tests of specific scenarios, **not full-game completion reports or
 a guarantee that every game/version works**. Additional community testing is
@@ -369,15 +436,17 @@ not describe it as confirmed Tiramisu or legacy support yet.
   are included. I tested Riven, Blade Runner and The 11th Hour successfully;
   I have not yet tested Myst/Myst Masterpiece or The 7th Guest on my Wii U.
   Modern remakes and enhanced/remastered editions are not promised.
-- SCUMM v7/v8, MM/Xeen and SCI32 are now enabled, but HE/MM1 and other unlisted
-  engines are not. The complete desktop compatibility list is not a Wii U guarantee.
+- Only the engine scope listed above is enabled. The desktop compatibility
+  list is not a Wii U guarantee; many integrated games still need console tests.
+- USB saves have no targeted hardware durability report; game loading and
+  pointer success do not validate every drive, port or storage configuration.
 - MP3 decoding and MT-32 have passed my console tests, but
   compatibility/performance across all games is not guaranteed.
   Vorbis is included but still needs a specifically identified console test.
   FLAC, MPEG-2, Opus and Theora are not included.
 - Clandestiny, Tender Loving Care and Uncle Henry's Playhouse community reports
   remain unresolved/unverified; the 11th Hour result does not validate them.
-- Version 0.7.1 retains the renderer memory fix validated for the reported
+- Version 0.8.0 retains the renderer memory fix validated for the reported
   repeated-exit freeze. This does not guarantee that every game/edition or
   possible freeze is resolved. Back up saves and report new failures.
 - Networking and OpenGL/shaders are not enabled.
@@ -388,7 +457,7 @@ not describe it as confirmed Tiramisu or legacy support yet.
 
 ## Release and historical test builds
 
-Read the [0.7.1 release notes](backends/platform/sdl/wiiu/RELEASE-0.7.1.md)
+Read the [0.8.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.8.0.md)
 before replacing your existing executable. Keep the earlier ZIP for rollback.
 The [experimental build guide](backends/platform/sdl/wiiu/EXPERIMENTAL.md)
 documents the historical September 30 profile and dependency preparation.
@@ -415,9 +484,9 @@ The port uses the existing ScummVM build system with devkitPPC, WUT,
 devkitPro's Wii U SDL2 branch, target zlib and `wut-tools`. SDL is responsible
 for native video, audio, input and Wii U application lifecycle handling.
 
-For release 0.7.1, including the expanded engines, MP3/Vorbis and MT-32 without
-diagnostic tracing, use the release script after preparing the dependencies
-and all seven SDL patches listed in the
+For release 0.8.0, including all 15 engines, FAT USB, MP3/Vorbis and MT-32
+without candidate diagnostic tracing, use the release script after preparing
+libfat/libmocha and all nine SDL patches listed in the
 [backend notes](backends/platform/sdl/wiiu/README.WIIU):
 
 ```sh

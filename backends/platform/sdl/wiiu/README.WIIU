@@ -1,29 +1,22 @@
 ScummVM Wii U / Aroma — experimental SDL2 port
 =============================================
 
-Version 0.7.1 includes SCUMM v0-v8, MM/Xeen, SCI/SCI32, Mohawk/Myst/Riven,
-Blade Runner and Groovie/Groovie2, with MP3, Vorbis and MT-32. It retains the
-renderer fix, fixes SDL zero-timeout waits, speeds up Curse/QFG4 IO and Groovie
-RGBA conversion, and improves existing-text editing/controller keyboard input.
-See RELEASE-0.7.1.md for changes and README.md for both complete button tables.
+Version 0.8.0 includes 15 engine families: SCUMM v0-v8, MM/Xeen,
+SCI/SCI32, Mohawk/Myst/MystME/Riven, Blade Runner, Groovie/Groovie2,
+Tinsel, Sword1, Sword2, AGOS, Gob, Kyra/EOB, Darkseed, Sherlock and SAGA/IHNM.
+See README.md for the complete engine/game table, both full control tables,
+stabilized Wii Remote Pointer and FAT32 USB game-loading instructions.
+Rebel Assault I/II use SCUMM; Scalpel/Rose Tattoo use Sherlock. EOB I/II
+are included; EOB III is not implemented by this base. HE/MM1/AGOS2/LoL,
+Rebel2 PSX and TinyGL remain disabled. Keep mm.dat, kyra.dat and darkseed.dat.
 
-For the combined 0.8.0 test profile, run build-0.8.0-test.sh instead of the
-0.7.1 release helper. It adds Tinsel, Sword1/2, AGOS, Gob, Kyra/EOB, Darkseed
-and Sherlock, plus SAGA/IHNM, retaining the existing engines/codecs. Rebel Assault I/II already
-use SCUMM v7/v8. Include the bundled kyra.dat and darkseed.dat in addition to
-source-generated mm.dat. Eye of the Beholder III is not supported; I/II are.
-This is a hardware-test candidate; see ENGINES-TEST-0.8.0.md. Existing 0.7.1
-packages are unchanged. The October 28 candidate requires the independent USB
-SDK additions described in USB-SDK.md (libfat/libmocha and local patches); the
-shared default SDK is unchanged. The November 5 pointer candidate additionally
-requires SDL patches 8-9 and its independent profile; see POINTER-SDK.md. Use a
-fresh build directory. Bounded Kyra3/SAGA diagnostics remain enabled.
-The November 17 candidate fixes Up/drive-list navigation for WUT fs: aliases
-and physical / roots. The browser now keeps / as its persistent drive list;
-see ENGINES-TEST-0.8.0.md. No SDK or USB format change is required.
+The final release retains the successful USB browser implementation from
+6e1b8130 and the confirmed Pointer/Kyra3/IHNM fixes. Release metadata,
+build/staging and docs change; candidate diagnostics are disabled.
+See RELEASE-0.8.0.md for the exact validation limits. Historical candidate
+helpers/guides are separate from the normal build-release.sh profile.
 
-For release 0.7.1 (including Wii Remote IR), apply these incremental
-patches to devkitPro/SDL wiiu-sdl2-2.32 in order:
+Apply these incremental patches to devkitPro/SDL wiiu-sdl2-2.32 in order:
   1. sdl2-swkbd-input.patch
   2. sdl2-swkbd-lifecycle.patch
   3. sdl2-renderer-lifecycle.patch
@@ -31,24 +24,29 @@ patches to devkitPro/SDL wiiu-sdl2-2.32 in order:
   5. sdl2-swkbd-controller.patch
   6. sdl2-rgba565-blit.patch
   7. sdl2-wiimote-pointer.patch
-Then rebuild/install SDL and relink ScummVM. Do not apply a patch twice.
-The local SDK compatibility adjustments listed below are also retained.
-The older 0.7.0 binaries use patches 1-6; preserve those archives. The current
-0.7.1 release uses all seven. REMOTE-TEST-20261021.md describes a historical
-diagnostic candidate, not the release build.
-For the October 30 development candidate, apply an eighth patch after these:
   8. sdl2-wiimote-precision.patch
-It reports every changed pixel while the Remote owns the cursor, retaining
-touch/stick ownership protection. The November 5 candidate then adds:
   9. sdl2-wiimote-stability.patch
-This adds adaptive stabilization before pixel conversion to reduce stationary
-IR noise while retaining fine movement. POINTER-SDK.md and build-pointer-sdk.sh
-describe an independent SDK profile; do not overwrite an active installation.
+Then rebuild/install SDL and relink ScummVM; do not apply a patch twice.
+Patches 8-9 add fine IR motion and adaptive stabilization. POINTER-SDK.md and
+build-pointer-sdk.sh reproduce an independent profile; USB-SDK.md and
+build-usb-sdk.sh supply the pinned libfat/libmocha dependencies and patches.
+Retain the SDK compatibility adjustments below. Historical 0.7.0 binaries
+used patches 1-6 and 0.7.1 used 1-7; preserve those archives unchanged.
+
+Release SDK selection (before sourcing env.sh):
+  export WIIU_SDK_ROOT=/home/renan/Documentos/wiiu-dev/sdk/versions/r51-wut1.9.1-sdl2.32.7-stable-pointer-20261105
+  source /home/renan/Documentos/wiiu-dev/sdk/env.sh
+  JOBS=6 bash backends/platform/sdl/wiiu/build-release.sh
+The shared default lacks USB/patches 8-9. Pin the complete profile explicitly;
+no shared default or library is changed by release preparation. Standalone
+clones may use an equivalent SDK built using the two reproduction guides.
+Use a fresh build directory when changing profiles.
 
 Requires devkitPPC, WUT, the devkitPro Wii U SDL2 port, target zlib and
 wut-tools (elf2rpl and wuhbtool). DEVKITPRO must identify the same SDK used
 to build SDL2; DEVKITPPC and WUT_ROOT may be set explicitly.
 
+Historical SDK migration notes (not the release profile selection above):
 In my local multi-project workspace I now use the shared SDK at
 /home/renan/Documentos/wiiu-dev/sdk. Activate it once per Bash terminal:
   source /home/renan/Documentos/wiiu-dev/sdk/env.sh
@@ -62,22 +60,17 @@ The active r50 profile includes its own compiler copy and the existing seven
 SDL patches; migrating it did not update the compiler to r51. Keep release
 artifacts unchanged and use a fresh build directory when changing profiles.
 
-Current source merges the official ScummVM v2026.4.0 tag. The community port
-version is now 0.7.1; older prepared ZIPs retain their original base. The
-release helper defaults to a new build-scummvm-wiiu-0.7.1 directory and
-stages RELEASE-0.7.1.md plus matching RPX metadata. Release 0.7.1 uses the
-shared r51 profile; the earlier r50 migration notes above are historical. All prior engines,
-codecs and Wii Remote controls are retained, with diagnostic/test macros off.
-I reported a successful console test of the 2026.4.0 predecessor (90b6e646)
-on October 22. The new 0.7.1 binary has version/documentation changes and has
-not had a separate console run. See RELEASE-0.7.1.md for current status.
+Current source merges official ScummVM v2026.4.0; the community version is
+0.8.0. The normal release helper defaults to build-scummvm-wiiu-0.8.0 and
+stages RELEASE-0.8.0.md with matching RPX metadata. It checks all engine/codec
+flags, USB dependencies and stabilized SDL, and disables diagnostic/test macros.
 
 Build outside the source tree, after activating the SDK:
   /path/to/scummvm/configure --host=wiiu --disable-all-engines \
     --enable-engine=scumm --disable-detection-full --disable-mt32emu
   make -j2 wiiu_release
 
-The above is the historical minimal build, not the 0.7.1 release profile.
+The above is the historical minimal build, not the 0.8.0 release profile.
 For all release engines and MP3/Vorbis/MT-32, with diagnostics disabled:
   bash backends/platform/sdl/wiiu/build-release.sh
 See EXPERIMENTAL.md for historical JPEG/MP3 dependency preparation. For pinned
@@ -118,7 +111,10 @@ Start ScummVM from the Wii U Menu under Aroma. The backend creates:
   scummvm/scummvm.log    overwritten at the next launch; copy before retrying
   scummvm/saves/
 
-Games are not included; browse the SD using Add Game.
+Games are not included; browse SD or mounted usb:/ using Add Game.
+Go up to / for the virtual drive list (external01/ and usb:/). Saves stay
+on SD unless an existing USB save directory is explicitly selected. The USB
+browser fix normalizes WUT fs: aliases and preserves ordinary cwd behavior.
 WUT paths are /vol/external01/... (not sd:/... in configuration files).
 Current source keeps the GamePad and all detected WPAD channels open together,
 including hotplugged devices. The GamePad need not enumerate first. Touch uses
@@ -175,7 +171,7 @@ Validation:
 - Menu icon: I confirmed it worked on my console on September 28, 2026.
 - Standalone RPX through non-Aroma loaders: awaiting community hardware tests.
 
-The local SDK used devkitPPC r50 (GCC 16.1.0/newlib 4.6), WUT v1.9.1,
+The historical initial SDK used devkitPPC r50 (GCC 16.1.0/newlib 4.6), WUT v1.9.1,
 devkitPro SDL2 2.32.7 (wiiu-sdl2-2.32, a8f1e43a), zlib 1.3.2 and
 wut-tools 1.3.4. Besides sdl2-swkbd-input.patch, the local SDK has compatibility
 changes: WUT lock_try_acquire_recursive returns int to match newlib; WUT's

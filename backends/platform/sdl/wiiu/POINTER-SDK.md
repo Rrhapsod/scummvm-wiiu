@@ -1,5 +1,11 @@
 # Adaptive Wii Remote stabilization — November 5, 2026
 
+For final **0.8.0**, use `build-release.sh` with the complete stabilized
+Pointer + USB SDK profile described in README.WIIU. It retains these patches
+with candidate diagnostics off. I subsequently confirmed the Pointer and USB
+browser scenarios on my console; see [RELEASE-0.8.0.md](RELEASE-0.8.0.md) for
+reports and limits. The dated candidate verification below is historical.
+
 I tested the October 30 pixel-precision candidate and reported smoother motion
 but excessive stationary jitter compared with the Wii U Menu. Patch 8 removed
 the old 4–6-pixel active-motion deadband; it did not filter IR noise crossing

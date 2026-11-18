@@ -1,5 +1,11 @@
 # FAT USB dependencies for the October 28, 2026 candidate
 
+For final **0.8.0**, use `build-release.sh` with the complete stabilized
+Pointer + USB SDK profile described in README.WIIU. It retains these patches
+with candidate diagnostics off. I subsequently confirmed the Pointer and USB
+browser scenarios on my console; see [RELEASE-0.8.0.md](RELEASE-0.8.0.md) for
+reports and limits. The dated candidate verification below is historical.
+
 I added FAT USB mounting through libfat and libmocha. This is a native Wii U
 path: it does not use the Wii/vWii libogc USB stack. The existing WUT SD mount,
 SDL patches, ProcUI owner, input, graphics and audio setup are retained.

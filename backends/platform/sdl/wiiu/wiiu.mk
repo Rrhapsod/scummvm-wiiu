@@ -3,7 +3,7 @@ WIIU_ELF2RPL := $(DEVKITPRO)/tools/bin/elf2rpl
 WIIU_WUHBTOOL := $(DEVKITPRO)/tools/bin/wuhbtool
 # Reuse the upstream ScummVM icon, already at WUHB's required 128x128 size.
 WIIU_ICON := $(srcdir)/dists/psp2/icon0.png
-WIIU_RELEASE_NOTES ?= $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.7.1.md
+WIIU_RELEASE_NOTES ?= $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.8.0.md
 WIIU_RPX_META ?= $(srcdir)/backends/platform/sdl/wiiu/meta-rpx.xml
 
 scummvm.rpx: $(EXECUTABLE)
@@ -41,6 +41,9 @@ wiiu_release: ScummVM.wuhb
 	cp $(srcdir)/backends/platform/sdl/wiiu/sdl2-timer-zero-timeout.patch $(srcdir)/backends/platform/sdl/wiiu/sdl2-swkbd-controller.patch $(srcdir)/backends/platform/sdl/wiiu/sdl2-rgba565-blit.patch wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
 	cp $(srcdir)/backends/platform/sdl/wiiu/sdl2-wiimote-pointer.patch wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
 	cp $(srcdir)/backends/platform/sdl/wiiu/build-vorbis-sdk.sh $(srcdir)/backends/platform/sdl/wiiu/prepare-mm-data.py wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
+	cp $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.8.0.md $(srcdir)/backends/platform/sdl/wiiu/meta-rpx.xml wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
+	cp $(srcdir)/backends/platform/sdl/wiiu/sdl2-wiimote-precision.patch $(srcdir)/backends/platform/sdl/wiiu/sdl2-wiimote-stability.patch wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
+	cp $(srcdir)/backends/platform/sdl/wiiu/USB-SDK.md $(srcdir)/backends/platform/sdl/wiiu/POINTER-SDK.md $(srcdir)/backends/platform/sdl/wiiu/build-usb-sdk.sh $(srcdir)/backends/platform/sdl/wiiu/build-pointer-sdk.sh $(srcdir)/backends/platform/sdl/wiiu/libfat-wiiu-usb.patch $(srcdir)/backends/platform/sdl/wiiu/libmocha-wiiu-usb.patch wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
 	mkdir -p wiiu_release/scummvm/doc/LICENSES
 	cp $(srcdir)/LICENSES/* $(srcdir)/backends/platform/sdl/wiiu/licenses/* wiiu_release/scummvm/doc/LICENSES/
 
