@@ -1,6 +1,6 @@
 # Wii U port — start here in a new chat
 
-Last verified locally: **2026-11-17**. This is a compact handoff, not the full
+Last verified locally: **2026-11-18**. This is a compact handoff, not the full
 conversation or proof that every earlier test still applies. Recheck Git/files
 before acting; the current user request takes precedence over old next steps.
 
@@ -18,11 +18,11 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 | Durable architecture/work rules | `AGENTS.md` and checkout `AGENTS.md` |
 | Current user features/controls/audio | checkout `README.md` |
 | Current development / joint engine tests | checkout `backends/platform/sdl/wiiu/ENGINES-TEST-0.8.0.md` |
-| Current 0.7.1 release/base update | checkout `backends/platform/sdl/wiiu/RELEASE-0.7.1.md` |
-| Build/SDK and SDL patches (7 release / 9 candidate) | checkout `backends/platform/sdl/wiiu/README.WIIU` |
+| Current prepared 0.8.0 release | checkout `backends/platform/sdl/wiiu/RELEASE-0.8.0.md` |
+| Build/SDK and nine SDL patches for 0.8.0 | checkout `backends/platform/sdl/wiiu/README.WIIU` |
 | Full GamePad / Remote + Nunchuk controls | checkout `README.md`, Controls |
-| Current prepared release changes | checkout `backends/platform/sdl/wiiu/RELEASE-0.7.1.md` |
-| Binary provenance/packages/checksums | `work/releases/0.7.1/BUILD-INFO.txt`, `SHA256SUMS.txt`, `PUBLISH.md` |
+| Previous prepared release | checkout `backends/platform/sdl/wiiu/RELEASE-0.7.1.md` |
+| Binary provenance/packages/checksums | `work/releases/0.8.0/BUILD-INFO.txt`, `SHA256SUMS.txt`, `PUBLISH.md` |
 | Detailed history/evidence | `docs/WIIU_PORT_PLAN.md`, relevant complete sections |
 | Older build packages after cleanup | `work/archives/builds-pruned-20261026/` |
 | Native input and regression tests | checkout `backends/platform/sdl/wiiu/tests/` |
@@ -35,19 +35,68 @@ swap and hardware feedback; 43 upstream 2026.4.0; 44 release 0.7.1;
 45 storage cleanup and archival; 46 original combined 0.8.0 engine candidate;
 47 SAGA, Kyra3 IO and FAT32 USB candidate; 48 IHNM opening skip fix;
 49 IHNM success and pixel-precision IR candidate; 50 adaptive IR stabilization;
-51 successful pointer/FAT mount report and USB browser navigation fix.
+51 successful pointer/FAT mount report and USB browser navigation fix;
+52 browser hardware success and final 0.8.0 release preparation.
 Read the whole plan for an architectural audit or
 when explicitly requested, not by default for every small follow-up.
 `WIIU_IMPLEMENTATION_STATUS.md` describes the historical first integration,
 not the current release. Missing outer files in a standalone clone mean local
 evidence is unavailable; they do not imply the source port is absent.
 
-## Current development: SD/USB browser navigation — 2026-11-17
+## Prepared release 0.8.0 — 2026-11-18
+
+- I reported **“Agora sim, funcionou perfeitamente”** after the USB browser
+  candidate **6e1b8130**, then requested preparing 0.8.0 for GitHub with full
+  Pointer, USB game loading and every integrated engine in README.
+- New log archived byte-for-byte in
+  `work/logs/release-0.8.0-20261118-baseline/scummvm.log`, 3392 bytes/48 lines,
+  SHA256 `5d155c6dfc30e9f2b913826dc544517b5c1060db13d1bdd60ff4a30eba29ef94`.
+  November 17 17:46:01–17:47:20: exact 6e1b8130, successful FAT USB mount,
+  Blade Runner Windows/English startup and clean Quit. The report confirms the
+  browser/loading scenario; the log does not print the game path or establish
+  USB save/load/overwrite/relaunch durability. No drive model/port was supplied.
+- Exact runtime/release source **4f0ddec1300f969d875124e65e9a2712480349db**, port **0.8.0**,
+  base **2026.4.0**, revision `-wiiu-4f0ddec1`. Future tag **v0.8.0** must
+  point to this commit, not the later handoff HEAD. Implementations/SDL patches
+  equal confirmed 6e1b8130; changes are version/build/staging/docs and disabling
+  candidate diagnostics. The final binary has no separate console/Cemu run.
+- Root README now lists **all 15 static engine families**, complete physical
+  GamePad/Remote+Nunchuk controls, stabilized IR, FAT32 USB and optional Save
+  Path instructions. EOB III unsupported; Rebel I/II use SCUMM and Scalpel/Rose
+  Tattoo use Sherlock. Broad game support is integration, not full playthroughs.
+- `build-release.sh` now builds the complete combined profile with diagnostics
+  OFF, requires USB dependencies and stabilized SDL; normal staging includes
+  all nine SDL patches, USB patches, reproduction recipes and licenses.
+- Fresh build `work/build-scummvm-wiiu-0.8.0/`, explicitly pinned SDK
+  `../sdk/versions/r51-wut1.9.1-sdl2.32.7-stable-pointer-20261105`.
+  Doctor passes 2611 files/6 links; default/current and SDK bytes unchanged.
+  Engine/codec feature parity with Nov17; all 15 static plugins/subengines,
+  no strong undefineds, expected imports, embedded RPX, unchanged ScummVM icon/
+  name, data and ZIP/layout/XML/licenses pass. mm.dat 1.3, kyra.dat INDEX123
+  and darkseed.dat verified. USB owner/browser ASan/UBSan mocks and negative
+  release SDK/diagnostic guards pass; unchanged earlier input/Kyra/SAGA tests
+  remain applicable. Host/cross-build validation is not new hardware evidence.
+- Upload assets in **`work/releases/0.8.0/`**:
+  Aroma ZIP SHA256 `2fa73dcbbb2f2fc7ba45efd722aa047b041413c2ca516db739bfd44abd611abf`;
+  RPX experimental ZIP SHA256 `d94db7ccb46b07eec112fff158eae49a4383135adb2cabd4621dbb682c8322e6`;
+  RELEASE-NOTES.md, BUILD-INFO.txt and SHA256SUMS.txt. Local **PUBLISH.md**
+  gives the Portuguese publication steps; RELEASE-BODY.md is ready English
+  GitHub text. Verifier `work/package-0.8.0.py FULL_RUNTIME_COMMIT`.
+- Read-only GitHub refs on Nov18: branch/default and v0.7.1 at 7e5edef3;
+  v0.8.0 absent. **No push, tag creation, upload or publication performed.**
+  Non-Aroma RPX and targeted USB-save durability remain unverified. Older
+  candidates/releases, original log, unrelated SDK doc diff and Android caches
+  preserved. Detailed evidence: plan section 52 and `work/logs/release-0.8.0-*`.
+- Next: publish manually following PUBLISH.md, or optionally run the exact
+  final Aroma ZIP before publication. Further game/save testing is separate;
+  do not rebuild these prepared assets just to refresh the handoff.
+
+## Predecessor: SD/USB browser navigation — 2026-11-17
 
 - Runtime **6e1b8130f207cd65325f94badcacc8c37daac817**, upstream 2026.4.0,
   `0.8.0 candidate 20261117 (USB browser navigation)`. Same complete engine/
-  codec profile and nine-patch SDL as the pointer candidate. **This exact new
-  browser binary has no Wii U/Cemu execution result yet.**
+  codec profile and nine-patch SDL as the pointer candidate. At packaging it had no console result; my November 18 success report is
+  recorded in the current release section above.
 - I reported the Remote pointer **excellent** with **6666255d**; my new log
   identifies that exact build in the November 16 22:55:59–22:59:46 session.
   It also proves **FAT USB mounted at usb:/** and clean shutdown. USB game
@@ -551,8 +600,10 @@ Groovie fixes or constant 30 fps.
 
 Still pending in the recorded evidence:
 
-- Separate console execution of the versioned **0.7.1 ZIP**; the matching
-  2026.4.0 predecessor has a success report with no scenario breakdown.
+- Separate console execution of the final **0.8.0 ZIP**; its 6e1b8130 browser
+  predecessor has my success report and matching mount/Blade Runner log.
+- Targeted physical USB save/load/overwrite/relaunch durability and broader
+  integrated-engine/game-edition coverage.
 - Pro-only keyboard, late GamePad and HOME scenario.
 - Console decoding with specifically identified Vorbis assets (host tests pass).
 - Non-Aroma RPX compatibility and representative Myst/7th Guest reports.
@@ -563,7 +614,7 @@ Still pending in the recorded evidence:
 
 - Native ScummVM -> existing SDL2 backend -> WUT. No RetroArch/custom replacement
   backend. Preserve the ScummVM name and existing upstream icon.
-- 0.7.1 includes SCUMM v0–v8 (no HE), MM/Xeen (no MM1), SCI/SCI32, Mohawk
+- Historical 0.7.1 includes SCUMM v0–v8 (no HE), MM/Xeen (no MM1), SCI/SCI32, Mohawk
   Myst/MystME/Riven, Blade Runner and Groovie/Groovie2; MP3/Vorbis/MT-32/JPEG.
   The desktop compatibility list is not a Wii U support guarantee.
 - Release helper: checkout `backends/platform/sdl/wiiu/build-release.sh`.
@@ -592,7 +643,7 @@ Still pending in the recorded evidence:
 - Record exact source revision, SDK provenance, enabled features, checksums
   and hardware status. Check embedded RPX equality, ZIP integrity/data/licenses.
   Never bundle games, ROMs, saves, configuration or user logs.
-- Current release ZIPs are in `work/releases/0.7.1/`. Older 0.7.0, Remote
+- Current release ZIPs are in `work/releases/0.8.0/`. Older 0.7.0, Remote
   candidates and the user-confirmed upstream-update packages remain separate.
 
 ## Communication and next handoff
@@ -610,6 +661,7 @@ When an authorized task changes the project or a handoff is requested, update
 this short document with verified state, evidence and pending tests. Append
 substantial history to the outer plan when available. A read-only question is
 not an instruction to edit files. Do not auto-start old tests/builds/publication
-from this document. The 2026.4.0 predecessor has my success report; 0.7.1 is
-prepared locally with full controls documentation. Follow its exact runtime
-commit for any future authorized publication, not the newest handoff HEAD.
+from this document. 0.8.0 is prepared locally with full Pointer/USB/engine/control documentation.
+Follow its exact runtime commit for future publication, not the newest
+handoff HEAD. The successful 6e1b8130 precursor and final-binary test boundary
+are recorded above; no publication is implied by preparation.
