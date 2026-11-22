@@ -18,6 +18,7 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 | Durable architecture/work rules | `AGENTS.md` and checkout `AGENTS.md` |
 | Current user features/controls/audio | checkout `README.md` |
 | New 0.9.0 engine/media candidate | checkout `backends/platform/sdl/wiiu/ENGINES-TEST-0.9.0.md` and `MEDIA-SDK.md` |
+| Desktop parity inventory and porting priorities | [PC-PARITY-2026.4.0.md](PC-PARITY-2026.4.0.md), plan §54 and local `work/logs/pc-parity-2026.4.0-20261122/`. Official PC packages have 113 runtime families. Candidate 96242f5f links 19. |
 | Current development / joint engine tests | checkout `backends/platform/sdl/wiiu/ENGINES-TEST-0.8.0.md` |
 | Current prepared 0.8.0 release | checkout `backends/platform/sdl/wiiu/RELEASE-0.8.0.md` |
 | Build/SDK and nine SDL patches for 0.8.0 | checkout `backends/platform/sdl/wiiu/README.WIIU` |

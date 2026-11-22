@@ -19,6 +19,9 @@ MPEG-2 and Theora. GrimE/Stark use TinyGL software 3D; Wintermute 3D games
 such as Alpha Polaris remain pending a separate renderer integration. The
 candidate needs console testing before I can call it the final 0.9.0 release.
 
+I track the engines, subengines and features still missing on Wii U in the
+[ScummVM 2026.4.0 desktop parity inventory](backends/platform/sdl/wiiu/PC-PARITY-2026.4.0.md).
+
 See the [0.8.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.8.0.md)
 for downloads, changes and validation. The complete control tables and USB
 setup guide are below. **Remote 2 = Escape/back; Nunchuk C = slow analog
