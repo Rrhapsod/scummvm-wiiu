@@ -1,6 +1,6 @@
 # Wii U port — start here in a new chat
 
-Last verified locally: **2026-11-18**. This is a compact handoff, not the full
+Last verified locally: **2026-11-22**. This is a compact handoff, not the full
 conversation or proof that every earlier test still applies. Recheck Git/files
 before acting; the current user request takes precedence over old next steps.
 
@@ -17,6 +17,7 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 | --- | --- |
 | Durable architecture/work rules | `AGENTS.md` and checkout `AGENTS.md` |
 | Current user features/controls/audio | checkout `README.md` |
+| New 0.9.0 engine/media candidate | checkout `backends/platform/sdl/wiiu/ENGINES-TEST-0.9.0.md` and `MEDIA-SDK.md` |
 | Current development / joint engine tests | checkout `backends/platform/sdl/wiiu/ENGINES-TEST-0.8.0.md` |
 | Current prepared 0.8.0 release | checkout `backends/platform/sdl/wiiu/RELEASE-0.8.0.md` |
 | Build/SDK and nine SDL patches for 0.8.0 | checkout `backends/platform/sdl/wiiu/README.WIIU` |
@@ -36,12 +37,62 @@ swap and hardware feedback; 43 upstream 2026.4.0; 44 release 0.7.1;
 47 SAGA, Kyra3 IO and FAT32 USB candidate; 48 IHNM opening skip fix;
 49 IHNM success and pixel-precision IR candidate; 50 adaptive IR stabilization;
 51 successful pointer/FAT mount report and USB browser navigation fix;
-52 browser hardware success and final 0.8.0 release preparation.
+52 browser hardware success and final 0.8.0 release preparation;
+53 the 0.9.0 TinyGL/AGS/media candidate and Wintermute 3D limitation.
 Read the whole plan for an architectural audit or
 when explicitly requested, not by default for every small follow-up.
 `WIIU_IMPLEMENTATION_STATUS.md` describes the historical first integration,
 not the current release. Missing outer files in a standalone clone mean local
 evidence is unavailable; they do not imply the source port is absent.
+
+## Current development: 0.9.0 engine/media candidate — 2026-11-22
+
+- I requested GrimE/Monkey4, Stark, Wintermute (including Alpha Polaris), AGS,
+  FLAC, PNG, FluidSynth/SF2 and video codecs for the next 0.9.0. Runtime source
+  **96242f5f89e7954e2cfd472e96fb8693a3b26e08**, base 2026.4.0; identifier
+  `0.9.0 candidate 20261122 (TinyGL / AGS / media)`, revision `-wiiu-96242f5f`.
+- All 15 previous families plus **Grim/Monkey4, Stark, Wintermute 2D and AGS**
+  are statically linked in one candidate. TinyGL software 3D uses the existing
+  SDL surface for Grim/Stark. No OpenGL/hardware 3D or competing GX2/ProcUI loop.
+  Previous backend/input/USB/runtime implementations remain unchanged.
+- **Wintermute 3D / Alpha Polaris is not integrated yet.** This upstream
+  snapshot explicitly disables its TinyGL 3D renderer constructor. `wme3d`
+  stays off instead of exposing games without a working renderer; FoxTail/
+  HeroCraft also off. The game needs a separate renderer milestone. Grim,
+  Monkey4, TLJ and all AGS game editions still need console testing.
+- New target libraries: FLAC 1.5.0, PNG 1.6.59, FreeType 2.14.1 (Stark),
+  Theora 1.2.0, MPEG-2 0.5.1 and FluidSynth 2.5.6/SF2. Existing codecs/MT-32
+  retained. FluidSynth has a real SDL2 mutex/TLS/time/thread OS abstraction;
+  ScummVM owns audio/MIDI scheduling. No GLib/FFmpeg/platform audio drivers,
+  SF3/libsndfile, network or parallel voice synthesis. No SoundFont bundled.
+- Explicit SDK `../sdk/versions/r51-wut1.9.1-sdl2.32.7-media-20261122`;
+  new libraries in a cloned stabilized-Pointer/USB profile. Compiler/WUT/SDL/
+  USB unchanged. Doctor passes 2790 files/9 links. Recipe reproduced from
+  checked archives in independent `media-repro-20261122` profile (2789/9).
+  Sources/evidence: shared `sdk/sources/scummvm-media{,-repro}-20261122/` and
+  `sdk/validation/20261122-scummvm-media/`. Base/current doctors and prepared
+  0.8.0 checksums pass. SDK default and earlier artifacts remain unchanged.
+- Fresh build **`work/build-scummvm-wiiu-0.9.0-test-20261122/`** includes
+  Aroma ZIP SHA256 `cf0ae299308f69d39b67c1a8387c0e163f9dddc14a4e8e1f841c858730d1a6b0`;
+  experimental RPX ZIP SHA256 `682ccae723cac96b33451908d254b26d29d5f3abe81d2d569934adc70e9af76b`.
+  ELF/RPX/WUHB, BUILD-INFO, SHA256SUMS and both stages are present. Verifier:
+  `work/package-0.9.0-test-20261122.py FULL_RUNTIME_COMMIT`. New game resources:
+  grim-patch.lab, monkey4-patch.m4b, wintermute.zip and fonts.dat; all old data
+  retained byte-for-byte, including generated Xeen mm.dat 1.3.
+- Full cross-build, 19 static plugins, all old/new feature flags/decoder
+  symbols, PPC ELF/imports/no strong undefineds, embedded RPX equality,
+  unchanged icon/name, data/licenses/ZIP checks pass. Actual FluidSynth SDL
+  OSAL + SF2 host ASan/UBSan tests pass synchronization/TLS/threads and five
+  load/render/concurrent-MIDI/unload cycles. Linux/PPC QEMU runs actual SDK
+  FLAC archives through six 16/24-bit PCM roundtrips; MPEG2 init/Theora invalid
+  header are smoke tests only. No successful video playback test is claimed.
+- **No console/Cemu test, FPS result or new-game compatibility confirmation**
+  for this exact candidate. Next: install matching Aroma ZIP/resources, test
+  original Grim/Monkey4, TLJ, representative AGS and Wintermute 2D games, SF2,
+  identified FLAC/MPEG2/Theora assets, game exit/reentry and prior-game regression;
+  copy the log before relaunch. Wintermute 3D remains a separate pending task.
+  Normal build-release.sh still targets 0.8.0. No push/tag/upload/publication.
+  Pre-existing SDK doc edits and unrelated Android caches preserved. Plan §53.
 
 ## Prepared release 0.8.0 — 2026-11-18
 
@@ -661,7 +712,8 @@ When an authorized task changes the project or a handoff is requested, update
 this short document with verified state, evidence and pending tests. Append
 substantial history to the outer plan when available. A read-only question is
 not an instruction to edit files. Do not auto-start old tests/builds/publication
-from this document. 0.8.0 is prepared locally with full Pointer/USB/engine/control documentation.
+from this document. The 0.9.0 engine/media candidate is prepared for hardware
+tests with the Wintermute 3D gap above; 0.8.0 remains the prepared final release.
 Follow its exact runtime commit for future publication, not the newest
 handoff HEAD. The successful 6e1b8130 precursor and final-binary test boundary
 are recorded above; no publication is implied by preparation.
