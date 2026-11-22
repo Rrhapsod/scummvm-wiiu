@@ -54,6 +54,6 @@ for stage in wiiu_release wiiu_rpx_release; do
     cp engine-data/mm.dat "$stage/scummvm/data/mm.dat"
     cmp engine-data/mm.dat "$stage/scummvm/data/mm.dat"
     cp "$wiiu_script_dir/ENGINES-TEST-0.9.0.md" "$stage/TESTING.md"
-    cp "$wiiu_script_dir"/{MEDIA-SDK.md,build-media-sdk.sh,media-sources.json,*-newlib-int32.patch,media-zlib-module.patch,fluidsynth-wiiu.patch,fluid_sys_wiiu.c,fluid_sys_wiiu.h,build-0.9.0-test.sh} "$stage/scummvm/doc/backends/platform/sdl/wiiu/"
+    cp "$wiiu_script_dir"/{ENGINES-TEST-0.9.0.md,MEDIA-SDK.md,meta-rpx-0.9.0-test.xml,build-media-sdk.sh,media-sources.json,*-newlib-int32.patch,media-zlib-module.patch,fluidsynth-wiiu.patch,fluid_sys_wiiu.c,fluid_sys_wiiu.h,build-0.9.0-test.sh} "$stage/scummvm/doc/backends/platform/sdl/wiiu/"
     cp -R "$DEVKITPRO/portlibs/ppc/licenses/." "$stage/scummvm/doc/LICENSES/media/"
 done
