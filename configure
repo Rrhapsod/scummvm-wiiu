@@ -4288,7 +4288,8 @@ if test -n "$_host"; then
 			_opengl_mode=none
 			_opengl_game_classic=no
 			_opengl_game_shaders=no
-			_tinygl=no
+			# TinyGL renders into the existing SDL software surface (no GL context).
+			# Preserve --disable-tinygl for the historical 2D-only profiles.
 			_sdlnet=no
 			_libcurl=no
 			_enet=no

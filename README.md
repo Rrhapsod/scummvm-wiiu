@@ -8,9 +8,16 @@ touchscreen, analog stick and buttons, or Wii Remote IR Pointer. **No RetroArch 
 
 This is an **unofficial, experimental port**, not an official ScummVM release.
 The community port version is **0.8.0**, based on **ScummVM 2026.4.0**.
+
 It includes **15 engine families** in one build, **full Wii Remote IR Pointer
 support with adaptive stabilization**, and **game loading from FAT32 USB
 storage**. Games and MT-32 ROMs are not included.
+
+I am also preparing a [0.9.0 engine/media test candidate](backends/platform/sdl/wiiu/ENGINES-TEST-0.9.0.md)
+with GrimE/Monkey4, Stark, Wintermute 2D, AGS, FLAC, PNG, FluidSynth/SF2,
+MPEG-2 and Theora. GrimE/Stark use TinyGL software 3D; Wintermute 3D games
+such as Alpha Polaris remain pending a separate renderer integration. The
+candidate needs console testing before I can call it the final 0.9.0 release.
 
 See the [0.8.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.8.0.md)
 for downloads, changes and validation. The complete control tables and USB

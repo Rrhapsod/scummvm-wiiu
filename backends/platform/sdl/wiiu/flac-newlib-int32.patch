@@ -1,0 +1,62 @@
+--- a/src/libFLAC/bitreader.c
++++ b/src/libFLAC/bitreader.c
+@@ -831,12 +831,12 @@
+ #endif
+ 
+ /* this is by far the most heavily used reader call.  it ain't pretty but it's fast */
+-FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[], uint32_t nvals, uint32_t parameter)
++FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, FLAC__int32 vals[], uint32_t nvals, uint32_t parameter)
+ #include "deduplication/bitreader_read_rice_signed_block.c"
+ 
+ #ifdef FLAC__BMI2_SUPPORTED
+ FLAC__SSE_TARGET("bmi2")
+-FLAC__bool FLAC__bitreader_read_rice_signed_block_bmi2(FLAC__BitReader *br, int vals[], uint32_t nvals, uint32_t parameter)
++FLAC__bool FLAC__bitreader_read_rice_signed_block_bmi2(FLAC__BitReader *br, FLAC__int32 vals[], uint32_t nvals, uint32_t parameter)
+ #include "deduplication/bitreader_read_rice_signed_block.c"
+ #endif
+ 
+--- a/src/libFLAC/include/private/bitreader.h
++++ b/src/libFLAC/include/private/bitreader.h
+@@ -87,9 +87,9 @@
+ FLAC__bool FLAC__bitreader_read_byte_block_aligned_no_crc(FLAC__BitReader *br, FLAC__byte *val, uint32_t nvals); /* WATCHOUT: does not CRC the read data! */
+ FLAC__bool FLAC__bitreader_read_unary_unsigned(FLAC__BitReader *br, uint32_t *val);
+ FLAC__bool FLAC__bitreader_read_rice_signed(FLAC__BitReader *br, int *val, uint32_t parameter);
+-FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[], uint32_t nvals, uint32_t parameter);
++FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, FLAC__int32 vals[], uint32_t nvals, uint32_t parameter);
+ #ifdef FLAC__BMI2_SUPPORTED
+-FLAC__bool FLAC__bitreader_read_rice_signed_block_bmi2(FLAC__BitReader *br, int vals[], uint32_t nvals, uint32_t parameter);
++FLAC__bool FLAC__bitreader_read_rice_signed_block_bmi2(FLAC__BitReader *br, FLAC__int32 vals[], uint32_t nvals, uint32_t parameter);
+ #endif
+ 
+ #if 0 /* UNUSED */
+--- a/src/libFLAC/stream_decoder.c
++++ b/src/libFLAC/stream_decoder.c
+@@ -168,7 +168,7 @@
+ 	FLAC__uint64 target_sample;
+ 	uint32_t unparseable_frame_count; /* used to tell whether we're decoding a future version of FLAC or just got a bad sync */
+ 	FLAC__bool got_a_frame; /* hack needed in Ogg FLAC seek routine and find_total_samples to check when process_single() actually writes a frame */
+-	FLAC__bool (*local_bitreader_read_rice_signed_block)(FLAC__BitReader *br, int vals[], uint32_t nvals, uint32_t parameter);
++	FLAC__bool (*local_bitreader_read_rice_signed_block)(FLAC__BitReader *br, FLAC__int32 vals[], uint32_t nvals, uint32_t parameter);
+ 	FLAC__bool error_has_been_sent; /* To check whether a missing frame has been signalled yet */
+ #if FLAC__HAS_OGG
+ 	FLAC__bool ogg_decoder_aspect_allocation_failure;
+@@ -3300,7 +3300,7 @@
+ FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, uint32_t predictor_order, uint32_t partition_order, FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents, FLAC__int32 *residual, FLAC__bool is_extended)
+ {
+ 	FLAC__uint32 rice_parameter;
+-	int i;
++	FLAC__int32 i;
+ 	uint32_t partition, sample, u;
+ 	const uint32_t partitions = 1u << partition_order;
+ 	const uint32_t partition_samples = decoder->private_->frame.header.blocksize >> partition_order;
+--- a/src/libFLAC/deduplication/bitreader_read_rice_signed_block.c
++++ b/src/libFLAC/deduplication/bitreader_read_rice_signed_block.c
+@@ -5,7 +5,7 @@
+ 	uint32_t cwords, words, lsbs, msbs, x, y, limit;
+ 	uint32_t ucbits; /* keep track of the number of unconsumed bits in word */
+ 	brword b;
+-	int *val, *end;
++	FLAC__int32 *val, *end;
+ 
+ 	FLAC__ASSERT(0 != br);
+ 	FLAC__ASSERT(0 != br->buffer);

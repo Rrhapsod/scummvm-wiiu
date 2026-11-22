@@ -1,0 +1,48 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -375,7 +375,13 @@
+ endif ( HAS_LIBM )
+ 
+ set ( LIBFLUID_LIBS ${MATH_LIBRARY} )
+-if (NOT ((CMAKE_SYSTEM_NAME MATCHES "SunOS") OR (osal STREQUAL "embedded")))
++if ( osal STREQUAL "wiiu" )
++  find_package ( PkgConfig REQUIRED )
++  pkg_check_modules ( SDL2 REQUIRED sdl2 )
++  include_directories ( ${SDL2_INCLUDE_DIRS} )
++  list ( APPEND LIBFLUID_LIBS ${SDL2_LDFLAGS} )
++endif ()
++if (NOT ((CMAKE_SYSTEM_NAME MATCHES "SunOS") OR (osal STREQUAL "embedded") OR (osal STREQUAL "wiiu")))
+   # Check for threads and math
+   find_package ( Threads REQUIRED )
+   list ( APPEND LIBFLUID_LIBS "Threads::Threads" )
+--- a/src/utils/fluid_sys.h
++++ b/src/utils/fluid_sys.h
+@@ -118,6 +118,8 @@
+ #include "fluid_sys_glib.h"
+ #elif OSAL_embedded
+ #include "fluid_sys_embedded.h"
++#elif OSAL_wiiu
++#include "fluid_sys_wiiu.h"
+ #elif OSAL_cpp11
+ #include "fluid_sys_cpp11.h"
+ #else
+--- a/src/utils/fluid_sys.c
++++ b/src/utils/fluid_sys.c
+@@ -419,7 +419,7 @@
+ }
+ 
+ 
+-#if !OSAL_embedded
++#if !OSAL_embedded && !OSAL_wiiu
+ 
+ #if defined(_WIN32)      /* Windoze specific stuff */
+ 
+@@ -478,7 +478,7 @@
+ 
+ #endif	// #else    (its POSIX)
+ 
+-#endif	// #if !OSAL_embedded
++#endif	// #if !OSAL_embedded && !OSAL_wiiu
+ 
+ 
+ #if defined(FPE_CHECK) && !defined(_WIN32) && !defined(__OS2__)

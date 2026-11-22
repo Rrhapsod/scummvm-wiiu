@@ -1,0 +1,58 @@
+--- a/libpng-1.6.59/CMakeLists.txt
++++ b/libpng-1.6.59/CMakeLists.txt
+@@ -138,7 +138,7 @@
+ endif()
+ 
+ # Find the zlib library.
+-find_package(ZLIB REQUIRED)
++find_package(ZLIB MODULE REQUIRED)
+ set(PNG_LINK_LIBRARIES ZLIB::ZLIB)
+ 
+ # Find the math library (unless we already know it's not available or
+@@ -649,7 +649,7 @@
+ set(PNG_LIBRARY_TARGETS "")
+ 
+ # Initialize the libpng library file names.
+-if(UNIX
++if(UNIX OR CMAKE_STATIC_LIBRARY_PREFIX STREQUAL "lib"
+    OR (WIN32 AND NOT CMAKE_SHARED_LIBRARY_PREFIX STREQUAL "")
+    OR (WIN32 AND NOT CMAKE_STATIC_LIBRARY_PREFIX STREQUAL ""))
+   # We are on a Unix or Unix-like toolchain like the GNU toolchain on Windows.
+@@ -1187,7 +1187,7 @@
+           FILE libpng${PNGLIB_ABI_VERSION}.cmake)
+ endif()
+ 
+-# Create a CMake Config File that can be used via find_package(PNG CONFIG)
++# Create a CMake Config File that can be used via find_package(PNG MODULE CONFIG)
+ if(NOT SKIP_INSTALL_CONFIG_FILE AND NOT SKIP_INSTALL_ALL)
+   install(TARGETS ${PNG_LIBRARY_TARGETS}
+           EXPORT PNGTargets
+--- a/freetype-2.14.1/CMakeLists.txt
++++ b/freetype-2.14.1/CMakeLists.txt
+@@ -283,11 +283,12 @@
+   endif ()
+ endif ()
+ 
++set(CMAKE_FIND_PACKAGE_PREFER_CONFIG FALSE)
+ if (NOT FT_DISABLE_PNG)
+   if (FT_REQUIRE_PNG)
+-    find_package(PNG REQUIRED)
++    find_package(PNG MODULE REQUIRED)
+   else ()
+-    find_package(PNG)
++    find_package(PNG MODULE)
+   endif ()
+   # FreePNG calls FindZLIB so unset ZLIB_FOUND to respect FT_DISABLE_ZLIB
+   unset(ZLIB_FOUND)
+@@ -295,9 +296,9 @@
+ 
+ if (NOT FT_DISABLE_ZLIB)
+   if (FT_REQUIRE_ZLIB)
+-    find_package(ZLIB REQUIRED)
++    find_package(ZLIB MODULE REQUIRED)
+   else ()
+-    find_package(ZLIB)
++    find_package(ZLIB MODULE)
+   endif ()
+ endif ()
+ 

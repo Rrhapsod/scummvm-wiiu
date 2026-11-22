@@ -1,0 +1,30 @@
+{
+  "flac-1.5.0.tar.xz": {
+    "url": "https://downloads.xiph.org/releases/flac/flac-1.5.0.tar.xz",
+    "sha256": "f2c1c76592a82ffff8413ba3c4a1299b6c7ab06c734dee03fd88630485c2b920"
+  },
+  "libtheora-1.2.0.tar.gz": {
+    "url": "https://downloads.xiph.org/releases/theora/libtheora-1.2.0.tar.gz",
+    "sha256": "279327339903b544c28a92aeada7d0dcfd0397b59c2f368cc698ac56f515906e"
+  },
+  "libpng-1.6.59.tar.gz": {
+    "url": "https://downloads.sourceforge.net/libpng/libpng-1.6.59.tar.gz",
+    "sha256": "86a3e4b501f7f50e392c4e456ea158893e9a595b1c63eb88c7bb9f6cf8772dad"
+  },
+  "freetype-2.14.1.tar.xz": {
+    "url": "https://download.savannah.gnu.org/releases/freetype/freetype-2.14.1.tar.xz",
+    "sha256": "32427e8c471ac095853212a37aef816c60b42052d4d9e48230bab3bdf2936ccc"
+  },
+  "fluidsynth-2.5.6.tar.gz": {
+    "url": "https://codeload.github.com/FluidSynth/fluidsynth/tar.gz/refs/tags/v2.5.6",
+    "sha256": "0825f024c9cf7a18073739b83612d46542ecbfb349ae9147a1e9f08e2d524407"
+  },
+  "libmpeg2-0.5.1.tar.gz": {
+    "url": "https://download.videolan.org/contrib/libmpeg2/libmpeg2-0.5.1.tar.gz",
+    "sha256": "dee22e893cb5fc2b2b6ebd60b88478ab8556cb3b93f9a0d7ce8f3b61851871d4"
+  },
+  "gcem-012ae73c6d0a2cb09ffe86475f5c6fba3926e200.zip": {
+    "url": "https://codeload.github.com/kthohr/gcem/zip/012ae73c6d0a2cb09ffe86475f5c6fba3926e200",
+    "sha256": "28159274c54e9640354852e172d10d88eb159f4e7f2fea42edbcd20105ed3526"
+  }
+}
