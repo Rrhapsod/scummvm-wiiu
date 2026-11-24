@@ -25,14 +25,13 @@ if ! powerpc-eabi-strings "$DEVKITPRO/portlibs/wiiu/lib/libSDL2.a" | grep 'WiiU 
     echo "Rebuild SDL with the ninth patch; see POINTER-SDK.md." >&2
     exit 1
 fi
-# Set the size optimization explicitly. The default optimization pass adds -O2 last.
-export CXXFLAGS="${CXXFLAGS:-} -Os -DWIIU_090_TEST"
+export CXXFLAGS="${CXXFLAGS:-} -DWIIU_090_TEST"
 mkdir -p "$WIIU_BUILD_DIR"
 cd "$WIIU_BUILD_DIR"
 "$wiiu_src/configure" --host=wiiu --disable-all-engines \
     --enable-engine=scumm,scumm_7_8,mm,xeen,sci,sci32,mohawk,myst,mystme,riven,bladerunner,groovie,groovie2,tinsel,sword1,sword2,agos,gob,kyra,eob,darkseed,sherlock,saga,ihnm,grim,monkey4,stark,wintermute,ags \
     --disable-engine=he,mm1,agos2,lol,rebel2_psx,wme3d,foxtail,herocraft --enable-tinygl \
-    --disable-detection-full --disable-optimizations \
+    --disable-detection-full --enable-optimizations \
     --enable-mt32emu --with-mad-prefix="$DEVKITPRO/portlibs/ppc" \
     --with-jpeg-prefix="$DEVKITPRO/portlibs/ppc" --enable-ogg --enable-vorbis --disable-tremor \
     --with-ogg-prefix="$DEVKITPRO/portlibs/ppc" --with-vorbis-prefix="$DEVKITPRO/portlibs/ppc" "$@"

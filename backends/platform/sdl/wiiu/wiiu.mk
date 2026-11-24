@@ -6,8 +6,12 @@ WIIU_ICON := $(srcdir)/dists/psp2/icon0.png
 WIIU_RELEASE_NOTES ?= $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.8.0.md
 WIIU_RPX_META ?= $(srcdir)/backends/platform/sdl/wiiu/meta-rpx.xml
 
-scummvm.rpx: $(EXECUTABLE)
-	$(WIIU_ELF2RPL) $< $@
+WIIU_ORDER_RPX := $(srcdir)/backends/platform/sdl/wiiu/order-rpx.py
+
+scummvm.rpx: $(EXECUTABLE) $(WIIU_ORDER_RPX)
+	$(WIIU_ELF2RPL) $< $@.raw
+	python3 $(WIIU_ORDER_RPX) $@.raw $@.new
+	mv $@.new $@
 
 ScummVM.wuhb: scummvm.rpx $(WIIU_ICON) $(srcdir)/backends/platform/sdl/wiiu/wiiu.mk
 	$(WIIU_WUHBTOOL) $< $@ --name="ScummVM" --short-name="ScummVM" --author="ScummVM Team" --icon="$(WIIU_ICON)"
