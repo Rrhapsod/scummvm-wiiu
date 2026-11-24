@@ -46,6 +46,18 @@ when explicitly requested, not by default for every small follow-up.
 not the current release. Missing outer files in a standalone clone mean local
 evidence is unavailable; they do not imply the source port is absent.
 
+## Current 0.9.0 startup candidate — 2026-11-24
+
+I fixed RPX section order for forward-only loader reads. Runtime **e21b8136**,
+19 engines, original O2/media profile. The Nov 22 original fails the 4 MiB
+read-window check at section 23. The Nov 17 baseline and corrected Nov 24
+RPX pass. All compressed section payloads and CRCs survive the layout change.
+The new WUHB reached the visible launcher in Cemu 2.6. The original RPX also
+opens in Cemu. Confirmation on Wii U hardware remains pending.
+Use `work/build-scummvm-wiiu-0.9.0-test-20261124/ScummVM.wuhb` (SHA-256
+`fdcb2f8576a2df5642106414a8b36c70c0b15ca272253e7678aba518141049a2`).
+Evidence in `work/logs/startup-20261124/` and outer plan §56.
+
 ## Launch failure reported on 2026-11-24
 
 I reported Wii U system error **160-2203** immediately on launch during the
@@ -724,7 +736,7 @@ When an authorized task changes the project or a handoff is requested, update
 this short document with verified state, evidence and pending tests. Append
 substantial history to the outer plan when available. A read-only question is
 not an instruction to edit files. Do not auto-start old tests/builds/publication
-from this document. The 0.9.0 tests are on hold after the Nov 24 launch error; 0.8.0 remains the prepared final release.
+from this document. The Nov 24 corrected WUHB awaits a hardware startup check; 0.8.0 remains the prepared final release.
 Follow its exact runtime commit for future publication, not the newest
 handoff HEAD. The successful 6e1b8130 precursor and final-binary test boundary
 are recorded above; no publication is implied by preparation.
