@@ -1,8 +1,9 @@
 # ScummVM Wii U 0.9.0 — engine/media candidate
 
+**Startup regression reported on November 24.** I saw Wii U error 160-2203 immediately on launch during this test. Game testing is on hold pending diagnosis. The November 17 Aroma build (6e1b8130) previously opened on my console.
+
 I am integrating these additions on the existing ScummVM 2026.4.0 base. This
-is a hardware test candidate, not the final 0.9.0 release. I have not tested
-this binary on a Wii U or in Cemu. Engine detection and successful compilation
+is a hardware test candidate, not the final 0.9.0 release. At packaging time I had only cross-build, host and PPC test results. Engine detection and successful compilation
 do not establish playability, performance, or a complete playthrough.
 
 | Addition | Candidate scope | Games to test |

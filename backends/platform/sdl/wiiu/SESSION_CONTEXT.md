@@ -1,6 +1,6 @@
 # Wii U port — start here in a new chat
 
-Last verified locally: **2026-11-22**. This is a compact handoff, not the full
+Last verified locally: **2026-11-24**. This is a compact handoff, not the full
 conversation or proof that every earlier test still applies. Recheck Git/files
 before acting; the current user request takes precedence over old next steps.
 
@@ -45,6 +45,17 @@ when explicitly requested, not by default for every small follow-up.
 `WIIU_IMPLEMENTATION_STATUS.md` describes the historical first integration,
 not the current release. Missing outer files in a standalone clone mean local
 evidence is unavailable; they do not imply the source port is absent.
+
+## Launch failure reported on 2026-11-24
+
+I reported Wii U system error **160-2203** immediately on launch during the
+0.9.0 test. The photo shows the system error screen. My desktop ZIP and
+extracted WUHB match the Nov 22 candidate hashes. The on-card bytes and a
+matching startup log have not been verified. Pause tests of this candidate.
+For recovery use the Nov 17 **6e1b8130** WUHB (earlier hardware success),
+SHA-256 `3a3064bd15a5c3bd65374fd5d5c666a56db77e6d1b1b28cb70aa202b3e1f0d61`.
+Keep the existing SD data and copy the log before opening the recovery build.
+See outer plan §55 for the RPX comparison and pending A/B result.
 
 ## Current development: 0.9.0 engine/media candidate — 2026-11-22
 
@@ -713,8 +724,7 @@ When an authorized task changes the project or a handoff is requested, update
 this short document with verified state, evidence and pending tests. Append
 substantial history to the outer plan when available. A read-only question is
 not an instruction to edit files. Do not auto-start old tests/builds/publication
-from this document. The 0.9.0 engine/media candidate is prepared for hardware
-tests with the Wintermute 3D gap above; 0.8.0 remains the prepared final release.
+from this document. The 0.9.0 tests are on hold after the Nov 24 launch error; 0.8.0 remains the prepared final release.
 Follow its exact runtime commit for future publication, not the newest
 handoff HEAD. The successful 6e1b8130 precursor and final-binary test boundary
 are recorded above; no publication is implied by preparation.
