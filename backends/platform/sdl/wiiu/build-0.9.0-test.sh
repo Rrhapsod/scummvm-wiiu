@@ -6,7 +6,7 @@ set -euo pipefail
 : "${WUT_ROOT:?Activate the Wii U SDK first}"
 wiiu_script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 wiiu_src="$(cd "$wiiu_script_dir/../../../.." && pwd)"
-export WIIU_BUILD_DIR="${WIIU_BUILD_DIR:-$wiiu_src/../build-scummvm-wiiu-0.9.0-test-20261122}"
+export WIIU_BUILD_DIR="${WIIU_BUILD_DIR:-$wiiu_src/../build-scummvm-wiiu-0.9.0-test-20261124}"
 if printf '%s\n' "${CXXFLAGS:-} ${CPPFLAGS:-} ${CFLAGS:-}" | grep -E 'WIIU_[A-Z_]*(DIAGNOSTICS|TEST)' > /dev/null; then
     echo "Release builds must not enable Wii U diagnostics/test profiles" >&2
     exit 1
@@ -25,13 +25,14 @@ if ! powerpc-eabi-strings "$DEVKITPRO/portlibs/wiiu/lib/libSDL2.a" | grep 'WiiU 
     echo "Rebuild SDL with the ninth patch; see POINTER-SDK.md." >&2
     exit 1
 fi
-export CXXFLAGS="${CXXFLAGS:-} -DWIIU_090_TEST"
+# Set the size optimization explicitly. The default optimization pass adds -O2 last.
+export CXXFLAGS="${CXXFLAGS:-} -Os -DWIIU_090_TEST"
 mkdir -p "$WIIU_BUILD_DIR"
 cd "$WIIU_BUILD_DIR"
 "$wiiu_src/configure" --host=wiiu --disable-all-engines \
     --enable-engine=scumm,scumm_7_8,mm,xeen,sci,sci32,mohawk,myst,mystme,riven,bladerunner,groovie,groovie2,tinsel,sword1,sword2,agos,gob,kyra,eob,darkseed,sherlock,saga,ihnm,grim,monkey4,stark,wintermute,ags \
     --disable-engine=he,mm1,agos2,lol,rebel2_psx,wme3d,foxtail,herocraft --enable-tinygl \
-    --disable-detection-full --enable-optimizations \
+    --disable-detection-full --disable-optimizations \
     --enable-mt32emu --with-mad-prefix="$DEVKITPRO/portlibs/ppc" \
     --with-jpeg-prefix="$DEVKITPRO/portlibs/ppc" --enable-ogg --enable-vorbis --disable-tremor \
     --with-ogg-prefix="$DEVKITPRO/portlibs/ppc" --with-vorbis-prefix="$DEVKITPRO/portlibs/ppc" "$@"

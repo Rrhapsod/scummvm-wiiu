@@ -2,7 +2,7 @@
 #ifndef WIIU_RELEASE_VERSION_H
 #define WIIU_RELEASE_VERSION_H
 #ifdef WIIU_090_TEST
-#define WIIU_PORT_VERSION "0.9.0 candidate 20261122 (TinyGL / AGS / media)"
+#define WIIU_PORT_VERSION "0.9.0 candidate 20261124 (TinyGL / AGS / media)"
 #elif defined(WIIU_ENGINES_TEST)
 #define WIIU_PORT_VERSION "0.8.0 candidate 20261117 (USB browser navigation)"
 #elif defined(WIIU_REMOTE_TEST)
