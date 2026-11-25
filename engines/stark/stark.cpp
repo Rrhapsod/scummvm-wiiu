@@ -102,7 +102,7 @@ Common::Error StarkEngine::run() {
 		return Common::kNoError;
 	gfx->init();
 
-	if (StarkSettings->isAssetsModEnabled() && !gfx->supportsModdedAssets()) {
+	if (!gfx->supportsModdedAssets() && Settings::isAssetsModEnabled()) {
 		GUI::displayErrorDialog(_("Software renderer does not support modded assets"));
 	}
 

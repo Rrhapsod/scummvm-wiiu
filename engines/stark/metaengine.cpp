@@ -35,6 +35,7 @@
 namespace Stark {
 
 static const ADExtraGuiOptionsMap optionsList[] = {
+#if defined(USE_OPENGL_GAME) || defined(USE_OPENGL_SHADERS)
 	{
 		GAMEOPTION_ASSETS_MOD,
 		{
@@ -46,6 +47,7 @@ static const ADExtraGuiOptionsMap optionsList[] = {
 			0
 		}
 	},
+#endif
 	{
 		GAMEOPTION_LINEAR_FILTERING,
 		{

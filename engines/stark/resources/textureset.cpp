@@ -61,7 +61,7 @@ void TextureSet::readData(Formats::XRCReadStream *stream) {
 }
 
 void TextureSet::onPostRead() {
-	if (StarkSettings->isAssetsModEnabled() && StarkGfx->supportsModdedAssets()) {
+	if (Settings::isAssetsModEnabled() && StarkGfx->supportsModdedAssets()) {
 		_textureSet = readOverrideDdsArchive();
 	}
 

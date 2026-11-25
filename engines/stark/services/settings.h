@@ -97,7 +97,7 @@ public:
 	bool hasBookOfSecrets() { return ConfMan.hasKey("xoBfOsterceS"); }
 
 	/** Should the game try to load external replacement assets? */
-	bool isAssetsModEnabled() const;
+	static bool isAssetsModEnabled();
 
 	/**
 	 * Should the engine apply alpha pre-multiplication when loading replacement PNGs

@@ -216,7 +216,7 @@ void ImageStill::initVisual() {
 
 	VisualImageXMG *visual = new VisualImageXMG(StarkGfx);
 
-	if (StarkSettings->isAssetsModEnabled() && StarkGfx->supportsModdedAssets() && loadPNGOverride(visual)) {
+	if (Settings::isAssetsModEnabled() && StarkGfx->supportsModdedAssets() && loadPNGOverride(visual)) {
 		visual->readOriginalSize(xmgStream);
 	} else {
 		visual->load(xmgStream);

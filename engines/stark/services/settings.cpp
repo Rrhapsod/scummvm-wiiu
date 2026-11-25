@@ -86,8 +86,13 @@ void Settings::setIntSetting(IntSettingIndex index, int value) {
 	_mixer->setVolumeForSoundType(type, value);
 }
 
-bool Settings::isAssetsModEnabled() const {
+bool Settings::isAssetsModEnabled() {
+#if defined(USE_OPENGL_GAME) || defined(USE_OPENGL_SHADERS)
 	return ConfMan.getBool("enable_assets_mod");
+#else
+	// TinyGL always loads the original game assets, including for imported targets.
+	return false;
+#endif
 }
 
 bool Settings::shouldPreMultiplyReplacementPNGs() const {
