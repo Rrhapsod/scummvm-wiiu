@@ -3,7 +3,7 @@ WIIU_ELF2RPL := $(DEVKITPRO)/tools/bin/elf2rpl
 WIIU_WUHBTOOL := $(DEVKITPRO)/tools/bin/wuhbtool
 # Reuse the upstream ScummVM icon, already at WUHB's required 128x128 size.
 WIIU_ICON := $(srcdir)/dists/psp2/icon0.png
-WIIU_RELEASE_NOTES ?= $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.8.0.md
+WIIU_RELEASE_NOTES ?= $(srcdir)/backends/platform/sdl/wiiu/RELEASE-0.9.0.md
 WIIU_RPX_META ?= $(srcdir)/backends/platform/sdl/wiiu/meta-rpx.xml
 
 WIIU_ORDER_RPX := $(srcdir)/backends/platform/sdl/wiiu/order-rpx.py
@@ -50,6 +50,12 @@ wiiu_release: ScummVM.wuhb
 	cp $(srcdir)/backends/platform/sdl/wiiu/USB-SDK.md $(srcdir)/backends/platform/sdl/wiiu/POINTER-SDK.md $(srcdir)/backends/platform/sdl/wiiu/build-usb-sdk.sh $(srcdir)/backends/platform/sdl/wiiu/build-pointer-sdk.sh $(srcdir)/backends/platform/sdl/wiiu/libfat-wiiu-usb.patch $(srcdir)/backends/platform/sdl/wiiu/libmocha-wiiu-usb.patch wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
 	mkdir -p wiiu_release/scummvm/doc/LICENSES
 	cp $(srcdir)/LICENSES/* $(srcdir)/backends/platform/sdl/wiiu/licenses/* wiiu_release/scummvm/doc/LICENSES/
+
+	cp $(srcdir)/backends/platform/sdl/wiiu/order-rpx.py wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/
+	if test -n "$(USE_FLUIDSYNTH)"; then \
+	    cp $(addprefix $(srcdir)/backends/platform/sdl/wiiu/,RELEASE-0.9.0.md PC-PARITY-2026.4.0.md MEDIA-SDK.md build-media-sdk.sh media-sources.json flac-newlib-int32.patch media-zlib-module.patch fluidsynth-wiiu.patch fluid_sys_wiiu.c fluid_sys_wiiu.h) wiiu_release/scummvm/doc/backends/platform/sdl/wiiu/ && \
+	    cp -R "$(DEVKITPRO)/portlibs/ppc/licenses/." wiiu_release/scummvm/doc/LICENSES/media/; \
+	fi
 
 # Keep the RPX test distribution separate to avoid duplicate launcher entries
 # when Aroma users extract their package. It uses the same executable/data.

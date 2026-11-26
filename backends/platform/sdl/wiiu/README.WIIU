@@ -1,20 +1,11 @@
 ScummVM Wii U / Aroma — experimental SDL2 port
 =============================================
 
-Version 0.8.0 includes 15 engine families: SCUMM v0-v8, MM/Xeen,
-SCI/SCI32, Mohawk/Myst/MystME/Riven, Blade Runner, Groovie/Groovie2,
-Tinsel, Sword1, Sword2, AGOS, Gob, Kyra/EOB, Darkseed, Sherlock and SAGA/IHNM.
-See README.md for the complete engine/game table, both full control tables,
-stabilized Wii Remote Pointer and FAT32 USB game-loading instructions.
-Rebel Assault I/II use SCUMM; Scalpel/Rose Tattoo use Sherlock. EOB I/II
-are included; EOB III is not implemented by this base. HE/MM1/AGOS2/LoL,
-Rebel2 PSX and TinyGL remain disabled. Keep mm.dat, kyra.dat and darkseed.dat.
-
-The final release retains the successful USB browser implementation from
-6e1b8130 and the confirmed Pointer/Kyra3/IHNM fixes. Release metadata,
-build/staging and docs change; candidate diagnostics are disabled.
-See RELEASE-0.8.0.md for the exact validation limits. Historical candidate
-helpers/guides are separate from the normal build-release.sh profile.
+Version 0.9.0 includes 19 engine families on ScummVM 2026.4.0. GrimE/Monkey4
+and Stark use TinyGL, alongside Wintermute 2D, AGS and the 15 families from
+0.8.0. The RPX stores loader metadata in forward-read order. See README.md
+for game examples, controls and FAT32 USB setup, and RELEASE-0.9.0.md for the
+console test record. Keep the bundled engine data when updating.
 
 Apply these incremental patches to devkitPro/SDL wiiu-sdl2-2.32 in order:
   1. sdl2-swkbd-input.patch
@@ -34,12 +25,12 @@ Retain the SDK compatibility adjustments below. Historical 0.7.0 binaries
 used patches 1-6 and 0.7.1 used 1-7; preserve those archives unchanged.
 
 Release SDK selection (before sourcing env.sh):
-  export WIIU_SDK_ROOT=/home/renan/Documentos/wiiu-dev/sdk/versions/r51-wut1.9.1-sdl2.32.7-stable-pointer-20261105
+  export WIIU_SDK_ROOT=/home/renan/Documentos/wiiu-dev/sdk/versions/r51-wut1.9.1-sdl2.32.7-media-20261122
   source /home/renan/Documentos/wiiu-dev/sdk/env.sh
   JOBS=6 bash backends/platform/sdl/wiiu/build-release.sh
 The shared default lacks USB/patches 8-9. Pin the complete profile explicitly;
 no shared default or library is changed by release preparation. Standalone
-clones may use an equivalent SDK built using the two reproduction guides.
+clones may use an equivalent SDK built using POINTER-SDK.md, USB-SDK.md and MEDIA-SDK.md.
 Use a fresh build directory when changing profiles.
 
 Requires devkitPPC, WUT, the devkitPro Wii U SDL2 port, target zlib and
@@ -61,8 +52,8 @@ SDL patches; migrating it did not update the compiler to r51. Keep release
 artifacts unchanged and use a fresh build directory when changing profiles.
 
 Current source merges official ScummVM v2026.4.0; the community version is
-0.8.0. The normal release helper defaults to build-scummvm-wiiu-0.8.0 and
-stages RELEASE-0.8.0.md with matching RPX metadata. It checks all engine/codec
+0.9.0. The normal release helper defaults to build-scummvm-wiiu-0.9.0 and
+stages RELEASE-0.9.0.md with matching RPX metadata. It checks all engine/codec
 flags, USB dependencies and stabilized SDL, and disables diagnostic/test macros.
 
 Build outside the source tree, after activating the SDK:
@@ -70,7 +61,7 @@ Build outside the source tree, after activating the SDK:
     --enable-engine=scumm --disable-detection-full --disable-mt32emu
   make -j2 wiiu_release
 
-The above is the historical minimal build, not the 0.8.0 release profile.
+The above is the historical minimal build, not the 0.9.0 release profile.
 For all release engines and MP3/Vorbis/MT-32, with diagnostics disabled:
   bash backends/platform/sdl/wiiu/build-release.sh
 See EXPERIMENTAL.md for historical JPEG/MP3 dependency preparation. For pinned

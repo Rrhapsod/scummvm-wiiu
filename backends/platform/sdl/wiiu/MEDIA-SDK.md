@@ -1,4 +1,4 @@
-# Media SDK for the Wii U 0.9.0 candidate
+# Media SDK for the Wii U 0.9.0 release
 
 I use an independent SDK based on the nine-patch SDL2/USB profile. The shared
 `current` link and previous profiles/releases are preserved. Source archives,
@@ -42,10 +42,8 @@ Activate the new profile before building ScummVM:
 export WIIU_SDK_ROOT=/home/renan/Documentos/wiiu-dev/sdk/versions/r51-wut1.9.1-sdl2.32.7-media-20261122
 source /home/renan/Documentos/wiiu-dev/sdk/env.sh
 bash /home/renan/Documentos/wiiu-dev/sdk/doctor.sh
-JOBS=6 bash backends/platform/sdl/wiiu/build-0.9.0-test.sh
+JOBS=6 bash backends/platform/sdl/wiiu/build-release.sh
 ```
 
-The candidate helper defaults to a new out-of-tree build and verifies required
-engine/codec flags. The normal `build-release.sh` retains the prepared 0.8.0
-profile. See `ENGINES-TEST-0.9.0.md` for the Wintermute 3D limitation and console
-test checklist. Cross-builds and host tests are separate from Wii U runtime.
+The release helper checks the engine and codec configuration and generates Xeen
+data version 1.3. See RELEASE-0.9.0.md for the game and hardware test scope.

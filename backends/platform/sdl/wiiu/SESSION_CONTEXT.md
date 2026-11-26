@@ -1,6 +1,6 @@
 # Wii U port — start here in a new chat
 
-Last verified locally: **2026-11-24**. This is a compact handoff, not the full
+Last verified locally: **2026-11-26**. This is a compact handoff, not the full
 conversation or proof that every earlier test still applies. Recheck Git/files
 before acting; the current user request takes precedence over old next steps.
 
@@ -17,18 +17,19 @@ Paths below are relative to the **outer workspace** unless marked checkout:
 | --- | --- |
 | Durable architecture/work rules | `AGENTS.md` and checkout `AGENTS.md` |
 | Current user features/controls/audio | checkout `README.md` |
-| New 0.9.0 engine/media candidate | checkout `backends/platform/sdl/wiiu/ENGINES-TEST-0.9.0.md` and `MEDIA-SDK.md` |
+| Historical 0.9.0 engine/media candidate | checkout `backends/platform/sdl/wiiu/ENGINES-TEST-0.9.0.md` and `MEDIA-SDK.md` |
 | Desktop parity inventory and porting priorities | [PC-PARITY-2026.4.0.md](PC-PARITY-2026.4.0.md), plan §54 and local `work/logs/pc-parity-2026.4.0-20261122/`. Official PC packages have 113 runtime families. Candidate 96242f5f links 19. |
 | Current development / joint engine tests | checkout `backends/platform/sdl/wiiu/ENGINES-TEST-0.8.0.md` |
-| Current prepared 0.8.0 release | checkout `backends/platform/sdl/wiiu/RELEASE-0.8.0.md` |
-| Build/SDK and nine SDL patches for 0.8.0 | checkout `backends/platform/sdl/wiiu/README.WIIU` |
+| Current prepared 0.9.0 release | checkout `backends/platform/sdl/wiiu/RELEASE-0.9.0.md` |
+| Release SDK and nine SDL patches for 0.9.0 | checkout `backends/platform/sdl/wiiu/README.WIIU` |
 | Full GamePad / Remote + Nunchuk controls | checkout `README.md`, Controls |
-| Previous prepared release | checkout `backends/platform/sdl/wiiu/RELEASE-0.7.1.md` |
-| Binary provenance/packages/checksums | `work/releases/0.8.0/BUILD-INFO.txt`, `SHA256SUMS.txt`, `PUBLISH.md` |
+| Previous prepared release | checkout `backends/platform/sdl/wiiu/RELEASE-0.8.0.md` |
+| Binary provenance/packages/checksums | `work/releases/0.9.0/BUILD-INFO.txt`, `SHA256SUMS.txt`, `PUBLISH.md` |
 | Detailed history/evidence | `docs/WIIU_PORT_PLAN.md`, relevant complete sections |
 | Older build packages after cleanup | `work/archives/builds-pruned-20261026/` |
 | Native input and regression tests | checkout `backends/platform/sdl/wiiu/tests/` |
 | SDK source/install and archived logs | shared `../sdk/sources/`, `../sdk/current/`, `../sdk/backups/`; project `work/logs/`; old SDK/source paths are compatibility links |
+| VS Code in the shared `wiiu-dev` folder | `../.vscode/settings.json` selects `work/build-scummvm-wiiu-0.9.0-test-20261124/compile_commands.json` for the 2,539 candidate translation units. The editor commands undefine Linux, Unix and i386 host macros added by C/C++ 1.35.6, so SDL selects the PowerPC endian definitions. |
 
 Plan sections: 26–27 renderer freeze; 28 Xeen/data/compatibility; 29–32 Curse
 audio and QFG4 loading; 33 text editing/Vorbis; 34 controller keyboard;
@@ -46,14 +47,52 @@ when explicitly requested, not by default for every small follow-up.
 not the current release. Missing outer files in a standalone clone mean local
 evidence is unavailable; they do not imply the source port is absent.
 
-## Current 0.9.0 startup candidate — 2026-11-24
+## Prepared release 0.9.0 — 2026-11-26
+
+I confirmed The Longest Journey (GOG, Windows, English) worked on my Wii U
+with candidate a817fa1d. The November 25 log records detection, teardown
+and successful closure. The earlier e21b8136 run covered Grim Fandango
+(Windows, Brazilian Portuguese). See outer plan §60 and
+`work/logs/release-0.9.0-20261126/`.
+
+The final release uses the 19-engine media SDK profile, the same game code as
+a817fa1d, the upstream 2026.4.0 base and the final `-wiiu-0.9.0` version.
+The normal release helper stages Aroma and the experimental RPX. Local packages,
+hashes, source-tree ID and GitHub release text are in `work/releases/0.9.0/`.
+The final package awaits a separate Wii U test. I will commit, tag and push
+the prepared files myself. Match the tagged source to BUILD-INFO.txt.
+
+## Historical 0.9.0 Stark update — 2026-11-25
+
+On my Wii U the modded-assets warning remained visible after pressing OK.
+Runtime **a817fa1d** starts Stark with original assets on TinyGL-only builds,
+including targets imported with mods enabled. Install the executable from
+`work/candidates/0.9.0-stark-20261125/ScummVM.wuhb` over the November 24 app.
+The matching game data are already in the November 24 installation. The update
+reached the English demo title screen in Cemu 2.6; my GOG full edition on Wii U
+still needs a retest. See outer plan §59 and `work/logs/stark-startup-20261125/`.
+
+## Previous 0.9.0 startup candidate — 2026-11-24
+
+I keep at most two full build trees under `work/`. On November 25 I kept
+`build-scummvm-wiiu-0.9.0-test-20261124` (current build and VS Code database)
+and `build-scummvm-wiiu-0.8.0` (release baseline for the current packager).
+The hardware-tested recovery package is now
+`work/archives/packages-20261125/ScummVM-wiiu-0.8.0-candidate-20261117-aroma.zip`
+with the original `wiiu/apps/ScummVM.wuhb` inside. See plan §57 for older packages.
 
 I fixed RPX section order for forward-only loader reads. Runtime **e21b8136**,
 19 engines, original O2/media profile. The Nov 22 original fails the 4 MiB
 read-window check at section 23. The Nov 17 baseline and corrected Nov 24
 RPX pass. All compressed section payloads and CRCs survive the layout change.
 The new WUHB reached the visible launcher in Cemu 2.6. The original RPX also
-opens in Cemu. Confirmation on Wii U hardware remains pending.
+opens in Cemu. My Wii U log from November 24 identifies **e21b8136** and shows
+Grim Fandango (Windows, Brazilian Portuguese) starting and exiting. I reported
+normal play in that session. The next launch identified The Longest Journey
+(GOG, Windows, English). My photo shows Stark's TinyGL modded-assets warning.
+In the launcher, select The Longest Journey, open Game Options → Game, clear
+**Load modded assets** and confirm. Reaching the game menu is still unverified.
+The original log and photo are in `work/logs/grim-stark-20261124/` (plan §58).
 Use `work/build-scummvm-wiiu-0.9.0-test-20261124/ScummVM.wuhb` (SHA-256
 `fdcb2f8576a2df5642106414a8b36c70c0b15ca272253e7678aba518141049a2`).
 Evidence in `work/logs/startup-20261124/` and outer plan §56.
@@ -718,7 +757,7 @@ Still pending in the recorded evidence:
 - Record exact source revision, SDK provenance, enabled features, checksums
   and hardware status. Check embedded RPX equality, ZIP integrity/data/licenses.
   Never bundle games, ROMs, saves, configuration or user logs.
-- Current release ZIPs are in `work/releases/0.8.0/`. Older 0.7.0, Remote
+- Current release ZIPs are in `work/releases/0.9.0/`. Older 0.7.0, Remote
   candidates and the user-confirmed upstream-update packages remain separate.
 
 ## Communication and next handoff
@@ -736,7 +775,6 @@ When an authorized task changes the project or a handoff is requested, update
 this short document with verified state, evidence and pending tests. Append
 substantial history to the outer plan when available. A read-only question is
 not an instruction to edit files. Do not auto-start old tests/builds/publication
-from this document. The Nov 24 corrected WUHB awaits a hardware startup check; 0.8.0 remains the prepared final release.
-Follow its exact runtime commit for future publication, not the newest
-handoff HEAD. The successful 6e1b8130 precursor and final-binary test boundary
-are recorded above; no publication is implied by preparation.
+from this document. The latest confirmed game test is The Longest Journey
+on candidate a817fa1d. Release 0.9.0 is prepared locally for my review and
+publication. Use its recorded staged source tree to identify the release commit.

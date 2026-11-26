@@ -3,8 +3,8 @@
 **For community testing outside Aroma. Compatibility has NOT been verified.**
 
 This package contains the same RPX executable embedded in the matching
-Aroma WUHB. I tested the fixes in diagnostic builds on Aroma;
-the final 0.7.0 binaries still need a console smoke test. Non-Aroma remains unverified.
+Aroma WUHB. I tested Grim Fandango and The Longest Journey on Aroma candidates.
+The 0.9.0 experimental RPX still needs a separate test with a non-Aroma loader.
 It does not include runtime changes specifically for other loaders.
 Packaging an RPX is not proof that it works with Tiramisu or any other setup.
 Startup, filesystem access, native keyboard, audio and application lifecycle

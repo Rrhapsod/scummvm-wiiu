@@ -1,4 +1,4 @@
-# ScummVM for Wii U / Aroma — v0.8.0
+# ScummVM for Wii U / Aroma — v0.9.0
 
 ![ScummVM icon](dists/psp2/icon0.png)
 
@@ -7,22 +7,20 @@ Launch **ScummVM** directly from the Wii U Menu and play using the GamePad
 touchscreen, analog stick and buttons, or Wii Remote IR Pointer. **No RetroArch required.**
 
 This is an **unofficial, experimental port**, not an official ScummVM release.
-The community port version is **0.8.0**, based on **ScummVM 2026.4.0**.
+The community port version is **0.9.0**, based on **ScummVM 2026.4.0**.
 
-It includes **15 engine families** in one build, **full Wii Remote IR Pointer
+It includes **19 engine families** in one build, **full Wii Remote IR Pointer
 support with adaptive stabilization**, and **game loading from FAT32 USB
 storage**. Games and MT-32 ROMs are not included.
 
-I am also preparing a [0.9.0 engine/media test candidate](backends/platform/sdl/wiiu/ENGINES-TEST-0.9.0.md)
-with GrimE/Monkey4, Stark, Wintermute 2D, AGS, FLAC, PNG, FluidSynth/SF2,
-MPEG-2 and Theora. GrimE/Stark use TinyGL software 3D; Wintermute 3D games
-such as Alpha Polaris remain pending a separate renderer integration. The
-candidate needs console testing before I can call it the final 0.9.0 release.
+Version 0.9.0 adds GrimE/Monkey4, Stark, Wintermute 2D and AGS. GrimE and
+Stark use TinyGL software rendering. I tested Grim Fandango (Brazilian
+Portuguese) and The Longest Journey (GOG, English) on my Wii U.
 
 I track the engines, subengines and features still missing on Wii U in the
 [ScummVM 2026.4.0 desktop parity inventory](backends/platform/sdl/wiiu/PC-PARITY-2026.4.0.md).
 
-See the [0.8.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.8.0.md)
+See the [0.9.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.9.0.md)
 for downloads, changes and validation. The complete control tables and USB
 setup guide are below. **Remote 2 = Escape/back; Nunchuk C = slow analog
 pointer.** GamePad and Remote can remain connected together.
@@ -33,7 +31,7 @@ pointer.** GamePad and Remote can remain connected together.
 
 ## Integrated engines
 
-All engines below are statically included in the same 0.8.0 executable.
+All engines below are statically included in the same 0.9.0 executable.
 The examples identify the enabled scope; integration does not guarantee every
 game edition or a complete playthrough on Wii U.
 
@@ -54,13 +52,17 @@ game edition or a complete playthrough on Wii U.
 | **Darkseed** | Dark Seed |
 | **Sherlock** | The Lost Files of Sherlock Holmes: The Case of the Serrated Scalpel and The Case of the Rose Tattoo |
 | **SAGA / IHNM** | I Have No Mouth, and I Must Scream |
+| **GrimE / Monkey4** | Original Grim Fandango and Escape from Monkey Island |
+| **Stark** | The Longest Journey with original assets |
+| **Wintermute** | Supported 2D titles. Alpha Polaris requires Wintermute 3D and remains unsupported. |
+| **AGS** | Supported editions of Heroine's Quest, the Blackwell series, Kathy Rain (original) and Gemini Rue |
 
 Rebel Assault uses SCUMM; Scalpel and Rose Tattoo use Sherlock. They are not
 separate engine plugins. **Eye of the Beholder III is not implemented by this
 ScummVM base.** HE, MM1, AGOS2, Lands of Lore and Rebel Assault II's PSX version
 are disabled. Discworld Noir requires features outside this build. Use the
 bundled engine data, especially `mm.dat`, `kyra.dat` and `darkseed.dat`.
-Sword1/2 SMK and DXA cutscenes are supported; MPEG-2 cutscene decoding is disabled.
+Video decoders include Bink, MPEG-2 and Theora for engines that use them.
 
 ## Features
 
@@ -106,7 +108,7 @@ Keep backups of your saves when testing an experimental build.
 
 | Package | Intended use | Validation |
 | --- | --- | --- |
-| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | The 0.8.0 browser predecessor passed my latest console test; final package checked locally |
+| Aroma ZIP (`ScummVM.wuhb`) | Launch from the Wii U Menu with Aroma | Grim Fandango and The Longest Journey tested on Aroma candidates; final package checked locally |
 | RPX experimental ZIP (`ScummVM.rpx`) | Community testing with a non-Aroma Wii U Homebrew Launcher/loader that supports RPX | **Not yet tested outside Aroma** |
 
 Both packages include the same executable and required data in different
@@ -290,7 +292,7 @@ later; I still need hardware confirmation of the reported Pro-only/HOME case.
 
 ## MP3 audio playback
 
-MP3 support remains included in 0.8.0. Earlier SCUMM-only packages did not
+MP3 support remains included in 0.9.0. Earlier SCUMM-only packages did not
 include the MP3 decoder.
 
 MP3 decoding is automatic when a supported game engine reads audio in a
@@ -320,7 +322,7 @@ not confirm MP3 playback. Keep the originals as a backup.
 
 ## Ogg Vorbis audio playback
 
-Version 0.8.0 includes **Ogg Vorbis** decoding. It is automatic when an
+Version 0.9.0 includes **Ogg Vorbis** decoding. It is automatic when an
 included engine reads a supported Vorbis resource; there is no Ogg toggle.
 
 1. Keep the game's required filenames and directory layout. Some engines use
@@ -335,9 +337,15 @@ included engine reads a supported Vorbis resource; there is no Ogg toggle.
    resources and keep alternative originals outside it, following that game's
    data requirements. Otherwise the engine may prefer the original audio.
 
-This adds Vorbis, not Opus or Theora. FLAC and MPEG-2 are also not enabled.
 Host decoding checks passed; I have not yet recorded a confirmed Wii U test
 using specifically identified Vorbis assets.
+
+## FLAC audio and General MIDI
+
+Engines that support FLAC can read lossless CD tracks and FLAC-compressed
+speech containers such as SCUMM `.sof` files. For General MIDI music, choose
+FluidSynth as the music device and select your own `.sf2` SoundFont in the
+audio settings. A small SoundFont uses less console memory.
 
 ## MT-32 music emulation
 
@@ -453,7 +461,7 @@ not describe it as confirmed Tiramisu or legacy support yet.
 - MP3 decoding and MT-32 have passed my console tests, but
   compatibility/performance across all games is not guaranteed.
   Vorbis is included but still needs a specifically identified console test.
-  FLAC, MPEG-2, Opus and Theora are not included.
+  FLAC, MPEG-2 and Theora are included. Console playback still needs tests with identified assets. Opus is disabled.
 - Clandestiny, Tender Loving Care and Uncle Henry's Playhouse community reports
   remain unresolved/unverified; the 11th Hour result does not validate them.
 - Version 0.8.0 retains the renderer memory fix validated for the reported
@@ -467,7 +475,7 @@ not describe it as confirmed Tiramisu or legacy support yet.
 
 ## Release and historical test builds
 
-Read the [0.8.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.8.0.md)
+Read the [0.9.0 release notes](backends/platform/sdl/wiiu/RELEASE-0.9.0.md)
 before replacing your existing executable. Keep the earlier ZIP for rollback.
 The [experimental build guide](backends/platform/sdl/wiiu/EXPERIMENTAL.md)
 documents the historical September 30 profile and dependency preparation.
@@ -494,10 +502,10 @@ The port uses the existing ScummVM build system with devkitPPC, WUT,
 devkitPro's Wii U SDL2 branch, target zlib and `wut-tools`. SDL is responsible
 for native video, audio, input and Wii U application lifecycle handling.
 
-For release 0.8.0, including all 15 engines, FAT USB, MP3/Vorbis and MT-32
-without candidate diagnostic tracing, use the release script after preparing
-libfat/libmocha and all nine SDL patches listed in the
-[backend notes](backends/platform/sdl/wiiu/README.WIIU):
+For the 19-engine release, activate the Wii U SDK with the nine SDL patches,
+libfat/libmocha and the media libraries described in the
+[backend notes](backends/platform/sdl/wiiu/README.WIIU) and the
+[media SDK guide](backends/platform/sdl/wiiu/MEDIA-SDK.md).
 
 ```sh
 bash backends/platform/sdl/wiiu/build-release.sh
